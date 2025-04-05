@@ -13,33 +13,16 @@ spring:
             hibernate:
                   ddl-auto: create
             show-sql: true
-#      redis:
-#            host: localhost # Or your Redis host
-#            port: 6379
-#      kafka:
-#            bootstrap-servers: localhost:9092
-#            consumer:
-#                  group-id: my-group
-#                  key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#                  value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#            producer:
-#                  key-serializer: org.apache.kafka.common.serialization.StringSerializer
-#                  value-serializer: org.apache.kafka.common.serialization.StringSerializer
       kafka:
             bootstrap-servers: localhost:9092
             consumer:
-                  properties:
-                        schema.registry.url: http://localhost:8082
-                        specific.avro.reader: true
                   group-id: payment-group
                   auto-offset-reset: earliest
                   key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-                  value-deserializer:  io.confluent.kafka.serializers.KafkaAvroDeserializer
+                  value-deserializer:  org.apache.kafka.common.serialization.StringDeserializer
             producer:
-                  properties:
-                        schema.registry.url: http://localhost:8082
                   key-serializer: org.apache.kafka.common.serialization.StringSerializer
-                  value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+                  value-serializer: org.apache.kafka.common.serialization.StringSerializer
 management:
       endpoints:
             web:
