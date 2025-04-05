@@ -1,0 +1,203 @@
+version: "3.7"
+
+networks:
+#      rabbitmq_nodejs:
+#            name: rabbitmq_nodejs
+#            driver: bridge
+      kafka-network:
+            name: kafka-network
+            driver: bridge
+      common-bridge:
+            name: common-bridge
+            driver: bridge
+
+#volumes:
+#      mobi_data:
+#            external: false
+#      es_data:
+#            external: false
+      # rabbitmq_data:
+      #   external: false
+
+
+services:
+      #  redis:
+      #    image: redis:5
+      #    ports:
+      #      - "6379:6379"
+      # rabbitmq:
+      #   image: rabbitmq:3.12-management
+      #   container_name: rabbitmq
+      #   ports:
+      #     - "5672:5672"
+      #     - "15672:15672"
+      #   networks:
+      #     - common-bridge
+      #   environment:
+      #     RABBITMQ_DEFAULT_USER: admin
+      #     RABBITMQ_DEFAULT_PASS: admin
+      #     RABBITMQ_DEFAULT_VHOST: /
+      #   volumes:
+      #     - rabbitmq_data:/var/lib/rabbitmq
+      zookeeper:
+            image: debezium/zookeeper:2.0
+            hostname: zookeeper
+            ports:
+                  - 2181:2181
+            networks:
+                  - kafka-network
+            container_name: zookeeper
+            environment:
+                  ZOOKEEPER_CLIENT_PORT: 2181
+                  ZOOKEEPER_TICK_TIME: 2000
+
+      kafka:
+            image: debezium/kafka:2.0
+            restart: "always"
+            hostname: kafka
+            depends_on:
+                  - zookeeper
+            ports:
+                  - 9092:9092
+            networks:
+                  - kafka-network
+            container_name: kafka
+            expose:
+                  - "9093"
+            environment:
+                  BROKER_ID: 1
+                  ZOOKEEPER_CONNECT: 'zookeeper:2181'
+                  KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+                  KAFKA_LOG_CLEANUP_POLICY: compact
+                  KAFKA_LOG_RETENTION_HOURS: 72
+                  KAFKA_GROUP_MAX_SESSION_TIMEOUT_MS: 900000
+                  KAFKA_ADVERTISED_LISTENERS: INSIDE://kafka:9093,OUTSIDE://localhost:9092
+                  KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
+                  KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
+                  KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
+      schema-registry:
+            image: confluentinc/cp-schema-registry
+            hostname: schema-registry
+            container_name: schema-registry
+            networks:
+                  - kafka-network
+            depends_on:
+                  - zookeeper
+                  - kafka
+            ports:
+                  - "8082:8082"
+            # network_mode: host
+            environment:
+                  SCHEMA_REGISTRY_HOST_NAME: schema-registry
+                  SCHEMA_REGISTRY_LISTENERS: http://schema-registry:8082
+                  SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://kafka:9093'
+                  SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
+                  SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: 'GET,POST,PUT,OPTIONS'
+      connect:
+            image: debezium/connect:1.8.0.Final
+            hostname: connect
+            container_name: connect
+            networks:
+                  - kafka-network
+            depends_on:
+                  - zookeeper
+                  - kafka
+                  - schema-registry
+            ports:
+                  - "8083:8083"
+            # network_mode: host
+            environment:
+                  OFFSET_FLUSH_TIMEOUT_MS: 1800000
+                  OFFSET_FLUSH_INTERVAL_MS: 1000
+                  KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+                  VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+                  #      INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+                  #      INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+                  CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
+                  CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
+                  BOOTSTRAP_SERVERS: 'kafka:9093'
+                  REST_ADVERTISED_HOST_NAME: connect
+                  REST_PORT: 8083
+                  GROUP_ID: 1
+                  CONFIG_STORAGE_TOPIC: docker-connect-2-configs
+                  CONFIG_STORAGE_REPLICATION_FACTOR: 1
+                  OFFSET_STORAGE_TOPIC: docker-connect-2-offsets
+                  OFFSET_STORAGE_REPLICATION_FACTOR: 1
+                  STATUS_STORAGE_TOPIC: docker-connect-2-status
+                  STATUS_STORAGE_REPLICATION_FACTOR: 1
+                  KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
+                  VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
+                  ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      
+      kafka_manager:
+            image: sheepkiller/kafka-manager
+            container_name: my_kafka-manager
+            networks:
+                  - kafka-network
+            depends_on:
+                  - zookeeper
+            ports:
+                  - 9000:9000
+            environment:
+                  ZK_HOSTS: "zookeeper:2181"
+                  APPLICATION_SECRET: "letmein"
+
+      kafdrop:
+            image: obsidiandynamics/kafdrop:3.30.0
+            container_name: kafdrop
+            restart: "no"
+            networks:
+                  - kafka-network
+            ports:
+                  - "9009:9000"
+            environment:
+                  KAFKA_BROKERCONNECT: kafka:9093
+                  JVM_OPTS: "-Xms16M -Xmx48M -Xss180K -XX:-TieredCompilation -XX:+UseStringDeduplication -noverify"
+                  SERVER_SERVLET_CONTEXTPATH: "/"
+            depends_on:
+                  - kafka
+
+#      es:
+#            image: docker.elastic.co/elasticsearch/elasticsearch:7.10.2
+#            container_name: "es"
+#            environment:
+#                  discovery.type: single-node
+#            ports:
+#                  - "9200:9200"
+#                  - "9300:9300"
+#            volumes:
+#                  - es_data:/usr/share/elasticsearch/data
+
+#      localstack:
+#            image: localstack/localstack:2.2.0
+#            container_name: localstack
+#            hostname: localstack
+#            environment:
+#                  - SERVICES=s3
+#                  - DEBUG=1
+#                  - AWS_ACCESS_KEY_ID=test
+#                  - AWS_SECRET_ACCESS_KEY=test
+#                  - DOCKER_HOST=unix:///var/run/docker.sock
+#                  - DATA_DIR=/tmp/localstack/data
+#                  - PERSISTENCE=1
+#            ports:
+#                  - "4566-4597:4566-4597"
+#                  - 8999:8080
+#                  - 9080:9080
+#            networks:
+#                  - common-bridge
+#            volumes:
+#                  - "${LOCALSTACK_VOLUME_DIR:-./volume}:/var/lib/localstack"
+#                  - "/var/run/docker.sock:/var/run/docker.sock"
+#
+      # kibana:
+      #   image: docker.elastic.co/kibana/kibana:7.10.2
+      #   container_name: kibana
+      #   environment:
+      #     ELASTICSEARCH_HOSTS: "http://es:9200"  # Use 'es' container name, not 'localhost'
+      #   ports:
+      #     - "5601:5601"  # Correct the Kibana port (Kibana default is 5601)
+      #   networks:
+      #     - common-bridge  # Ensure it’s in the right network with Elasticsearch
+      #   depends_on:
+      #     - es  # Correct dependency on Elasticsearch

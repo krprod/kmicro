@@ -1,0 +1,10 @@
+{
+  "type": "record",
+  "name": "PaymentEvent",
+  "namespace": "com.kmicro.avro",
+  "fields": [
+    { "name": "orderId", "type": "string" },
+    { "name": "paymentStatus", "type": "string" },
+    { "name": "transactionId", "type": "string" }
+  ]
+}

@@ -1,0 +1,27 @@
+server:
+      port: 8090
+spring:
+      application:
+            name: cart
+      profiles:
+            active: "prod"
+#      datasource:
+#            url: jdbc:postgresql://localhost:5432/springmicro
+#            username: bloguser
+#            password: bloguser
+#      jpa:
+#            hibernate:
+#                  ddl-auto: create
+#            show-sql: true
+      redis:
+            host: localhost # Or your Redis host
+            port: 6379
+
+management:
+      endpoints:
+            web:
+                  exposure:
+                        include: health
+      health:
+#            jdbc:
+#                  enabled: true

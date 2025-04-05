@@ -1,0 +1,25 @@
+server:
+      port: 8080
+spring:
+      application:
+            name: product
+      profiles:
+            active: "prod"
+      datasource:
+            url: jdbc:postgresql://localhost:5432/springmicro
+            username: bloguser
+            password: bloguser
+      jpa:
+            hibernate:
+                  ddl-auto: create
+            show-sql: true
+
+
+management:
+      endpoints:
+            web:
+                  exposure:
+                        include: health
+      health:
+            jdbc:
+                  enabled: true
