@@ -50,4 +50,9 @@ public class CartService {
     private  String getCacheKeyPrefix(String id){
         return  CACHE_KEY_PREFIX + id;
     }
+
+    public Boolean deleteCart(String userID) {
+        String cacheKey = getCacheKeyPrefix(userID);
+        return  redisTemplate.delete(cacheKey);
+    }
 }

@@ -75,59 +75,59 @@ services:
                   KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
                   KAFKA_LISTENERS: INSIDE://0.0.0.0:9093,OUTSIDE://0.0.0.0:9092
                   KAFKA_INTER_BROKER_LISTENER_NAME: INSIDE
-      schema-registry:
-            image: confluentinc/cp-schema-registry
-            hostname: schema-registry
-            container_name: schema-registry
-            networks:
-                  - kafka-network
-            depends_on:
-                  - zookeeper
-                  - kafka
-            ports:
-                  - "8082:8082"
-            # network_mode: host
-            environment:
-                  SCHEMA_REGISTRY_HOST_NAME: schema-registry
-                  SCHEMA_REGISTRY_LISTENERS: http://schema-registry:8082
-                  SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://kafka:9093'
-                  SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
-                  SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: 'GET,POST,PUT,OPTIONS'
-      connect:
-            image: debezium/connect:1.8.0.Final
-            hostname: connect
-            container_name: connect
-            networks:
-                  - kafka-network
-            depends_on:
-                  - zookeeper
-                  - kafka
-                  - schema-registry
-            ports:
-                  - "8083:8083"
-            # network_mode: host
-            environment:
-                  OFFSET_FLUSH_TIMEOUT_MS: 1800000
-                  OFFSET_FLUSH_INTERVAL_MS: 1000
-                  KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
-                  VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-                  #      INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-                  #      INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-                  CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
-                  CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
-                  BOOTSTRAP_SERVERS: 'kafka:9093'
-                  REST_ADVERTISED_HOST_NAME: connect
-                  REST_PORT: 8083
-                  GROUP_ID: 1
-                  CONFIG_STORAGE_TOPIC: docker-connect-2-configs
-                  CONFIG_STORAGE_REPLICATION_FACTOR: 1
-                  OFFSET_STORAGE_TOPIC: docker-connect-2-offsets
-                  OFFSET_STORAGE_REPLICATION_FACTOR: 1
-                  STATUS_STORAGE_TOPIC: docker-connect-2-status
-                  STATUS_STORAGE_REPLICATION_FACTOR: 1
-                  KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
-                  VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
-                  ZOOKEEPER_CONNECT: 'zookeeper:2181'
+#      schema-registry:
+#            image: confluentinc/cp-schema-registry
+#            hostname: schema-registry
+#            container_name: schema-registry
+#            networks:
+#                  - kafka-network
+#            depends_on:
+#                  - zookeeper
+#                  - kafka
+#            ports:
+#                  - "8082:8082"
+#            # network_mode: host
+#            environment:
+#                  SCHEMA_REGISTRY_HOST_NAME: schema-registry
+#                  SCHEMA_REGISTRY_LISTENERS: http://schema-registry:8082
+#                  SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://kafka:9093'
+#                  SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
+#                  SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: 'GET,POST,PUT,OPTIONS'
+#      connect:
+#            image: debezium/connect:1.8.0.Final
+#            hostname: connect
+#            container_name: connect
+#            networks:
+#                  - kafka-network
+#            depends_on:
+#                  - zookeeper
+#                  - kafka
+#                  - schema-registry
+#            ports:
+#                  - "8083:8083"
+#            # network_mode: host
+#            environment:
+#                  OFFSET_FLUSH_TIMEOUT_MS: 1800000
+#                  OFFSET_FLUSH_INTERVAL_MS: 1000
+#                  KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
+#                  VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+#                  #      INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+#                  #      INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
+#                  CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
+#                  CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
+#                  BOOTSTRAP_SERVERS: 'kafka:9093'
+#                  REST_ADVERTISED_HOST_NAME: connect
+#                  REST_PORT: 8083
+#                  GROUP_ID: 1
+#                  CONFIG_STORAGE_TOPIC: docker-connect-2-configs
+#                  CONFIG_STORAGE_REPLICATION_FACTOR: 1
+#                  OFFSET_STORAGE_TOPIC: docker-connect-2-offsets
+#                  OFFSET_STORAGE_REPLICATION_FACTOR: 1
+#                  STATUS_STORAGE_TOPIC: docker-connect-2-status
+#                  STATUS_STORAGE_REPLICATION_FACTOR: 1
+#                  KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
+#                  VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8082'
+#                  ZOOKEEPER_CONNECT: 'zookeeper:2181'
       
       kafka_manager:
             image: sheepkiller/kafka-manager

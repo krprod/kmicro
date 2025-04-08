@@ -22,6 +22,7 @@ public class PaymentController {
     @PostMapping("/payment")
     public ResponseEntity<OrderResponse> makePayment(@RequestBody OrderRequest orderRequest){
         OrderResponse orderServiceResponse = paymentService.proceedPayment(orderRequest);
+        System.out.println("Request Came");
         return   ResponseEntity.status(200).body(orderServiceResponse) ;
     }
 

@@ -2,6 +2,7 @@ package com.kmicro.order.config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kmicro.order.service.OrderServiceListner;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,13 +17,19 @@ public class PaymentInterceptor{
     @Autowired
     private ObjectMapper objectMapper;
 
+    @Autowired
+    OrderServiceListner orderServiceListner;
+
     @KafkaListener(containerFactory = "orderKafkaListenerContainerFactory", topics = "payment-events", groupId = "order-group")
     public void listen(ConsumerRecord<String, String> requestRecord) {
         try {
             JsonNode paymentJson = objectMapper.readValue(requestRecord.value(), JsonNode.class);
-           Integer orderID =  paymentJson.get("orderId").asInt();
-            String transID = paymentJson.get("transactionId").asText();
-            System.out.println("EventRecieved: "+orderID+"-- "+transID);
+            System.out.println("EventRecieved in Order: " + paymentJson);
+
+            orderServiceListner.updatePaymentInfoInDB(paymentJson);
+//           Integer orderID =  paymentJson.get("orderId").asInt();
+//            String transID = paymentJson.get("transactionId").asText();
+
         } catch (Exception e) {
             log.error("Error while processing email message {}", e);
         }

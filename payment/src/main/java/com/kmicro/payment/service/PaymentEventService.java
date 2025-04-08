@@ -27,15 +27,15 @@ public class PaymentEventService {
         // Simulate payment processing
             try {
                 HashMap<String, String> event = new HashMap<>();
-                event.put("orderId", order.getOrderID().toString());
-                event.put("paymentStatus", order.getPaymentStatus());
-                event.put("transactionId", order.getTransactionID());
+                event.put("order_id", order.getOrderID().toString());
+                event.put("payment_status", order.getPaymentStatus());
+                event.put("trasaction_id", order.getTransactionID());
 
                 String eventString = objectMapper.writeValueAsString(event);
 
-                kafkaProducer.send(new ProducerRecord<String, String>(TOPIC, null, event.get("orderId").toString(), eventString) ); // Key = orderId for partitioning
+                kafkaProducer.send(new ProducerRecord<String, String>(TOPIC, null, event.get("order_id").toString(), eventString) ); // Key = orderId for partitioning
 
-                System.out.println("Published payment event for order: " + event.get("orderId"));
+                System.out.println("Published payment event for order: " + event.get("order_id"));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
