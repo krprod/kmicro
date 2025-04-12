@@ -39,6 +39,9 @@ public class OrderDTO  implements Serializable {
     @JsonProperty("payment_status")
     private  String paymentStatus;
 
+    @JsonProperty("shipping_fee")
+    private  String shippingFee;
+
     @JsonProperty( "tracking_number")
     private  String trackingNumber;
 

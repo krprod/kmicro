@@ -43,6 +43,9 @@ public class OrderEntity {
     @Column(name = "payment_status")
     private  String paymentStatus;
 
+    @Column(name = "shipping_fee")
+    private  String shippingFee;
+
     @Column(name = "tracking_number")
     private  String trackingNumber;
 

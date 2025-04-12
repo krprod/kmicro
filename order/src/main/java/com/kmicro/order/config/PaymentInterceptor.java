@@ -24,8 +24,7 @@ public class PaymentInterceptor{
     public void listen(ConsumerRecord<String, String> requestRecord) {
         try {
             JsonNode paymentJson = objectMapper.readValue(requestRecord.value(), JsonNode.class);
-            System.out.println("EventRecieved in Order: " + paymentJson);
-
+            log.info("OrderServiceListner Event Recieved from Payement: {}",paymentJson);
             orderServiceListner.updatePaymentInfoInDB(paymentJson);
 //           Integer orderID =  paymentJson.get("orderId").asInt();
 //            String transID = paymentJson.get("transactionId").asText();

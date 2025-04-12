@@ -1,4 +1,5 @@
 # Microservice Ecommerce Project
+* run any service by cmd: **mvn spring-boot:run**
 
 # Tools
 __Docker__

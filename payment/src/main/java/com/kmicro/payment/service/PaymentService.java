@@ -48,9 +48,7 @@ public class PaymentService {
              orderResponse.setOrderID(orderRequest.orderID);
              orderResponse.setPaymentStatus(status);
              orderResponse.setTransactionID(transactionID);
-
              paymentEventService.processPaymentKafka(orderResponse);
-
             return orderResponse;
          } catch (RazorpayException e) {
              log.error("doPayment Error: "+ e);
@@ -60,17 +58,21 @@ public class PaymentService {
     }
 
     private   Order  createOrderForPayment(Integer amount)  {
+        log.info("createOrderForPayment with amount: {}",amount);
         try {
-            RazorpayClient razorpay = new RazorpayClient(API_KEY,SECRET_KEY);
-            JSONObject orderRequest = PaymentUtil.createOrder(amount);
-            Order order = razorpay.orders.create(orderRequest);
-            return  order;
-        } catch (RazorpayException e) {
-            throw new RuntimeException(e);
-        }
+                RazorpayClient razorpay = new RazorpayClient(API_KEY,SECRET_KEY);
+                JSONObject orderRequest = PaymentUtil.createOrder(amount);
+                Order order = razorpay.orders.create(orderRequest);
+                return  order;
+            } catch (RazorpayException e) {
+                log.error("Error While createOrderForPayment:{}",e.getMessage());
+                log.debug("Error While createOrderForPayment:{}",e.getStackTrace());
+                throw new RuntimeException(e);
+            }
     }
 
     private Boolean verifyPayment(String orderID, String transactionID ) throws RazorpayException {
+            log.info("Verifying Payment status for orderID:{} and transactionID:{}",orderID,transactionID);
            String secretKey = SECRET_KEY;
         JSONObject verificationRequest = PaymentUtil.verificationObj(orderID,transactionID,SECRET_KEY);
            return Utils.verifyPaymentSignature(verificationRequest,secretKey);

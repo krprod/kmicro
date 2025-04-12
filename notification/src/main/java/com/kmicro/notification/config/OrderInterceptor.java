@@ -17,9 +17,9 @@ public class OrderInterceptor {
 
     @KafkaListener(containerFactory = "notificationKafkaListenerContainerFactory", topics = "order-events", groupId = "notification-group")
     public void listen(ConsumerRecord<String, String> requestRecord) {
+        log.info("Event Revieved In Notification:{}",requestRecord.value());
         try {
             JsonNode orderJson = objectMapper.readValue(requestRecord.value(), JsonNode.class);
-            System.out.println("Event RecievedIn Notification: "+orderJson);
         } catch (Exception e) {
             log.error("Error while processing notification message {}", e);
         }

@@ -44,6 +44,7 @@ public class OrderServiceHelper {
 
     @Transactional
     protected OrderEntity saveOrder(OrderEntity orderEntity, OrderRepository orderRepository) {
+        log.info("Save order details in database and Redis");
         try {
             OrderEntity order =  orderRepository.save(orderEntity);
             saveOrderInRedis(order);
@@ -54,7 +55,7 @@ public class OrderServiceHelper {
     }
 
     protected   OrderEntity generateOrderEntity( List<OrderItemDTO> orderItemDTOList){
-
+        log.info("create orderEntity from  orderItemDTOList");
         try {
             Double totalPrice = getOrderTotalPrice(orderItemDTOList);
             // ----------- generate  OrderEntity Object
@@ -75,7 +76,7 @@ public class OrderServiceHelper {
             return orderEntity;
         }catch (Exception e){
             log.error(e.getMessage());
-            e.printStackTrace();
+            log.debug("detailedMessage: {}",e.getStackTrace());
             return null;
         }
     }
@@ -89,8 +90,8 @@ public class OrderServiceHelper {
     }
 
     protected Mono<Void> makePayment(Double amount, Long  orderId) {
+        log.info("request payment service to makePayment for orderID: {}",orderId);
         WebClient client = WebClient.create(PAYMENT_SERVICE_URL);
-
         Map<String, Object> requestBody = new HashMap<>();
         requestBody.put("amount", amount);
         requestBody.put("order_id", orderId);
@@ -103,6 +104,7 @@ public class OrderServiceHelper {
     }
 
     protected Mono<Void> removeCart(String user_id) {
+        log.info("request cart service to remove cart with ID: {}",user_id);
         WebClient client = WebClient.create(USER_CART_URL);
 //        String userID = "/cart/"+user_id;
         return client.delete()
@@ -112,6 +114,7 @@ public class OrderServiceHelper {
     }
 
     protected void saveOrderInRedis(OrderEntity order) {
+        log.info("saveOrderInRedis with orderID: {}", order.getId());
         OrderDTO orderDTO = OrderMapper.mapEntityToDTOWithItems(order);
         String key = KEY_PREFIX + orderDTO.getId();
         redisTemplate.opsForValue().set(key, orderDTO);
@@ -123,6 +126,7 @@ public class OrderServiceHelper {
     }
 
     protected  void sendNotificationToKafka(String key, String Data) {
+        log.info("sendNotificationToKafka with orderID: {} and Data: {}", key,  Data);
         kafkaProducer.send(new ProducerRecord<String, String>(TOPIC, null, key, Data) );
     }
 

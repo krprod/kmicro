@@ -22,10 +22,10 @@ public class OrderServiceListner {
       try {
           Long orderId = paymentJson.get("order_id").asLong();
           String transactionID = paymentJson.get("trasaction_id").asText();
-          String status = paymentJson.get("payment_status").asText();
+          String paymentStatus = paymentJson.get("payment_status").asText();
 
           // update order table record and Get User ID
-          OrderEntity order = orderService.updateOrderStatus(orderId , transactionID,status);
+          OrderEntity order = orderService.updateOrderStatus(orderId , transactionID,paymentStatus);
           orderServiceHelper.saveOrderInRedis(order);
 
           // remove cart data from redis
