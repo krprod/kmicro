@@ -83,7 +83,7 @@ public class OrderService {
                    });*/
        }catch (Exception e){
            log.error(e.getMessage());
-           e.printStackTrace();
+           log.debug("detailedMessage: {}",e.getStackTrace());
        }
      /*   WebClient client = WebClient.create("http://localhost:8090/api");
         String userID = "/cart/"+userId;
@@ -99,6 +99,7 @@ public class OrderService {
 
     private CompletableFuture<List<OrderItemDTO>> getOrderItemsFromCartService(String user_id) {
 //        WebClient client = WebClient.create("your_base_url"); // Replace with your base URL
+        log.info("request cart details from cart service for user ID: {}",user_id);
         WebClient client = WebClient.create(USER_CART_URL);
 //        String userID = "/cart/"+user_id;
         Flux<OrderItemDTO> response = client.get()
@@ -131,14 +132,18 @@ public class OrderService {
     }
 
     public OrderEntity updateOrderStatus(Long orderID, String transactionId, String paymentStatus) {
+        log.info("Saving orderID: {}, transactionId: {}, paymentStatus: {} in Database",orderID, transactionId,  paymentStatus);
         OrderEntity orderEntity = orderRepository.findById(orderID).get();
         orderEntity.setTransactionId(transactionId);
         orderEntity.setPaymentStatus(paymentStatus);
-        orderEntity.setOrderStatus(OrderStatusEnum.CONFIRMED);
+        //**  payment Status pr order status update krna hai if fail to fail_payment else processing
+//        if(paymentStatus.toLowerCase().equals("success"))
+        orderEntity.setOrderStatus(OrderStatusEnum.PROCESSING);
         return orderRepository.save(orderEntity);
     }
 
     public String getOrderFromRedis(Long orderID) {
+        log.info("order Json in string format for orderID: {}",orderID);
        try {
            Object cachedOrder =  orderServiceHelper.getOrderFromRedis(orderID.toString());
            return objectMapper.writeValueAsString(cachedOrder);

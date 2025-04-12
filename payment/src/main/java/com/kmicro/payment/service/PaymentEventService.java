@@ -3,6 +3,7 @@ package com.kmicro.payment.service;
 //import com.kmicro.avro.PaymentEvent;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kmicro.payment.dtos.OrderResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -11,7 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
 
-
+@Slf4j
 @Service
 public class PaymentEventService {
 
@@ -32,10 +33,8 @@ public class PaymentEventService {
                 event.put("trasaction_id", order.getTransactionID());
 
                 String eventString = objectMapper.writeValueAsString(event);
-
+                log.info("Sending payment event for OrderService: {}",eventString);
                 kafkaProducer.send(new ProducerRecord<String, String>(TOPIC, null, event.get("order_id").toString(), eventString) ); // Key = orderId for partitioning
-
-                System.out.println("Published payment event for order: " + event.get("order_id"));
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }

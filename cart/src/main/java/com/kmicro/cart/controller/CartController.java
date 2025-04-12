@@ -18,7 +18,6 @@ public class CartController {
     @GetMapping("/cart/{userID}")
     public ResponseEntity<  List<CartDTO>> getAllCarts(@PathVariable(value = "userID") String user_id){
         List<CartDTO> productList = cartService.getCartDetails(user_id);
-        System.out.println("RequestCame");
         return ResponseEntity.status(200).body(productList);
     }
 
