@@ -19,6 +19,7 @@ __LocalStack__
 
 # Services
 __Product Service__
+URL: http://localhost:8080/api/products
 
 __Cart Service__
 - Cart service is a microservice that handles the cart operations. URL: http://localhost:8090/api/cart
@@ -33,7 +34,9 @@ __Payment Service__
 - Payment service is a microservice that handles the payment operations. URL: http://localhost:8095/api/payment
 
 __Notification Service__
+URL: http://localhost:8096/api/notifications
 
 __User Service__
+URL: http://localhost:8085/api/
 
 __Commons__

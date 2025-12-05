@@ -3,6 +3,7 @@ package com.kmicro.user.entities;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.validator.constraints.UniqueElements;
 
 import java.util.List;
 
@@ -14,14 +15,18 @@ public class UserEntity {
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long  Id;
 
-    @Column(name = "first_name")
-    private String firstName;
+    private String username;
 
-    @Column(name = "last_name")
-    private String lastName;
-
+    @UniqueElements
     private String email;
+
     private String password;
+
+    private String avtar;
+
+    private boolean isLoggedIn;
+
+    private boolean isLocked;
 
     @OneToMany(mappedBy = "user", targetEntity = AddressEntity.class, cascade = CascadeType.ALL, fetch = FetchType.LAZY,   orphanRemoval = true)
     private List<AddressEntity> addresses;

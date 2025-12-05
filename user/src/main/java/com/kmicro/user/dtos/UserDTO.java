@@ -1,18 +1,22 @@
 package com.kmicro.user.dtos;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data @AllArgsConstructor @NoArgsConstructor
 public class UserDTO {
 
-    @JsonProperty("first_name")
-    private String firstName;
-    @JsonProperty("last_name")
-    private String lastName;
-
+    private Long id;
+    private String username;
     private String email;
     private String password;
+    private String avtar;
+    private boolean isLoggedIn;
+
+//    private lastLogin;
+//    createdAt
+    private List<AddressDTO> addresses;
 }
