@@ -4,6 +4,7 @@ import com.kmicro.order.dtos.OrderDTO;
 import com.kmicro.order.dtos.OrderItemDTO;
 import com.kmicro.order.service.OrderService;
 import lombok.Getter;
+import org.apache.kafka.common.protocol.types.Field;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,12 @@ public class OrderController {
     public ResponseEntity<OrderDTO> getOrderDetailsByOrderID(@PathVariable(value = "orderID") Long orderID) {
        OrderDTO orderDTO = orderService.getOrderDetailsByOrderID(orderID);
         return  null != orderDTO ? ResponseEntity.ok(orderDTO) :   ResponseEntity.status(404).body(null);
+    }
+
+    @GetMapping("/order/cache/{orderID}")
+    public ResponseEntity<String> getOrderFromRedis(@PathVariable(value = "orderID") Long orderID) {
+       String  cachedOrder =  orderService.getOrderFromRedis(orderID);
+        return  true ? ResponseEntity.ok(cachedOrder) :   ResponseEntity.status(404).body(null);
     }
 
     // remove full order

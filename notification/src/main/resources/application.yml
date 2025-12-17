@@ -1,0 +1,31 @@
+server:
+      port: 8096
+spring:
+      application:
+            name: notification
+      profiles:
+            active: "prod"
+      datasource:
+            url: jdbc:postgresql://localhost:5432/springmicro
+            username: bloguser
+            password: bloguser
+      jpa:
+            hibernate:
+                  ddl-auto: create
+            show-sql: true
+      mail:
+            host: smtp.gmail.com
+            port: 587
+            username: ${GMAILNAME:""}
+            password: ${GMAILPASSWORD:""}
+            properties:
+                  mail.smtp.auth: true
+                  mail.smtp.starttls.enable: true
+management:
+      endpoints:
+            web:
+                  exposure:
+                        include: health
+      health:
+            jdbc:
+                  enabled: true

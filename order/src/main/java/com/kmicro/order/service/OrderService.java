@@ -1,5 +1,7 @@
 package com.kmicro.order.service;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kmicro.order.dtos.OrderDTO;
 import com.kmicro.order.dtos.OrderItemDTO;
 import com.kmicro.order.dtos.OrderStatusEnum;
@@ -13,6 +15,7 @@ import com.kmicro.order.repository.OrderRepository;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -32,7 +35,6 @@ import java.util.concurrent.CompletableFuture;
 public class OrderService {
 
     private static final String USER_CART_URL = "http://localhost:8090/api/cart/";
-    private static final String PAYMENT_SERVICE_URL = "http://localhost:8095/api/payment";
 
     @Autowired
     OrderRepository orderRepository;
@@ -40,19 +42,28 @@ public class OrderService {
     @Autowired
     OrderItemRepository orderItemRepository;
 
+    @Autowired
+    OrderServiceHelper orderServiceHelper;
+
+    @Autowired
+    private ObjectMapper objectMapper;
+
+
     public void proceedCheckOut(String userId) {
 
        try {
-           // --------request CartService to send Cart Data
+           // -------- GET Cart Data from cart-service
            List<OrderItemDTO> orderItemDTOList = getOrderItemsFromCartService(userId).get();
 
-           // -------- Complete orderData in table
-          OrderEntity saveOrder =  saveOrder(generateOrderEntity(orderItemDTOList));
+           // -------- save order in table
+           OrderEntity generatedOrderEntity = orderServiceHelper.generateOrderEntity(orderItemDTOList);
+          OrderEntity savedOrder =  orderServiceHelper.saveOrder(generatedOrderEntity, orderRepository);
 
-           //-------- makePayment()
-           Double totalAmount = getOrderTotalPrice(orderItemDTOList);
+           //-------- POST  order details to payment service
+           Double totalAmount = orderServiceHelper.getOrderTotalPrice(orderItemDTOList);
+           orderServiceHelper. makePayment(totalAmount, savedOrder.getId()).subscribe();
 
-           makePayment(totalAmount, saveOrder.getId())
+       /*    makePayment(totalAmount, saveOrder.getId())
                    .subscribe(response -> {
                        System.out.println("Payment response: " + response);
                        // Process the response here (e.g., update database, send notifications)
@@ -69,10 +80,10 @@ public class OrderService {
                    }, error -> {
                        System.err.println("Error processing payment: " + error.getMessage());
                        // Handle the error here
-                   });
+                   });*/
        }catch (Exception e){
            log.error(e.getMessage());
-           e.printStackTrace();
+           log.debug("detailedMessage: {}",e.getStackTrace());
        }
      /*   WebClient client = WebClient.create("http://localhost:8090/api");
         String userID = "/cart/"+userId;
@@ -86,65 +97,9 @@ public class OrderService {
 
     }
 
-    public Mono<Map>makePayment(Double amount, Long  orderId) {
-        WebClient client = WebClient.create(PAYMENT_SERVICE_URL);
-
-        Map<String, Object> requestBody = new HashMap<>();
-        requestBody.put("amount", amount);
-        requestBody.put("order_id", orderId);
-
-        return client.post()
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(requestBody)
-                .retrieve()
-                .bodyToMono(Map.class);
-    }
-
-    private  OrderEntity generateOrderEntity( List<OrderItemDTO> orderItemDTOList){
-
-     try {
-         Double totalPrice = getOrderTotalPrice(orderItemDTOList);
-         // ----------- generate  OrderEntity Object
-         OrderEntity orderEntity = new OrderEntity();
-         orderEntity.setOrderDate(LocalDateTime.now());
-         orderEntity.setOrderTotal(totalPrice);
-         orderEntity.setUserId(orderItemDTOList.getFirst().getUserId());
-         orderEntity.setOrderStatus(OrderStatusEnum.PENDING);
-         orderEntity.setPaymentMethod(PaymentMethodEnum.ONLINE);
-         orderEntity.setTransactionId("transctionNumber_01");
-         orderEntity.setTrackingNumber("trackingNumber_01");
-         // -------- generate  OrderItemEntity Object
-         List<OrderItemEntity> orderItemEntities = OrderItemMapper.mapDTOListToEntityList(orderItemDTOList, orderEntity);
-         //----- --- set OrderItemEntity to OrderEntity
-         orderEntity.setOrderItems(orderItemEntities);
-
-         return orderEntity;
-     }catch (Exception e){
-         log.error(e.getMessage());
-         e.printStackTrace();
-         return null;
-     }
-}
-
-    private Double getOrderTotalPrice(List<OrderItemDTO> orderItemDTOList) {
-        Double totalPrice = 0.0;
-        for (OrderItemDTO orderItemDTO : orderItemDTOList) {
-            totalPrice += orderItemDTO.getPrice() * orderItemDTO.getQuantity();
-        }
-        return totalPrice;
-    }
-
-    @Transactional
-    private OrderEntity saveOrder(OrderEntity orderEntity) {
-            try {
-               return  orderRepository.save(orderEntity);
-            } catch (RuntimeException e) {
-                throw new RuntimeException(e);
-            }
-    }
-
     private CompletableFuture<List<OrderItemDTO>> getOrderItemsFromCartService(String user_id) {
 //        WebClient client = WebClient.create("your_base_url"); // Replace with your base URL
+        log.info("request cart details from cart service for user ID: {}",user_id);
         WebClient client = WebClient.create(USER_CART_URL);
 //        String userID = "/cart/"+user_id;
         Flux<OrderItemDTO> response = client.get()
@@ -176,9 +131,29 @@ public class OrderService {
         return orderDTO;
     }
 
+    public OrderEntity updateOrderStatus(Long orderID, String transactionId, String paymentStatus) {
+        log.info("Saving orderID: {}, transactionId: {}, paymentStatus: {} in Database",orderID, transactionId,  paymentStatus);
+        OrderEntity orderEntity = orderRepository.findById(orderID).get();
+        orderEntity.setTransactionId(transactionId);
+        orderEntity.setPaymentStatus(paymentStatus);
+        //**  payment Status pr order status update krna hai if fail to fail_payment else processing
+//        if(paymentStatus.toLowerCase().equals("success"))
+        orderEntity.setOrderStatus(OrderStatusEnum.PROCESSING);
+        return orderRepository.save(orderEntity);
+    }
+
+    public String getOrderFromRedis(Long orderID) {
+        log.info("order Json in string format for orderID: {}",orderID);
+       try {
+           Object cachedOrder =  orderServiceHelper.getOrderFromRedis(orderID.toString());
+           return objectMapper.writeValueAsString(cachedOrder);
+       } catch (JsonProcessingException e) {
+           throw new RuntimeException(e);
+       }
+    }
+
     public void removeItemFromOrder(Long orderItemID) {
         orderItemRepository.deleteById(orderItemID);
     }
-
 }//EC
 
