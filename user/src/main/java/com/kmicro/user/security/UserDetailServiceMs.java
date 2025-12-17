@@ -9,8 +9,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-
 @Service
 @RequiredArgsConstructor
 public class UserDetailServiceMs implements UserDetailsService {
@@ -22,9 +20,20 @@ public class UserDetailServiceMs implements UserDetailsService {
         UserEntity user = usersRepository.findByEmail(useremail)
                 .orElseThrow(() -> new UsernameNotFoundException("User details not found for the user: " + useremail));
 
-//        List<GrantedAuthority> authorities = user.getAuthorities().stream().map(authority -> new
-//                SimpleGrantedAuthority(authority.getName())).collect(Collectors.toList());
+        return new User(
+                                        user.getEmail(),
+                                        user.getPassword(),
+                                        user.isEnabled(),
+                                        user.isEnabled(),
+                                        user.isCredentialsNonExpired(),
+                                        user.isAccountNonLocked(),
+                                        user.getAuthorities()
+                                );
+
+//        List<GrantedAuthority> authorities = user.getRoles().stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList());
+        // Set user LoggedIn True
+//        user.setLoggedIn(Boolean.TRUE);
+//        usersRepository.save(user);
 //        return User.builder().password(user.getPassword()).username(user.getFirstName()).build();
-        return new User(user.getEmail(),user.getPassword(), Arrays.asList(() -> "USER"));
     }
-}
+}//EC

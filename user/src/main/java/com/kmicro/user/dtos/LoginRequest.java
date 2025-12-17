@@ -7,5 +7,5 @@ package com.kmicro.user.dtos;
 //    private String password;
 //
 //}
-public record LoginRequest(String useremail, String password) {
+public record LoginRequest(String email, String password) {
 }

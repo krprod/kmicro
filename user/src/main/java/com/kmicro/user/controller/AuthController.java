@@ -5,67 +5,88 @@ import com.kmicro.user.dtos.LoginRequest;
 import com.kmicro.user.dtos.LoginResponse;
 import com.kmicro.user.dtos.UserDTO;
 import com.kmicro.user.security.utils.JwtUtil;
+import com.kmicro.user.security.utils.TokenBlackListing;
 import com.kmicro.user.service.UserService;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.web.csrf.CsrfToken;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthController {
 
-    final private AuthenticationManager authenticationManager;
-    final private UserDetailsService userDetailsService;
-    final  private JwtUtil jwtUtil;
-    final  private  UserService userService;
+    private final  AuthenticationManager authenticationManager;
+    private final UserDetailsService userDetailsService;
+    private final JwtUtil jwtUtil;
+    private  final UserService userService;
+    private final TokenBlackListing tokenBlacklistService;
 
     @PostMapping("/login")
     public ResponseEntity<LoginResponse> createAuthenticationToken(@RequestBody LoginRequest loginRequest) {
 
-        // 1. Authenticate the user credentials
-//        authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(authenticationRequest.username(), authenticationRequest.password())
-//        );
         Authentication authRequest = UsernamePasswordAuthenticationToken
-                .unauthenticated(loginRequest.useremail(), loginRequest.password());
+                .unauthenticated(loginRequest.email(), loginRequest.password());
 
         Authentication authenticationResponse = this.authenticationManager.authenticate(authRequest);
 
         if(null != authenticationResponse && authenticationResponse.isAuthenticated()){
 //            System.out.println(authenticationResponse);
-            final String  jwt = jwtUtil.generateToken(loginRequest.useremail());
+//            final String  jwt = jwtUtil.generateToken(loginRequest.useremail());
+            final String  jwt = jwtUtil.generateToken(authenticationResponse);
+            userService.updateFieldsOnLogin(loginRequest.email());
 
             return ResponseEntity.status(HttpStatus.OK).header(ApplicationConstants.JWT_HEADER,jwt)
-                    .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(), jwt));
+                    .body(new LoginResponse(HttpStatus.OK.getReasonPhrase(), jwt,"Login Success", loginRequest.email()));
         }
 
-        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new LoginResponse(HttpStatus.BAD_REQUEST.getReasonPhrase(), "FallDOwn"));
-        // 2. Load UserDetails and generate the JWT
-//        final UserDetails userDetails = userDetailsService
-//                .loadUserByUsername(loginRequest.username());
-
-        // 3. Return the JWT to the client
-
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(
+                        new LoginResponse(HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                                "",
+                                "Login Failed",
+                                loginRequest.email()
+                        ));
     }
 
 
     @PostMapping("/logout")
-    public ResponseEntity<?> removeAuthToken(){
-        return null;
+    public ResponseEntity<String> removeAuthToken(HttpServletRequest request){
+        final String authorizationHeader = request.getHeader("Authorization");
+        String jwt = null;
+
+        if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
+            jwt = authorizationHeader.substring(7);
+            tokenBlacklistService.blacklistToken(jwt);
+        }
+
+        // Clear security context (optional, as the token is blacklisted anyway)
+        SecurityContextHolder.clearContext();
+
+        return ResponseEntity.ok("Successfully logged out and token invalidated.");
     }
 
     @PostMapping("/register")
     public ResponseEntity<String> createNewUser(@RequestBody UserDTO user){
-        userService.createUser(user);
-        return null;
+        String response = userService.createUser(user);
+        if(response == "success"){
+            return ResponseEntity.status(201).body(response);
+        }
+        return ResponseEntity.status(400).body(response);
     }
-}
+
+    @GetMapping("/generate-csrf")
+    public CsrfToken getCsrfToken(CsrfToken token) {
+        // This triggers the deferred token to be generated/loaded
+        return token;
+    }
+
+}//EC

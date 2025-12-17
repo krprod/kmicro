@@ -14,11 +14,12 @@ public class UserMapper {
         if(null != userDTO.getId()){
             userEntity.setId(userDTO.getId());
         }
-        userEntity.setUsername(userDTO.getUsername());
+//        userEntity.setUsername(userDTO.getUsername());
 //        userEntity.setLastName(userDTO.getLastName());
         userEntity.setEmail(userDTO.getEmail());
         userEntity.setPassword(userDTO.getPassword());
         userEntity.setAvtar(userDTO.getAvtar());
+        userEntity.setRoles(userDTO.getRoles());
         return userEntity;
     }
 
