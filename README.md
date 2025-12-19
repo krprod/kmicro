@@ -19,8 +19,8 @@ __LocalStack__
 
 # Services
 __Product Service__
-URL: http://localhost:8080/api/products
-DOC: http://localhost:8080/swagger-ui/index.html | http://localhost:8080/v3/api-docs
+- URL: http://localhost:8080/api/products
+- DOC: http://localhost:8080/swagger-ui/index.html | http://localhost:8080/v3/api-docs
 
 __Cart Service__
 - Cart service is a microservice that handles the cart operations. URL: http://localhost:8090/api/cart
