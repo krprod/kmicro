@@ -10,6 +10,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class AddressDTO {
 
+    private Long id;
+
+    @JsonProperty("user_id")
+    private  Long userId;
+
     @JsonProperty("address_line1")
     private String addressLine1;
     @JsonProperty("address_line2")
