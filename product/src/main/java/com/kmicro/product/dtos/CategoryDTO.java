@@ -1,11 +1,18 @@
 package com.kmicro.product.dtos;
 
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.Setter;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.*;
 
-@Getter @Setter @AllArgsConstructor
+@Getter @Setter @AllArgsConstructor @NoArgsConstructor
 public class CategoryDTO {
-    private Integer id;
+    private long id;
+
+    @NonNull
     private String name;
+    @NonNull
+    private String slug;
+
+    @JsonProperty(value = "active")
+    @NonNull
+    private boolean is_active;
 }

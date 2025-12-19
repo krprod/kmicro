@@ -1,6 +1,9 @@
 server:
       port: 8080
 spring:
+      sql:
+            init:
+                  mode: always
       application:
             name: product
       profiles:
@@ -10,10 +13,22 @@ spring:
             username: bloguser
             password: bloguser
       jpa:
+            defer-datasource-initialization: true
             hibernate:
                   ddl-auto: create
             show-sql: true
 
+#      flyway:
+#            enabled: true
+#            clean-disabled: false
+#            clean-on-validation-error: true
+#            baseline-on-migrate: true
+      logging:
+            level:
+            org.springframework.orm.jpa: DEBUG
+            org.hibernate.resource.transaction: DEBUG
+            org.hibernate.SQL: DEBUG
+            org.hibernate.orm.jdbc.bind: TRACE
 
 management:
       endpoints:
