@@ -12,7 +12,7 @@ import java.util.Set;
 public class UserDTO {
 
     private Long id;
-    private String username;
+    private String login_name;
     private String email;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
@@ -20,6 +20,8 @@ public class UserDTO {
     private String avtar;
     private boolean isLoggedIn;
 
+    private Double latitude ;
+    private Double longitude;
 //    private lastLogin;
 //    createdAt
     private List<AddressDTO> addresses;

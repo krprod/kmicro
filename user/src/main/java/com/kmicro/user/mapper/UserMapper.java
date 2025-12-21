@@ -23,28 +23,31 @@ public class UserMapper {
         return userEntity;
     }
 
+    public static UserEntity dtoToEntityNew(UserDTO user){
+        UserEntity userEntity = new UserEntity();
+        userEntity.setEmail(user.getEmail());
+        userEntity.setPassword(user.getPassword());
+        userEntity.setAvtar(user.getAvtar());
+        userEntity.setRoles(user.getRoles());
+        return userEntity;
+    }
+
     public   static  UserDTO EntityToDTO(UserEntity userEntity){
         UserDTO userDTO = new UserDTO();
         userDTO.setId(userEntity.getId());
         userDTO.setEmail(userEntity.getEmail());
-        userDTO.setPassword(userEntity.getPassword());
-//        userDTO.setFirstName(userEntity.getFirstName());
-        userDTO.setUsername(userEntity.getUsername());
+        userDTO.setLogin_name(userEntity.getLoginName());
+        userDTO.setLoggedIn(userEntity.isLoggedIn());
         userDTO.setAvtar(userEntity.getAvtar());
+        userDTO.setRoles(userEntity.getRoles());
+        userDTO.setLatitude(userEntity.getLatitude());
+        userDTO.setLongitude(userEntity.getLongitude());
         return userDTO;
     }
 
     public   static  UserDTO EntityWithAddressToDTOWithAddress(UserEntity userEntity){
-        UserDTO userDTO = new UserDTO();
-        userDTO.setId(userEntity.getId());
-        userDTO.setEmail(userEntity.getEmail());
-        userDTO.setPassword(userEntity.getPassword());
-//        userDTO.setFirstName(userEntity.getFirstName());
-        userDTO.setUsername(userEntity.getUsername());
-        userDTO.setAvtar(userEntity.getAvtar());
-        log.info("Ab Address call krenge");
+        UserDTO userDTO = UserMapper.EntityToDTO(userEntity);
         userDTO.setAddresses(AddressMapper.mapEntityListToDTOList(userEntity.getAddresses()));
-       log.info("Address aa chuke guys");
         return userDTO;
     }
 

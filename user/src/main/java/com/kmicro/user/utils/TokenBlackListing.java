@@ -1,24 +1,25 @@
-package com.kmicro.user.security.utils;
+package com.kmicro.user.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.Keys;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
+@RequiredArgsConstructor
 @Service
 public class TokenBlackListing {
 
     private static final String BLACKLIST_KEY_PREFIX = "jwt:blacklist:";
 
-    @Autowired
-    private RedisTemplate<String, Object> redisTemplate; // Redis Injection
 
-    @Autowired
-    JwtUtil jwtUtil;
+    private final RedisTemplate<String, Object> redisTemplate; // Redis Injection
+    private  final JwtUtil jwtUtil;
 
     // Using the same secret key as JwtUtil (ideally, both should load from properties)
     private final Key SECRET_KEY = Keys.secretKeyFor(io.jsonwebtoken.SignatureAlgorithm.HS256);
@@ -39,14 +40,14 @@ public class TokenBlackListing {
                 // Using a simple boolean value to minimize storage overhead
                 redisTemplate.opsForValue().set(redisKey, true, ttlMillis, TimeUnit.MILLISECONDS);
 
-                System.out.println("Token blacklisted in Redis. Remaining TTL (ms): " + ttlMillis);
+                log.info("Token blacklisted in for user: {} Remaining TTL (ms): {} ",claims.getSubject(), ttlMillis);
             } else {
-                System.err.println("Token already expired, no need to blacklist.");
+                log.info("Token already expired for user: {}, no need to blacklist.", claims.getSubject());
             }
 
         } catch (Exception e) {
             // Log if token is malformed or already expired
-            System.err.println("Failed to process or blacklist token: " + e.getMessage());
+            log.error("Failed to process or blacklist token: " + e.getMessage());
         }
     }
 

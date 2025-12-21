@@ -1,4 +1,4 @@
-package com.kmicro.user.security.utils;
+package com.kmicro.user.utils;
 
 import com.kmicro.user.constants.ApplicationConstants;
 import io.jsonwebtoken.*;
@@ -58,6 +58,7 @@ public class JwtUtil {
     }
 
     private String createToken(Map<String, Object> claims, String subject) {
+        log.info("Token created for user: {}",subject);
         return Jwts.builder()
 //                .setIssuer("Eazy Bank")
                 .setClaims(claims)

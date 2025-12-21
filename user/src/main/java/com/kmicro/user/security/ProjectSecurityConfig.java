@@ -27,6 +27,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity(debug = true)
@@ -36,6 +37,9 @@ public class ProjectSecurityConfig {
 
     private final UserDetailServiceMs customUserDetailsService;
     private final JwtRequestFilter jwtRequestFilter;
+    private List<String> KpermitAll = List.of("/api/users/address",
+            "/api/auth/generate-csrf","/api/auth/register",
+            "/api/auth/login","/swagger-ui/**","/v3/api-docs/**");
 
     // --- Authentication Manager and Providers ---
 
@@ -74,12 +78,14 @@ public class ProjectSecurityConfig {
                     }
                 }))
                 .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
-                        .ignoringRequestMatchers( "/api/auth/register","/api/auth/generate-csrf")
+                        .ignoringRequestMatchers( "/api/auth/register","/api/auth/generate-csrf","/swagger-ui/**","/v3/api-docs/**","/api/users/**")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints for authentication and registration
-                        .requestMatchers( "/api/auth/generate-csrf","/api/auth/register","/api/auth/login").permitAll()
+                        .requestMatchers("/api/users/**",
+                                "/api/auth/generate-csrf","/api/auth/register",
+                                "/api/auth/login","/swagger-ui/**","/v3/api-docs/**").permitAll()
 //                        .requestMatchers("/api/auth/login").authenticated()
                         // Require ADMIN role for specific endpoints
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")

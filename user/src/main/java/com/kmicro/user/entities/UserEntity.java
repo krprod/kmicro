@@ -9,6 +9,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -31,14 +32,17 @@ public class UserEntity implements UserDetails {
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
 
-    @Transient
+    @Column(name = "profile_img")
     private String avtar;
 
+    @Column(name = "is_active")
+    private  boolean isActive;
+
     @Column(name = "is_logged_in")
-    private boolean isLoggedIn = false;
+    private boolean isLoggedIn;
 
     @Column(name = "is_locked")
-    private boolean isLocked = false;
+    private boolean isLocked;
 
     @Column(name = "locked_date_time")
     private LocalDateTime lockedDateTime;
@@ -93,6 +97,14 @@ public class UserEntity implements UserDetails {
     @Override
     public String getUsername() {
         return this.email;
+    }
+
+    public void deactivateAccount(){
+        this.isActive = false;
+        this.isLoggedIn = false;
+        this.isLocked= true;
+        this.lastloginTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+//        this.updateAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
     }
 //    @Transient
 //    @JsonProperty("blackListed")
