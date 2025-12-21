@@ -7,12 +7,14 @@ import com.kmicro.product.exception.DataNotExistException;
 import com.kmicro.product.mapper.CategoryMapper;
 import com.kmicro.product.repository.CategoryRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.List;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class CategoryService {
@@ -22,6 +24,7 @@ public class CategoryService {
     public List<CategoryDTO> getAllCategories() {
             List<CategoryEntity> categoryEntities = categoryRepository.findAll();
             if (categoryEntities.isEmpty()) {
+                log.info("Nothing Found, No Category exists");
                 return Collections.emptyList(); // Never return null
             }
             return CategoryMapper.mapEntityListToDTO(categoryEntities);
@@ -37,6 +40,7 @@ public class CategoryService {
 
         CategoryEntity savedCategory = categoryRepository.save(category);
 
+        log.info("New Category Added Successfully: {}", savedCategory.getSlug());
         return CategoryMapper.mapEntityToDTO(savedCategory);
     }
 
@@ -60,6 +64,7 @@ public class CategoryService {
 
         // No return needed if using exceptions for flow control,
         // or return the mapped DTO for the frontend.
+        log.info("Category with ID: {} updated Successfully", existingCategory.getId());
         return CategoryMapper.mapEntityToDTO(existingCategory);
     }
 
