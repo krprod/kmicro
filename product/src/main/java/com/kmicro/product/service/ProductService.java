@@ -8,6 +8,7 @@ import com.kmicro.product.repository.ProductRepository;
 import com.kmicro.product.repository.ProductSpecifications;
 import com.kmicro.product.utils.PaginationUtils;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
 import org.springframework.data.domain.*;
 import org.springframework.data.jpa.domain.Specification;
@@ -19,6 +20,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+@Slf4j
 @RequiredArgsConstructor
 @Service
 public class ProductService {
@@ -43,8 +45,10 @@ public class ProductService {
         List<ProductEntity> savedEntityList = productRepository.saveAll(productEntityList);
 
         if(savedEntityList.size() < 0){
+            log.info("Products not added, Failed");
             return Collections.emptyList();
         }
+        log.info("Products added successful");
         return ProductMapper.mapEntityToDtoList(savedEntityList);
     }
 
@@ -78,6 +82,7 @@ public class ProductService {
         }
 
         List<ProductEntity> savedEntityList = productRepository.saveAll(resultEntities);
+        log.info("Products Updated Successfully");
         return ProductMapper.mapEntityToDtoList(savedEntityList);
     }
 
@@ -94,6 +99,7 @@ public class ProductService {
             try {
                 if (dto.getId() == null || dto.getId() <= 0) {
                     errors.add(new BulkErrorResponseRecord(null, "Invalid or missing ID"));
+                    log.info("Product Fail-Safe -- Invalid or missing ID: {}",dto.getId());
                     continue;
                 }
 
@@ -104,21 +110,24 @@ public class ProductService {
                     ProductMapper.updateEntityFromDto(dto, entity);
                     entitiesToSave.add(entity);
                     successIds.add(dto.getId());
+                    log.info("Product Fail-Safe -- Product Entity Found & Updated {}",entity.getId());
                 } else {
                     errors.add(new BulkErrorResponseRecord(dto.getId(), "Product ID not found in database"));
+                    log.error("Product Fail-Safe -- Product ID not found in database: {}",dto.getId());
                 }
             } catch (Exception e) {
                 // Catch unexpected mapping errors for a specific row
                 errors.add(new BulkErrorResponseRecord(dto.getId(), "Internal error: " + e.getMessage()));
+                log.error("Product Fail-Safe -- Internal error:",e);
             }
 
         }
         if (!entitiesToSave.isEmpty()) {
             productRepository.saveAll(entitiesToSave);
+            log.info("Product Fail-Safe -- Product Updated Successful");
         }
 
         return new BulkUpdateResponseRecord(successIds, errors);
-
     }
 
     public void deleteProduct(Long id) {
@@ -162,7 +171,7 @@ public class ProductService {
         Specification<ProductEntity> searchAndFilterSpec = ProductSpecifications.applySearchAndFilter(category, minPrice, maxPrice, keyword);
 
         Page<ProductEntity>paginatedResult =  productRepository.findAll(searchAndFilterSpec, restrictedPageable);
-
+        log.info("Paginated Result ready....");
         List<ProductDTO> dtos = paginatedResult.stream().map(ProductMapper::EntityToDTO).toList();
 
        return PaginationUtils.toPagedResponse(paginatedResult, dtos);
@@ -194,14 +203,19 @@ public class ProductService {
                         productEntity.setStockQuantity(productEntity.getStockQuantity() - product.qty());
                         entitiesToSave.add(productEntity);
                         successIds.add(productEntity.getId());
+                        log.info("Bought Product ID: {} Quantity left: {}",productEntity.getId(), productEntity.getStockQuantity());
                     }else {
                         errors.add(new BulkErrorResponseRecord(productEntity.getId(),"Product is not in sufficient quantity: "+productEntity.getStockQuantity()));
+                        log.info("Product is not in sufficient quantity: {}",productEntity.getStockQuantity());
                     }
                 }else {
                     errors.add(new BulkErrorResponseRecord(product.id(),"Product ID not found in database"));
+                    log.error("Product ID: {} not found in database",product.id());
                 }
-            } catch (Exception e) {
-                errors.add(new BulkErrorResponseRecord(product.id(),"Internal error: " + e.getMessage()));
+            } catch (Exception ex) {
+                errors.add(new BulkErrorResponseRecord(product.id(),"Internal error: " + ex.getMessage()));
+                log.error("Exception Occured in BoughtProduct:", ex);
+//                log.debug(ex.printStackTrace());
             }
         }
 
