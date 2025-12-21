@@ -1,11 +1,9 @@
 package com.kmicro.user.dtos;
 
-//@Getter
-//@Setter
-//public class AuthenticationRequest {
-//    private String username;
-//    private String password;
-//
-//}
-public record LoginRequest(String email, String password) {
+import jakarta.validation.constraints.Email;
+import lombok.NonNull;
+
+public record LoginRequest(
+        @NonNull @Email String email,
+        @NonNull @Email String password) {
 }

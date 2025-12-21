@@ -1,8 +1,8 @@
 package com.kmicro.user.security.filter;
 
 import com.kmicro.user.security.UserDetailServiceMs;
-import com.kmicro.user.security.utils.JwtUtil;
-import com.kmicro.user.security.utils.TokenBlackListing;
+import com.kmicro.user.utils.JwtUtil;
+import com.kmicro.user.utils.TokenBlackListing;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

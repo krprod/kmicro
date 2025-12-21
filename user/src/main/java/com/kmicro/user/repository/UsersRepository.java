@@ -21,4 +21,8 @@ public interface UsersRepository  extends JpaRepository<UserEntity, Long> {
             @Param("lastLoginTime") LocalDateTime lastLoginTime,
             @Param("email") String email
     );
+
+    boolean existsByLoginName(String loginName);
+    boolean existsByEmail(String email);
+
 }
