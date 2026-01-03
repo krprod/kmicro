@@ -7,4 +7,5 @@ import java.util.List;
 
 public interface OrderRepository  extends JpaRepository<OrderEntity, Long> {
     List<OrderEntity> findByUserId(Long userId);
+   Boolean existsByUserId(Long userId);
 }

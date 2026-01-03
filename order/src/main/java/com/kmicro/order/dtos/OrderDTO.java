@@ -1,5 +1,6 @@
 package com.kmicro.order.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
@@ -21,6 +22,7 @@ public class OrderDTO  implements Serializable {
     @JsonProperty( "user_id")
     private Long userId;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss.SS")
     @JsonProperty("order_date")
     private LocalDateTime orderDate;
 

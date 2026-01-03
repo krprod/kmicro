@@ -1,67 +1,57 @@
 package com.kmicro.order.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kmicro.order.dtos.OrderDTO;
-import com.kmicro.order.dtos.OrderItemDTO;
-import com.kmicro.order.dtos.OrderStatusEnum;
-import com.kmicro.order.dtos.PaymentMethodEnum;
+import com.kmicro.order.Constants.AppConstants;
+import com.kmicro.order.Constants.OrderStatus;
+import com.kmicro.order.dtos.*;
 import com.kmicro.order.entities.OrderEntity;
-import com.kmicro.order.entities.OrderItemEntity;
-import com.kmicro.order.mapper.OrderItemMapper;
 import com.kmicro.order.mapper.OrderMapper;
 import com.kmicro.order.repository.OrderItemRepository;
 import com.kmicro.order.repository.OrderRepository;
-import jakarta.persistence.criteria.CriteriaBuilder;
+import com.kmicro.order.utils.CacheUtils;
+import com.kmicro.order.utils.CartUtils;
+import com.kmicro.order.utils.OrderUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Flux;
-import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.CompletableFuture;
 
+import static com.kmicro.order.Constants.AppConstants.ASIA_ZONE_ID;
+
+@RequiredArgsConstructor
 @Service
 @Slf4j
 public class OrderService {
 
-    private static final String USER_CART_URL = "http://localhost:8090/api/cart/";
+    private  final OrderRepository orderRepository;
+    private  final OrderItemRepository orderItemRepository;
+    private  final OrderUtils orderUtils;
+    private final CartUtils cartUtils;
+    private final CacheUtils cacheUtils;
 
-    @Autowired
-    OrderRepository orderRepository;
-
-    @Autowired
-    OrderItemRepository orderItemRepository;
-
-    @Autowired
-    OrderServiceHelper orderServiceHelper;
-
-    @Autowired
-    private ObjectMapper objectMapper;
-
-
+    @Transactional
     public void proceedCheckOut(String userId) {
 
        try {
            // -------- GET Cart Data from cart-service
-           List<OrderItemDTO> orderItemDTOList = getOrderItemsFromCartService(userId).get();
+           List<OrderItemDTO> orderItemDTOList = cartUtils.getCartItemAsOrderItemDTO(userId);
+            log.info("Order Item Fetched From Cart Successfully");
 
-           // -------- save order in table
-           OrderEntity generatedOrderEntity = orderServiceHelper.generateOrderEntity(orderItemDTOList);
-          OrderEntity savedOrder =  orderServiceHelper.saveOrder(generatedOrderEntity, orderRepository);
+           // -------- Generate Order Entity
+           OrderEntity generatedOrderEntity = orderUtils.generateOrderEntity(orderItemDTOList);
+           log.info("Order Entity Generated Successfully");
 
-           //-------- POST  order details to payment service
-           Double totalAmount = orderServiceHelper.getOrderTotalPrice(orderItemDTOList);
-           orderServiceHelper. makePayment(totalAmount, savedOrder.getId()).subscribe();
+           //--------  Save Order in DB, Redis, and
+           ProcessPaymentRecord processPaymentRecord =  this.saveOrder(generatedOrderEntity);
+           log.info("Order Save In DB Successfully");
+
+           // ----------  Send Request to Payment Service To Start Processing
+           log.info("Requesting Payment Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
+//           orderUtils. makePayment(processPaymentRecord).subscribe();
+           log.info("Response From Payment Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
+
 
        /*    makePayment(totalAmount, saveOrder.getId())
                    .subscribe(response -> {
@@ -82,8 +72,10 @@ public class OrderService {
                        // Handle the error here
                    });*/
        }catch (Exception e){
-           log.error(e.getMessage());
+           log.error("Exception Occured at proceedCheckOut: {}",e.getMessage());
            log.debug("detailedMessage: {}",e.getStackTrace());
+           e.printStackTrace();
+           throw new RuntimeException("Something Went Wrong!");
        }
      /*   WebClient client = WebClient.create("http://localhost:8090/api");
         String userID = "/cart/"+userId;
@@ -97,38 +89,24 @@ public class OrderService {
 
     }
 
-    private CompletableFuture<List<OrderItemDTO>> getOrderItemsFromCartService(String user_id) {
-//        WebClient client = WebClient.create("your_base_url"); // Replace with your base URL
-        log.info("request cart details from cart service for user ID: {}",user_id);
-        WebClient client = WebClient.create(USER_CART_URL);
-//        String userID = "/cart/"+user_id;
-        Flux<OrderItemDTO> response = client.get()
-                .uri(user_id)
-                .retrieve()
-                .bodyToFlux(OrderItemDTO.class);
+   public ProcessPaymentRecord saveOrder(OrderEntity order){
+        OrderEntity savedOrder = orderUtils.saveOrder(order);
+        log.info("Order Saved In DB: {}",savedOrder.getId());
 
-        Mono<List<OrderItemDTO>> listMono = response.collectList();
+        //--- Instead directly saving Into Redis, Use Kafka For Lazy saveOrderInRedis
+        orderUtils.saveOrderInRedis(savedOrder);
 
-        return listMono.toFuture();
-    }
+        return new ProcessPaymentRecord(
+                savedOrder.getId(),
+                savedOrder.getOrderTotal(),
+                savedOrder.getPaymentMethod().name());
+   }
 
-    public List<OrderDTO> getOrdersListByUserID(Long userId) {
-        List<OrderEntity> orderEntity = orderRepository.findByUserId(userId);
-        List<OrderDTO> orderDTO = null;
-
-        if (orderEntity.size() > 0) {
-            orderDTO = OrderMapper.mapEntityListToDTOList(orderEntity);
-        }
-        return orderDTO;
-    }
-
-    public OrderDTO getOrderDetailsByOrderID(Long orderID) {
-        OrderEntity orderEntity = orderRepository.findById(orderID).get();
-        OrderDTO orderDTO = null;
-        if (orderEntity != null) {
-            orderDTO = OrderMapper.mapEntityToDTOWithItems(orderEntity);
-        }
-        return orderDTO;
+    public OrderDTO getOrderDetailsByOrderID(Long orderID, Boolean withItems) {
+        OrderEntity orderEntity = orderUtils.getAllOrdersListByIDFromDB(orderID);
+        return withItems ?
+                OrderMapper.mapEntityToDTOWithItems(orderEntity):
+                OrderMapper.mapEntityToDTOWithoutItems(orderEntity);
     }
 
     public OrderEntity updateOrderStatus(Long orderID, String transactionId, String paymentStatus) {
@@ -138,22 +116,38 @@ public class OrderService {
         orderEntity.setPaymentStatus(paymentStatus);
         //**  payment Status pr order status update krna hai if fail to fail_payment else processing
 //        if(paymentStatus.toLowerCase().equals("success"))
-        orderEntity.setOrderStatus(OrderStatusEnum.PROCESSING);
+        orderEntity.setOrderStatus(OrderStatus.PROCESSING);
         return orderRepository.save(orderEntity);
     }
 
-    public String getOrderFromRedis(Long orderID) {
-        log.info("order Json in string format for orderID: {}",orderID);
-       try {
-           Object cachedOrder =  orderServiceHelper.getOrderFromRedis(orderID.toString());
-           return objectMapper.writeValueAsString(cachedOrder);
-       } catch (JsonProcessingException e) {
-           throw new RuntimeException(e);
-       }
+    public OrderDTO getOrderFromCache(Long orderID) {
+           OrderDTO cachedOrder =  cacheUtils.get(AppConstants.REDIS_ORDER_KEY_PREFIX + orderID.toString(), OrderDTO.class);
+           log.info("Order Found In Redis for Key: {}",AppConstants.REDIS_ORDER_KEY_PREFIX + orderID.toString());
+           return cachedOrder;
     }
 
     public void removeItemFromOrder(Long orderItemID) {
         orderItemRepository.deleteById(orderItemID);
     }
+
+    public List<OrderDTO> getAllOrdersListByUserID(Long userId, Boolean withItems) {
+        List<OrderEntity> orderEntity = orderUtils.getAllOrdersListByUserIDFromDB(userId);
+        return withItems ?
+                OrderMapper.entityToDTOListWithItems(orderEntity)
+                :  OrderMapper.entityToDTOListWithoutItems(orderEntity);
+    }
+
+
+    public ResponseDTO changeOrderStatus(ChangeOrderStatusRec orderStatusRec) {
+              OrderEntity savedOrder = orderUtils.changeOrderStatus(orderStatusRec);
+
+              // Save In Redis
+              orderUtils.saveOrderInRedis(savedOrder);
+
+              // Send Notification To User
+
+        return new ResponseDTO("200","Order Status Changed Successfully");
+    }
+
 }//EC
 

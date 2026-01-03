@@ -2,6 +2,8 @@ package com.kmicro.order.exception;
 
 
 import com.kmicro.order.dtos.ErrorResponseDTO;
+import com.kmicro.order.utils.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -14,11 +16,11 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -33,6 +35,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             String validationMsg = error.getDefaultMessage();
             validationErrors.put(fieldName, validationMsg);
         });
+        log.error("Validation Errror Request at {}: {}", request.getDescription(false), validationErrors);
+        return  ResponseEntity.status(400).body(validationErrors);
     }
 
     @ExceptionHandler(Exception.class)
@@ -41,8 +45,39 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 webRequest.getDescription(false),
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 exception.getMessage(),
-                LocalDateTime.now()
+                DateUtil.getTimeStampWithFormat("gen")
         );
+        log.error("Server Errror Request at {}: {}", webRequest.getDescription(false), exception.getMessage());
         return new ResponseEntity<>(errorResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
     }
+
+    @ExceptionHandler(DataNotFoundException.class)
+    public ResponseEntity<ErrorResponseDTO>handleNotFound(DataNotFoundException exception, WebRequest webRequest){
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+                webRequest.getDescription(false),
+                HttpStatus.NOT_FOUND,
+                exception.getMessage(),
+                DateUtil.getTimeStampWithFormat("gen")
+        );
+        log.error("DataNotFoundException Occured, Request at {}: {}", webRequest.getDescription(false), exception.getMessage());
+        return  ResponseEntity.status(400).body(errorResponseDTO);
+    }
+
+
+//    @ExceptionHandler({
+//            CartException.class,
+//            OrderException.class,
+//            DataNotFoundException.class
+//    })
+//    public ResponseEntity<ErrorResponseDTO>handleOrderEx(OrderException exception, WebRequest webRequest){
+//
+//        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+//                webRequest.getDescription(false),
+//                HttpStatus.NOT_FOUND,
+//                exception.getMessage(),
+//                DateUtil.getTimeStampWithFormat("gen")
+//        );
+//        log.error("OrderException Occured, Request at {}: {}", webRequest.getDescription(false), exception.getMessage());
+//        return  ResponseEntity.status(400).body(errorResponseDTO);
+//    }
 }
