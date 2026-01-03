@@ -9,11 +9,10 @@ __Product Service__
 - DOC: http://localhost:8080/swagger-ui/index.html | http://localhost:8080/v3/api-docs
 
 __Order Service__
-- Order service is a microservice that handles the order operations.
-  - URL: http://localhost:8091/ 
-    - Cart Service Endpoint: /api/carts
-    - Order Service Endpoint: /api/orders
-    - DOC: http://localhost:8091/swagger-ui/index.html | http://localhost:8091/v3/api-docs
+- URL: http://localhost:8091/ 
+  - Cart Service Endpoint: /api/carts
+  - Order Service Endpoint: /api/orders
+- DOC: http://localhost:8091/swagger-ui/index.html | http://localhost:8091/v3/api-docs
  
 __User Service__
 - URL: http://localhost:8085/api/
