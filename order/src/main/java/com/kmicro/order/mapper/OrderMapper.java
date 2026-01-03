@@ -2,6 +2,7 @@ package com.kmicro.order.mapper;
 
 import com.kmicro.order.dtos.OrderDTO;
 import com.kmicro.order.entities.OrderEntity;
+import com.kmicro.order.utils.DateUtil;
 
 import java.util.List;
 
@@ -24,11 +25,19 @@ public class OrderMapper {
         return orderEntities.stream().map(OrderMapper::mapEntityToDTOWithoutItems).toList();
     }
 
+    public static List<OrderDTO> entityToDTOListWithoutItems(List<OrderEntity> orderEntities) {
+        return orderEntities.stream().map(OrderMapper::mapEntityToDTOWithoutItems).toList();
+    }
+
+    public static List<OrderDTO> entityToDTOListWithItems(List<OrderEntity> orderEntities) {
+        return orderEntities.stream().map(OrderMapper::mapEntityToDTOWithItems).toList();
+    }
+
     public static  OrderDTO mapEntityToDTOWithoutItems(OrderEntity orderEntity) {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(orderEntity.getId());
         orderDTO.setUserId(orderEntity.getUserId());
-        orderDTO.setOrderDate(orderEntity.getOrderDate());
+        orderDTO.setOrderDate(DateUtil.convertInstantToLDT(orderEntity.getOrderDate()));
         orderDTO.setOrderStatus(orderEntity.getOrderStatus().name());
         orderDTO.setOrderTotal(orderEntity.getOrderTotal());
         orderDTO.setPaymentMethod(orderEntity.getPaymentMethod().name());
@@ -44,7 +53,7 @@ public class OrderMapper {
         OrderDTO orderDTO = new OrderDTO();
         orderDTO.setId(orderEntity.getId());
         orderDTO.setUserId(orderEntity.getUserId());
-        orderDTO.setOrderDate(orderEntity.getOrderDate());
+        orderDTO.setOrderDate(DateUtil.convertInstantToLDT(orderEntity.getOrderDate()));
         orderDTO.setOrderStatus(orderEntity.getOrderStatus().name());
         orderDTO.setOrderTotal(orderEntity.getOrderTotal());
         orderDTO.setPaymentMethod(orderEntity.getPaymentMethod().name());

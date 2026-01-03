@@ -1,9 +1,9 @@
-package com.kmicro.order.service;
+package com.kmicro.order.interceptor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.kmicro.order.entities.OrderEntity;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import com.kmicro.order.service.OrderService;
+import com.kmicro.order.utils.OrderUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,7 +15,7 @@ public class OrderServiceListner {
     OrderService orderService;
 
     @Autowired
-    OrderServiceHelper orderServiceHelper;
+    OrderUtils orderUtils;
 
     @Transactional
     public void updatePaymentInfoInDB(JsonNode paymentJson) {
@@ -26,10 +26,10 @@ public class OrderServiceListner {
 
           // update order table record and Get User ID
           OrderEntity order = orderService.updateOrderStatus(orderId , transactionID,paymentStatus);
-          orderServiceHelper.saveOrderInRedis(order);
+          orderUtils.saveOrderInRedis(order);
 
           // remove cart data from redis
-          orderServiceHelper.removeCart(order.getUserId().toString()).subscribe();
+          orderUtils.removeCart(order.getUserId().toString()).subscribe();
 
           // send Notification
          this.sendNotification(orderId);
@@ -40,7 +40,7 @@ public class OrderServiceListner {
     }
 
     public void sendNotification(Long orderID) {
-        String orderString = orderService.getOrderFromRedis(orderID);
-        orderServiceHelper.sendNotificationToKafka(orderID.toString(), orderString);
+//        String orderString = orderService.getOrderFromRedis(orderID);
+//        orderUtils.sendNotificationToKafka(orderID.toString(), orderString);
     }
 }
