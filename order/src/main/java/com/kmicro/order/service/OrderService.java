@@ -1,9 +1,12 @@
 package com.kmicro.order.service;
 
-import com.kmicro.order.Constants.AppConstants;
-import com.kmicro.order.Constants.OrderStatus;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kmicro.order.components.OutboxUtils;
+import com.kmicro.order.constants.AppConstants;
+import com.kmicro.order.constants.OrderStatus;
 import com.kmicro.order.dtos.*;
 import com.kmicro.order.entities.OrderEntity;
+import com.kmicro.order.entities.OutboxEntity;
 import com.kmicro.order.mapper.OrderMapper;
 import com.kmicro.order.repository.OrderItemRepository;
 import com.kmicro.order.repository.OrderRepository;
@@ -12,13 +15,16 @@ import com.kmicro.order.utils.CartUtils;
 import com.kmicro.order.utils.OrderUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-import static com.kmicro.order.Constants.AppConstants.ASIA_ZONE_ID;
+import static com.kmicro.order.constants.AppConstants.ASIA_ZONE_ID;
 
 @RequiredArgsConstructor
 @Service
@@ -30,8 +36,10 @@ public class OrderService {
     private  final OrderUtils orderUtils;
     private final CartUtils cartUtils;
     private final CacheUtils cacheUtils;
-
-    @Transactional
+    private final OutboxUtils outboxUtils;
+    private final ObjectMapper objectMapper;
+    private List<OutboxEntity> OutboxEventList = new ArrayList<>(10);
+//    @Transactional
     public void proceedCheckOut(String userId) {
 
        try {
@@ -44,14 +52,44 @@ public class OrderService {
            log.info("Order Entity Generated Successfully");
 
            //--------  Save Order in DB, Redis, and
-           ProcessPaymentRecord processPaymentRecord =  this.saveOrder(generatedOrderEntity);
-           log.info("Order Save In DB Successfully");
+           OrderEntity savedOrder = orderUtils.saveOrder(generatedOrderEntity);
+           log.info("Order Saved In DB: {}",savedOrder.getId());
 
            // ----------  Send Request to Payment Service To Start Processing
-           log.info("Requesting Payment Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
-//           orderUtils. makePayment(processPaymentRecord).subscribe();
-           log.info("Response From Payment Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
+           log.info("Generating Event for Payment Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
+           ProcessPaymentRecord processPaymentRecord =  this.getPaymentRecordOfSavedOrder(generatedOrderEntity);
 
+           this.OutboxEventList.add(
+                   outboxUtils.generatePendingEvent(
+                           processPaymentRecord,
+                            processPaymentRecord.orderId().toString(),
+                   "payment-events")
+           );
+
+
+//           orderUtils. makePayment(processPaymentRecord).subscribe();
+//           log.info("Response From Payment Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
+
+           // ----------  Send Notification -- New Order Created
+           log.info("Generating Event for Notification Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
+           this.OutboxEventList.add(
+                   outboxUtils.generatePendingEvent(
+                           OrderMapper.mapEntityToDTOWithItems(savedOrder),
+                           savedOrder.getId().toString(),
+                           "t-order-placed")
+           );
+//           log.info("Request to Notification Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
+//            orderUtils.sendOrderEventToNotification(OrderMapper.mapEntityToDTOWithItems(savedOrder));
+
+           //------------------- Saving Data In DB So Kafka Can Consume From that
+           log.info("Start Saving Events In Outbox Table: {}", LocalDateTime.now(ASIA_ZONE_ID));
+           int size = this.OutboxEventList.size();
+           List<OutboxEntity> entityList = outboxUtils.saveAllEvents(this.OutboxEventList);
+           if( size == entityList.size()){
+               this.OutboxEventList.clear();
+           }
+//           this.orderUtils.purgeEventList();
+           log.info("End Events In Outbox Table: {}", LocalDateTime.now(ASIA_ZONE_ID));
 
        /*    makePayment(totalAmount, saveOrder.getId())
                    .subscribe(response -> {
@@ -89,24 +127,31 @@ public class OrderService {
 
     }
 
-   public ProcessPaymentRecord saveOrder(OrderEntity order){
+   public OrderEntity saveOrder(OrderEntity order){
         OrderEntity savedOrder = orderUtils.saveOrder(order);
         log.info("Order Saved In DB: {}",savedOrder.getId());
 
         //--- Instead directly saving Into Redis, Use Kafka For Lazy saveOrderInRedis
         orderUtils.saveOrderInRedis(savedOrder);
 
-        return new ProcessPaymentRecord(
-                savedOrder.getId(),
-                savedOrder.getOrderTotal(),
-                savedOrder.getPaymentMethod().name());
+        return savedOrder;
    }
 
+   public ProcessPaymentRecord getPaymentRecordOfSavedOrder(OrderEntity order){
+       return  new ProcessPaymentRecord(
+               order.getId(),
+               order.getOrderTotal(),
+               order.getPaymentMethod().name(),
+               order.getUserId(),
+               order.getShippingFee());
+   }
+
+    @Cacheable(value = AppConstants.CACHE_PREFIX_ORDER, key = "#orderID")
     public OrderDTO getOrderDetailsByOrderID(Long orderID, Boolean withItems) {
         OrderEntity orderEntity = orderUtils.getAllOrdersListByIDFromDB(orderID);
         return withItems ?
-                OrderMapper.mapEntityToDTOWithItems(orderEntity):
-                OrderMapper.mapEntityToDTOWithoutItems(orderEntity);
+                OrderMapper.mapEntityToDTOWithItems(orderEntity, objectMapper):
+                OrderMapper.mapEntityToDTOWithoutItems(orderEntity,objectMapper);
     }
 
     public OrderEntity updateOrderStatus(Long orderID, String transactionId, String paymentStatus) {
@@ -130,24 +175,86 @@ public class OrderService {
         orderItemRepository.deleteById(orderItemID);
     }
 
+    @Cacheable(value = AppConstants.CACHE_PREFIX_USER, key = "#userId")
     public List<OrderDTO> getAllOrdersListByUserID(Long userId, Boolean withItems) {
         List<OrderEntity> orderEntity = orderUtils.getAllOrdersListByUserIDFromDB(userId);
-        return withItems ?
-                OrderMapper.entityToDTOListWithItems(orderEntity)
-                :  OrderMapper.entityToDTOListWithoutItems(orderEntity);
+        List<OrderDTO> dtos =withItems ?
+                OrderMapper.entityToDTOListWithItems(orderEntity,objectMapper)
+                :  OrderMapper.entityToDTOListWithoutItems(orderEntity,objectMapper);
+        return new ArrayList<>(dtos);
     }
 
-
+   @Caching(evict = {
+           @CacheEvict(value = AppConstants.CACHE_PREFIX_ORDER, key = "#orderStatusRec.orderID"),
+           @CacheEvict(value = AppConstants.CACHE_PREFIX_USER, key = "#orderStatusRec.userID")
+   })
     public ResponseDTO changeOrderStatus(ChangeOrderStatusRec orderStatusRec) {
               OrderEntity savedOrder = orderUtils.changeOrderStatus(orderStatusRec);
 
               // Save In Redis
-              orderUtils.saveOrderInRedis(savedOrder);
+//              orderUtils.saveOrderInRedis(savedOrder);
 
               // Send Notification To User
 
         return new ResponseDTO("200","Order Status Changed Successfully");
     }
 
+    @CacheEvict(value = AppConstants.CACHE_PREFIX_USER, key = "#userId")
+    public void proceedCheckoutWithAddress(String userId, OrderAddressDTO orderAddress) {
+        try {
+            // -------- GET Cart Data from cart-service
+            List<OrderItemDTO> orderItemDTOList = cartUtils.getCartItemAsOrderItemDTO(userId);
+            log.info("Order Item Fetched From Cart Successfully");
+
+            // -------- Generate Order Entity
+            OrderEntity generatedOrderEntity =  orderUtils.generateOrderEntityWithAddress(orderAddress, orderItemDTOList);
+            log.info("Order Entity Generated Successfully");
+
+            //--------  Save Order in DB, Redis, and
+            OrderEntity savedOrder = orderUtils.saveOrder(generatedOrderEntity);
+            orderUtils.saveOrderInRedis(savedOrder);
+            log.info("Order Saved In DB: {}",savedOrder.getId());
+
+            // ----------  Send Request to Payment Service To Start Processing
+            log.info("Generating Event for Payment Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
+            ProcessPaymentRecord processPaymentRecord =  this.getPaymentRecordOfSavedOrder(generatedOrderEntity);
+
+            this.OutboxEventList.add(
+                    outboxUtils.generatePendingEvent(
+                            processPaymentRecord,
+                            processPaymentRecord.orderId().toString(),
+                            "payment-events")
+            );
+
+            // ----------  Send Notification -- New Order Created
+            log.info("Generating Event for Notification Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
+
+            OrderDTO orderTransport = OrderMapper.mapEntityToDTOWithItems(savedOrder, objectMapper);
+
+//            orderTransport.setShippingAddress(objectMapper.readValue(savedOrder.getShippingAddress(), OrderAddressDTO.class));
+
+            this.OutboxEventList.add(
+                    outboxUtils.generatePendingEvent(
+                            orderTransport,
+                            savedOrder.getId().toString(),
+                            "t-order-placed")
+            );
+
+            //------------------- Saving Data In DB So Kafka Can Consume From that
+            log.info("Start Saving Events In Outbox Table: {}", LocalDateTime.now(ASIA_ZONE_ID));
+            int size = this.OutboxEventList.size();
+            List<OutboxEntity> entityList = outboxUtils.saveAllEvents(this.OutboxEventList);
+            if( size == entityList.size()){
+                this.OutboxEventList.clear();
+            }
+//           this.orderUtils.purgeEventList();
+            log.info("End Events In Outbox Table: {}", LocalDateTime.now(ASIA_ZONE_ID));
+        } catch (Exception e) {
+            log.error("Exception Occured at proceedCheckOut: {}",e.getMessage());
+            log.debug("detailedMessage: {}",e.getStackTrace());
+            e.printStackTrace();
+            throw new RuntimeException("Something Went Wrong!");
+        }
+    }
 }//EC
 

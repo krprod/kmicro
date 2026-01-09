@@ -1,0 +1,14 @@
+<div th:fragment="email-body" xmlns:th="http://www.thymeleaf.org">
+    <h1 style="font-size:24px;font-weight:500;color:#172b4d;margin-top:40px;" th:text="${statusTitle}">Your order is on its way!</h1>
+    <p th:text="${statusMessage}">Great news! Your package has been handed over to the courier.</p>
+
+    <div style="background-color: #f4f5f7; padding: 15px; border-left: 4px solid #0052cc; margin: 20px 0;">
+        <p style="margin:0;"><strong>Tracking Number:</strong> <span th:text="${trackingNumber}">TRK123456789</span></p>
+        <p style="margin:5px 0 0 0;"><strong>Carrier:</strong> <span th:text="${carrierName}">FedEx</span></p>
+    </div>
+
+    <div style="text-align: center; margin-top: 30px;">
+        <a th:href="${trackingUrl}"
+           style="background-color: #0052cc; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 3px; display: inline-block;">Track Package</a>
+    </div>
+</div>

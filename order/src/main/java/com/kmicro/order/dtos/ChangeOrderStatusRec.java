@@ -1,4 +1,4 @@
 package com.kmicro.order.dtos;
 
-public record ChangeOrderStatusRec(Long orderID, String orderStatus) {
+public record ChangeOrderStatusRec(Long orderID, Long userID,String orderStatus) {
 }

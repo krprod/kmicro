@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="en">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title th:text="${title}">Verify your identity</title>
+</head>
+<body style="margin:0;padding:0;background:#ffffff;height:100%;width:100%">
+<div style="margin:0;padding:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;font-size:14px;font-weight:400;letter-spacing:-0.005em;color:#091e42;line-height:20px;background:#ffffff;height:100%;width:100%">
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
+        <tbody>
+        <tr>
+            <td align="center">
+                <div style="max-width:520px;margin:0 auto">
+                    <div style="vertical-align:top;text-align:left;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;font-size:14px;font-weight:400;letter-spacing:-0.005em;color:#091e42;line-height:20px">
+
+                        <div style="padding-top:16px;padding-bottom:0;vertical-align:top;text-align:center">
+                            <a th:href="@{${siteUrl}}" target="_blank">
+                                <img th:src="${logoUrl}" height="64" th:alt="${logoUrlAlt}" style="line-height:100%;outline:none;text-decoration:none;border:0">
+                            </a>
+                        </div>
+
+                        <hr style="margin-top:24px;margin-bottom:24px;border:0;border-bottom:1px solid #c1c7d0">
+
+                        <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse">
+                            <tbody>
+                            <tr>
+                                <td align="center">
+                                    <img th:src="${heroImageUrl}" height="175" border="0" alt="" style="border:0;line-height:100%;outline:none;text-decoration:none">
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                        <h1 style="margin-bottom:0;font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;font-size:24px;font-weight:500;letter-spacing:-0.01em;color:#172b4d;line-height:28px;margin-top:40px"
+                            th:text="${greetingByName}">
+                            Hi Krishna, you’re nearly there!
+                        </h1>
+
+                        <p style="margin-top:12px;" th:text="${msgLine1}">
+                            As an added layer of security, you're required to verify your identity.
+                        </p>
+
+                        <p style="margin-top:12px;" th:text="${msgLine2}">
+                            To access Jira, enter the following code:
+                        </p>
+
+                        <table width="100%" cellpadding="0" cellspacing="0" border="0"  style="border-collapse:collapse">
+                            <tbody>
+                            <tr>
+                                <td align="center">
+                                    <p style="font-family:-apple-system,BlinkMacSystemFont,Segoe UI,Roboto,Oxygen,Ubuntu,Fira Sans,Droid Sans,Helvetica Neue,sans-serif;font-size:24px;font-weight:500;letter-spacing:-0.01em;color:#172b4d;line-height:28px"
+                                       th:text="${otpCode}">
+                                        4MLGHW
+                                    </p>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+
+                      <!--  <p style="margin-top:12px;" th:text="#{email.verify.reason}">
+                            This additional verification is required as you haven't logged into your account for a while.
+                        </p>
+
+                       <p style="margin-top:12px;">
+                            <span th:remove="tag" th:text="#{email.verify.encourage}">We encourage you to </span>
+                            <a th:href="@{${siteUrl}/manage-profile/security/two-step-verification}"
+                               style="border:none;background:transparent;color:#0052cc;text-decoration:none"
+                               target="_blank"
+                               th:text="#{email.verify.2fa.link}">enable two-step verification for enhanced security</a>.
+                        </p>-->
+
+                        <hr style="margin-top:24px;margin-bottom:24px;border:0;border-bottom:1px solid #c1c7d0">
+
+                        <div style="color:#707070;font-size:13px;line-height:19px;text-align:center;margin-top:10px">
+                            <table twidth="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#ffffff" align="center" style="border-collapse:collapse">
+                                <tbody>
+                                <tr>
+                                    <td valign="top" align="center" style="padding-top:10px;line-height:18px;text-align:center;font-weight:none;font-size:12px;color:#505f79">
+                                        <span th:text="${footerSentBy}">This message was sent to you by Kmicro Cloud</span>
+                                    </td>
+                                </tr>
+                                <tr valign="top">
+                                    <td align="center" style="padding-top:15px;padding-bottom:30px">
+                                        <a th:href="@{${siteUrl}}" target="_blank">
+                                            <img th:src="${footerLogoUrl}" width="114" border="0" th:alt="${footerLogoUrl}" style="border:0;line-height:100%;outline:none;text-decoration:none;display:block;color:#4c9ac9">
+                                        </a>
+                                    </td>
+                                </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
+</body>
+</html>

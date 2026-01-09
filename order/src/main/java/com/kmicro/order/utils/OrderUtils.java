@@ -1,14 +1,15 @@
 package com.kmicro.order.utils;
 
-import com.kmicro.order.Constants.AppConstants;
-import com.kmicro.order.Constants.OrderStatus;
-import com.kmicro.order.Constants.PaymentMethod;
-import com.kmicro.order.dtos.ChangeOrderStatusRec;
-import com.kmicro.order.dtos.OrderDTO;
-import com.kmicro.order.dtos.OrderItemDTO;
-import com.kmicro.order.dtos.ProcessPaymentRecord;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kmicro.order.components.OutboxUtils;
+import com.kmicro.order.constants.AppConstants;
+import com.kmicro.order.constants.OrderStatus;
+import com.kmicro.order.constants.PaymentMethod;
+import com.kmicro.order.dtos.*;
 import com.kmicro.order.entities.OrderEntity;
 import com.kmicro.order.entities.OrderItemEntity;
+import com.kmicro.order.entities.OutboxEntity;
 import com.kmicro.order.exception.DataNotFoundException;
 import com.kmicro.order.exception.OrderException;
 import com.kmicro.order.mapper.OrderItemMapper;
@@ -16,8 +17,6 @@ import com.kmicro.order.mapper.OrderMapper;
 import com.kmicro.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerRecord;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -26,6 +25,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,8 +36,12 @@ import java.util.Map;
 public class OrderUtils {
 
     private final RedisTemplate<String, Object> redisTemplate;
-    private final Producer<String, String> kafkaProducer;
+//    private final Producer<String, String> kafkaProducer;
     private  final OrderRepository orderRepository;
+    private final KafkaUtils kafkaUtils;
+    private final ObjectMapper objectMapper;
+    private final OutboxUtils outboxUtils;
+    private List<OutboxEntity> OutboxEventList = new ArrayList<>(10);
 
     @Transactional
     public OrderEntity saveOrder(OrderEntity orderEntity) {
@@ -127,7 +131,7 @@ public class OrderUtils {
 
     public   void sendNotificationToKafka(String key, String Data) {
         log.info("sendNotificationToKafka with orderID: {} and Data: {}", key,  Data);
-        kafkaProducer.send(new ProducerRecord<String, String>(AppConstants.TOPIC, null, key, Data) );
+//        kafkaProducer.send(new ProducerRecord<String, String>(AppConstants.TOPIC, null, key, Data) );
     }
 
     @Transactional(readOnly = true)
@@ -139,6 +143,7 @@ public class OrderUtils {
         return  orderRepository.findByUserId(userId);
     }
 
+//    @Cacheable(value = "", key = AppConstants.REDIS_ORDER_KEY_PREFIX+"#a0")
     @Transactional(readOnly = true)
     public OrderEntity getAllOrdersListByIDFromDB(Long orderId) {
         if(!orderRepository.existsById(orderId)){
@@ -156,5 +161,54 @@ public class OrderUtils {
         log.info("Changing Status from: {} to: {} of Order ID: {}",order.getOrderStatus(), orderStatusRec.orderStatus(), order.getId());
         order.setOrderStatus(OrderStatus.valueOf(orderStatusRec.orderStatus()));
         return orderRepository.save(order);
+    }
+
+    public void sendOrderEventToNotification(OrderDTO savedOrder) {
+        try {
+            String orderJson = objectMapper.writeValueAsString(savedOrder);
+            kafkaUtils.sendOrderEvent(savedOrder.getId().toString(),orderJson);
+
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public void addEventToList(OutboxEntity event){
+        try{
+            this.OutboxEventList.add(event);
+            log.info("Event Added In Outbox List: {}", event.toString());
+        }catch (Exception e){
+            log.info("Event Failed To Added In Outbox List: {}", event.toString());
+        }
+    }
+
+    public List<OutboxEntity> getEventsList(){
+        return this.OutboxEventList;
+    }
+
+    // Error Prone Method, Need To Handle Carefully
+    public void purgeEventList(){
+        int size = this.OutboxEventList.size();
+        List<OutboxEntity> entityList = outboxUtils.saveAllEvents(this.OutboxEventList);
+
+//        CronExpression ce = CronExpression.parse("0 */2 * * * *");
+//        LocalDateTime next = ce.next(LocalDateTime.now());
+//        System.out.println("Next execution will be: " + next);
+
+        if( size == entityList.size()){
+            this.OutboxEventList.clear();
+        }
+    }
+
+
+    public OrderEntity generateOrderEntityWithAddress(OrderAddressDTO orderAddress, List<OrderItemDTO> orderItemDTOList) {
+        OrderEntity order = this.generateOrderEntity(orderItemDTOList);
+        try {
+            // set Order address
+            order.setShippingAddress(objectMapper.writeValueAsString(orderAddress));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return  order;
     }
 }// endClass

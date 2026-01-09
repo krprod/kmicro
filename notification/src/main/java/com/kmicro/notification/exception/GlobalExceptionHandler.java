@@ -2,10 +2,13 @@ package com.kmicro.notification.exception;
 
 
 import com.kmicro.notification.dtos.ErrorResponseDTO;
+import jakarta.mail.MessagingException;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
+import org.springframework.mail.MailException;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -20,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 
 @ControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
     @Override
@@ -33,7 +37,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             String validationMsg = error.getDefaultMessage();
             validationErrors.put(fieldName, validationMsg);
         });
-        return new ResponseEntity<>(validationErrors, HttpStatus.BAD_REQUEST);
+        log.error("Validation Errror Request at {}: {}", request.getDescription(false), validationErrors);
+        return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationErrors);
     }
 
     @ExceptionHandler(Exception.class)
@@ -44,6 +49,32 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 exception.getMessage(),
                 LocalDateTime.now()
         );
-        return new ResponseEntity<>(errorResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        log.error("Server Errror Request at {}: {}", webRequest.getDescription(false), exception.getMessage());
+        return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponseDTO);
+
+    }
+
+    @ExceptionHandler(MailException.class)
+    public ResponseEntity<ErrorResponseDTO> handleMailException(MailException exception, WebRequest webRequest){
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+                webRequest.getDescription(false),
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                LocalDateTime.now()
+        );
+        log.error("MailException  Request at {}: {}", webRequest.getDescription(false), exception.getMessage());
+        return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponseDTO);
+    }
+
+    @ExceptionHandler(MessagingException.class)
+    public ResponseEntity<ErrorResponseDTO> handleMessagingException(MessagingException exception, WebRequest webRequest){
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+                webRequest.getDescription(false),
+                HttpStatus.BAD_REQUEST,
+                exception.getMessage(),
+                LocalDateTime.now()
+        );
+        log.error("MessagingException  Request at {}: {}", webRequest.getDescription(false), exception.getMessage());
+        return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponseDTO);
     }
 }

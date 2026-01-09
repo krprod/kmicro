@@ -15,7 +15,9 @@ public class CartDTO {
     public Long userId;
     @JsonProperty("product_id")
     public Long productId;
-
+    @JsonProperty("product_name")
+    public String productName;
+    public String img;
     public Integer quantity;
     public Double price;
 }

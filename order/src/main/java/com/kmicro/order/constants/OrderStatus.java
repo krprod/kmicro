@@ -1,4 +1,4 @@
-package com.kmicro.order.Constants;
+package com.kmicro.order.constants;
 
 public enum OrderStatus {
 

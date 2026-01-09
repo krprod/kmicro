@@ -16,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class OrderDTO  implements Serializable {
-
+    private static final long serialVersionUID = 1L;
     private  Long Id;
 
     @JsonProperty( "user_id")
@@ -43,6 +43,9 @@ public class OrderDTO  implements Serializable {
 
     @JsonProperty("shipping_fee")
     private  String shippingFee;
+
+    @JsonProperty("shipping_address")
+    private OrderAddressDTO shippingAddress;
 
     @JsonProperty( "tracking_number")
     private  String trackingNumber;

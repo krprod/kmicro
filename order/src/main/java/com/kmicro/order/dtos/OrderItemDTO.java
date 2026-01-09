@@ -2,7 +2,6 @@ package com.kmicro.order.dtos;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,4 +16,10 @@ public class OrderItemDTO {
     private Long userId;
     @JsonProperty("product_id")
     private Long productId;
+
+    @JsonProperty("item_img")
+    private String itemImg;
+    @JsonProperty("item_name")
+    public String itemName;
+
 }

@@ -1,6 +1,5 @@
 package com.kmicro.order.entities;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -35,6 +34,11 @@ public class OrderItemEntity {
 
     private Integer quantity;
 
+    @Column(name = "item_img")
+    private String itemImg;
+
+    @Column(name = "item_name")
+    private String itemName;
     /*    @Column(name = "user_id")
     private  Long userId;*/
 
