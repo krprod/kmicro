@@ -1,47 +1,31 @@
 package com.kmicro.notification.service;
 
-import jakarta.mail.internet.MimeMessage;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.kmicro.notification.constansts.ChannelType;
+import com.kmicro.notification.constansts.Status;
+import com.kmicro.notification.dtos.MailRequestRec;
+import com.kmicro.notification.dtos.RequestedJsonRecord;
+import com.kmicro.notification.entities.NotificationsEntity;
+import com.kmicro.notification.repository.NotificationRepository;
+import com.kmicro.notification.utils.EmailUtils;
+import com.kmicro.notification.utils.MailGenerator;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.ClassPathResource;
-import org.springframework.core.io.FileSystemResource;
-import org.springframework.mail.SimpleMailMessage;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
+import java.time.Instant;
+import java.time.LocalDateTime;
 
 @Slf4j
 @Service
+@RequiredArgsConstructor
 public class EmailService {
 
-    @Autowired
-        private JavaMailSender mailSender;
+    private final EmailUtils emailUtils;
+    private final MailGenerator mailGenerator;
+    private final NotificationRepository notificationRepository;
 
-    @Autowired
-    private  EmailServiceHelper emailServiceHelper;
-
-    @Value("${spring.mail.username}")
-    private String username;
-
-    @Value("${ATTACHMENT_PATH}")
-    private String attachment;
-
-    @Value("${TESTUSER}")
-    private String testUser;
-
-        public void sendSimpleEmail(String to, String subject, String body) {
-            SimpleMailMessage message = new SimpleMailMessage();
-            message.setFrom("vatsal.ffnf@gmail.com");
-            message.setTo(to);
-            message.setSubject(subject);
-            message.setText(body);
-            mailSender.send(message);
-        }
-
-        public  void sendHtmlEmailWithAttachment(String to,  String subject,  String htmlBody,  String attachmentPath){
+      /*  public  void sendHtmlEmailWithAttachment(String to,  String subject,  String htmlBody,  String attachmentPath){
             try {
                 MimeMessage message = mailSender.createMimeMessage();
                 MimeMessageHelper helper = new MimeMessageHelper(message, true,"UTF-8"); // true = multipart
@@ -60,5 +44,55 @@ public class EmailService {
                 log.info("detail error msg: {}",e.getStackTrace());
             }
         }
+*/
 
-}
+        public void sendSimpleEmail(MailRequestRec requestRec) {
+            mailGenerator.sendSimpleMail(
+                    emailUtils.createSimpleTextMail(requestRec)
+            );
+        }
+
+        public void sendMultiPartMail(MailRequestRec requestRec){
+//            mailGenerator.sendMultiPartMail(
+//                    emailUtils.createMultiPartMailHelper(requestRec)
+//            );
+        }
+
+
+    public void sendOTP(MailRequestRec requestRec) {
+            log.info("Regular Time: {}", LocalDateTime.now());
+            emailUtils.sendMail(requestRec);
+            log.info("Async Time: {}", LocalDateTime.now());
+            emailUtils.sendMailAsync(requestRec);
+        log.info("End Time: {}", LocalDateTime.now());
+//        templateMix.append(emailUtils.prepareHtmlBody(requestRec, Templates.FR_ABANDON_CART.getName(),true))
+//                .append(emailUtils.prepareHtmlBody(requestRec, Templates.FR_OPT_VERIFICATION.getName(),true))
+//                .append(emailUtils.prepareHtmlBody(requestRec, Templates.FR_ORDER_CONFIRM.getName(),true))
+//                .append(emailUtils.prepareHtmlBody(requestRec, Templates.FR_PAYMENT_FAIL.getName(),true))
+//                .append(emailUtils.prepareHtmlBody(requestRec, Templates.FR_SECURITY_ALERT.getName(),true))
+//                .append(emailUtils.prepareHtmlBody(requestRec, Templates.FR_SHIPPING_UPDATE.getName(),true))
+//                .append(emailUtils.prepareHtmlBody(requestRec, Templates.FR_WELCOME.getName(),true));
+
+
+    }
+
+    public void genericData(JsonNode reqObj) {
+
+    }
+
+    public void orderConfirm(RequestedJsonRecord reqObj) {
+            var data = emailUtils.getMapObjectFromJsonNode(reqObj.body());
+        NotificationsEntity entity = new NotificationsEntity();
+        entity.setCreatedAt(Instant.now());
+        entity.setUpdatedAt(Instant.now());
+
+        entity.setChannelType(ChannelType.EMAIL);
+//        entity.setPriority(SmallIntJdbcType.INSTANCE.isSmallInteger());
+
+        entity.setStatus(Status.PENDING);
+        entity.setPayload(data);
+
+        notificationRepository.save(entity);
+        log.info("req: {}", reqObj);
+    }
+}//EC

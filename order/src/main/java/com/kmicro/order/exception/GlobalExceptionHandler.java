@@ -51,8 +51,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return new ResponseEntity<>(errorResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
-    @ExceptionHandler(DataNotFoundException.class)
-    public ResponseEntity<ErrorResponseDTO>handleNotFound(DataNotFoundException exception, WebRequest webRequest){
+    @ExceptionHandler({DataNotFoundException.class,  OrderException.class, CartException.class})
+    public ResponseEntity<ErrorResponseDTO>handleNotFound(Exception exception, WebRequest webRequest){
         ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
                 webRequest.getDescription(false),
                 HttpStatus.NOT_FOUND,

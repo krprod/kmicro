@@ -1,4 +1,4 @@
-package com.kmicro.order.Constants;
+package com.kmicro.notification.constansts;
 
 import java.time.ZoneId;
 
@@ -18,4 +18,6 @@ public final class AppConstants {
 
     public static final String TEMP_TRANSACTION_ID = "tranx_01";
     public static final String TEMP_TRACKING_ID = "track_01";
+
+    public static final String NO_REPLY_MAIL  ="no-reply.kmicro.com";
 }

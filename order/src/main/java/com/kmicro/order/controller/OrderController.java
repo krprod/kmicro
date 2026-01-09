@@ -1,6 +1,7 @@
 package com.kmicro.order.controller;
 
 import com.kmicro.order.dtos.ChangeOrderStatusRec;
+import com.kmicro.order.dtos.OrderAddressDTO;
 import com.kmicro.order.dtos.OrderDTO;
 import com.kmicro.order.dtos.ResponseDTO;
 import com.kmicro.order.service.OrderService;
@@ -28,8 +29,11 @@ public class OrderController {
             @ApiResponse(responseCode = "400", description = "Failed Global Handler")
     })
     @PostMapping("/checkout/{userId}")
-    public ResponseEntity<String> checkOut(@PathVariable(value = "userId") String userId){
-        orderService.proceedCheckOut(userId);
+    public ResponseEntity<String> checkOut(
+            @RequestBody(required = false) OrderAddressDTO orderAddress,
+            @PathVariable(value = "userId") String userId) {
+//        orderService.proceedCheckOut(userId);
+        orderService.proceedCheckoutWithAddress(userId, orderAddress);
         return ResponseEntity.ok("success");
     }
 

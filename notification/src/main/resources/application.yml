@@ -21,11 +21,43 @@ spring:
             properties:
                   mail.smtp.auth: true
                   mail.smtp.starttls.enable: true
+      kafka:
+            bootstrap-servers: localhost:9092
+#            producer:
+#                  key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#                  value-serializer: org.apache.kafka.common.serialization.StringSerializer
+##                  acks: all
+#                  properties:
+#                        enable.idempotence: true
+#                  consumer:
+#                        group-id: notification-group
+#                        auto-offset-reset: earliest
+#                        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#                        value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            properties:
+                  enable.idempotence: true
+                  compression.type: snappy
+#            # Retry & DLT Logic (Requires Spring Kafka 2.7+)
+            retry:
+                  topic:
+                        enabled: true
+                        attempts: 3
+                        delay: 5000 # 5 seconds between retries
+
+logging:
+      level:
+            org:
+                  springframework:
+#                        kafka: DEBUG
+
 management:
       endpoints:
             web:
                   exposure:
-                        include: health
-      health:
-            jdbc:
-                  enabled: true
+                        include: health,info,metrics,prometheus
+      endpoint:
+            health:
+                  show-details: always
+#      health:
+#            jdbc:
+#                  enabled: true

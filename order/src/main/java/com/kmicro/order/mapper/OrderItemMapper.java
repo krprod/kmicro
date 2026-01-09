@@ -20,6 +20,8 @@ public class OrderItemMapper {
         orderItemEntity.setProductId(orderItemDTO.getProductId());
         orderItemEntity.setQuantity(orderItemDTO.getQuantity());
         orderItemEntity.setPrice(orderItemDTO.getPrice());
+        orderItemEntity.setItemImg(orderItemDTO.getItemImg());
+        orderItemEntity.setItemName(orderItemDTO.getItemName());
         orderItemEntity.setOrder(orderEntity);
         return orderItemEntity;
     }
@@ -38,6 +40,8 @@ public class OrderItemMapper {
         orderItemDTO.setProductId(orderItemEntity.getProductId());
         orderItemDTO.setQuantity(orderItemEntity.getQuantity());
         orderItemDTO.setPrice(orderItemEntity.getPrice());
+        orderItemDTO.setItemImg(orderItemEntity.getItemImg());
+        orderItemDTO.setItemName(orderItemEntity.getItemName());
         return orderItemDTO;
     }
 
@@ -47,6 +51,8 @@ public class OrderItemMapper {
         orderItemDTO.setQuantity(cartDTO.getQuantity());
         orderItemDTO.setPrice(cartDTO.getPrice());
         orderItemDTO.setUserId(cartDTO.getUserId());
+        orderItemDTO.setItemImg(cartDTO.getImg());
+        orderItemDTO.setItemName(cartDTO.getProductName());
         return orderItemDTO;
     }
 

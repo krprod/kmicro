@@ -1,0 +1,10 @@
+<!--Password Reset / 2FA Alert-->
+<div th:fragment="email-body" xmlns:th="http://www.thymeleaf.org">
+    <h1 style="font-size:24px;font-weight:500;color:#de350b;margin-top:40px;">Security Alert</h1>
+    <p>A password reset was requested for your account. If this was not you, please secure your account immediately.</p>
+
+    <div style="margin-top: 30px; text-align: center;">
+        <a th:href="@{${siteUrl} + '/reset-password?token=' + ${token}}"
+           style="background-color: #0052cc; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 3px; display: inline-block;">Reset Password</a>
+    </div>
+</div>

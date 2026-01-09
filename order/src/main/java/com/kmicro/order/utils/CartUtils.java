@@ -1,12 +1,15 @@
 package com.kmicro.order.utils;
 
-import com.kmicro.order.Constants.AppConstants;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kmicro.order.constants.AppConstants;
 import com.kmicro.order.dtos.CartDTO;
 import com.kmicro.order.dtos.OrderItemDTO;
+import com.kmicro.order.exception.DataNotFoundException;
+import com.kmicro.order.mapper.CartRedisMapper;
 import com.kmicro.order.mapper.OrderItemMapper;
-import com.kmicro.order.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -19,12 +22,21 @@ import java.util.concurrent.CompletableFuture;
 @RequiredArgsConstructor
 @Service
 public class CartUtils {
-
-    private final CartService cartService;
+    private final RedisTemplate<String, CartDTO> redisTemplate;
+    private final ObjectMapper objectMapper;
 
     public List<OrderItemDTO> getCartItemAsOrderItemDTO(String userId){
-        List<CartDTO> cartDataList = cartService.getCartByUserID(userId);
+        List<CartDTO> cartDataList = this.getCartList(userId);
         return OrderItemMapper.mapCartDtoToOrderItemList(cartDataList);
+    }
+
+    public List<CartDTO> getCartList(String userId){
+        List<Object> cachedCart1 =  redisTemplate.opsForHash().values(AppConstants.REDIS_CART_KEY_PREFIX + userId);
+        if(cachedCart1.isEmpty()){
+            throw new DataNotFoundException("Cart Not Found for UserID: "+ userId);
+        }
+        log.info("Cart Found for  UserID:  {}", userId);
+        return CartRedisMapper.getListOfProducts(cachedCart1, objectMapper);
     }
 
     private CompletableFuture<List<OrderItemDTO>> getOrderItemsFromCartService(String user_id) {

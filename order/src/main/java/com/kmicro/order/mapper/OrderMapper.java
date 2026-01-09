@@ -1,5 +1,8 @@
 package com.kmicro.order.mapper;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kmicro.order.dtos.OrderAddressDTO;
 import com.kmicro.order.dtos.OrderDTO;
 import com.kmicro.order.entities.OrderEntity;
 import com.kmicro.order.utils.DateUtil;
@@ -28,9 +31,15 @@ public class OrderMapper {
     public static List<OrderDTO> entityToDTOListWithoutItems(List<OrderEntity> orderEntities) {
         return orderEntities.stream().map(OrderMapper::mapEntityToDTOWithoutItems).toList();
     }
+    public static List<OrderDTO> entityToDTOListWithoutItems(List<OrderEntity> orderEntities, ObjectMapper mapper) {
+        return orderEntities.stream().map((e)->OrderMapper.mapEntityToDTOWithoutItems(e, mapper)).toList();
+    }
 
     public static List<OrderDTO> entityToDTOListWithItems(List<OrderEntity> orderEntities) {
         return orderEntities.stream().map(OrderMapper::mapEntityToDTOWithItems).toList();
+    }
+    public static List<OrderDTO> entityToDTOListWithItems(List<OrderEntity> orderEntities, ObjectMapper mapper) {
+        return orderEntities.stream().map((e)->OrderMapper.mapEntityToDTOWithItems(e,mapper)).toList();
     }
 
     public static  OrderDTO mapEntityToDTOWithoutItems(OrderEntity orderEntity) {
@@ -48,6 +57,15 @@ public class OrderMapper {
 //        orderDTO.setOrderItems(OrderItemMapper.mapEntityListToDTOList(orderEntity.getOrderItems()));
         return orderDTO;
     }
+    public static  OrderDTO mapEntityToDTOWithoutItems(OrderEntity orderEntity, ObjectMapper mapper) {
+        var orderdto = OrderMapper.mapEntityToDTOWithoutItems(orderEntity);
+        try {
+            orderdto.setShippingAddress(mapper.readValue(orderEntity.getShippingAddress(), OrderAddressDTO.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return orderdto;
+    }
 
     public static  OrderDTO mapEntityToDTOWithItems(OrderEntity orderEntity) {
         OrderDTO orderDTO = new OrderDTO();
@@ -63,5 +81,14 @@ public class OrderMapper {
         orderDTO.setTrackingNumber(orderEntity.getTrackingNumber());
         orderDTO.setOrderItems(OrderItemMapper.mapEntityListToDTOList(orderEntity.getOrderItems()));
         return orderDTO;
+    }
+    public static  OrderDTO mapEntityToDTOWithItems(OrderEntity orderEntity, ObjectMapper mapper){
+        var orderdto = OrderMapper.mapEntityToDTOWithItems(orderEntity);
+        try {
+            orderdto.setShippingAddress(mapper.readValue(orderEntity.getShippingAddress(), OrderAddressDTO.class));
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return orderdto;
     }
 }

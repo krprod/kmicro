@@ -8,6 +8,7 @@ import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.kmicro.order.dtos.CartDTO;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
@@ -16,10 +17,12 @@ import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactor
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
-import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+
+    @Value("${spring.application.name}")
+    private String serviceName;
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory() {
@@ -36,9 +39,11 @@ public class RedisConfig {
         ObjectMapper mapper = createObjectMapper();
 
         Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(mapper,Object.class);
-        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+        //------ Custom Prefixing Serializer for Keys
+        PfxSerializer prefixSerializer = new PfxSerializer(serviceName);
+//        StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
-        template.setKeySerializer(stringSerializer);
+        template.setKeySerializer(prefixSerializer);
         template.setValueSerializer(serializer);
         return template;
     }
@@ -52,13 +57,16 @@ public class RedisConfig {
 
         // Pass ObjectMapper directly to the constructor
         Jackson2JsonRedisSerializer<CartDTO> jackson2JsonRedisSerializer = new Jackson2JsonRedisSerializer<>(mapper, CartDTO.class);
-        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+//        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+
+        //------ Custom Prefixing Serializer for Keys
+        PfxSerializer prefixSerializer = new PfxSerializer(serviceName);
 
         template.setConnectionFactory(connectionFactory);
 
         // Key Serializer -- Hash Key Serializer
-        template.setKeySerializer(stringSerializer);
-        template.setHashKeySerializer(stringSerializer);
+        template.setKeySerializer(prefixSerializer);
+        template.setHashKeySerializer(prefixSerializer);
 
         // Hash Value Serializer (to support complex objects) -- Value Serializer
         template.setHashValueSerializer(jackson2JsonRedisSerializer);
@@ -82,8 +90,11 @@ public class RedisConfig {
         );
 
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
+        //------ Custom Prefixing Serializer for Keys
+        PfxSerializer prefixSerializer = new PfxSerializer(serviceName);
 
-        template.setKeySerializer(new StringRedisSerializer());
+//        template.setKeySerializer(new StringRedisSerializer());
+        template.setKeySerializer(prefixSerializer);
         template.setValueSerializer(serializer);
         return template;
     }

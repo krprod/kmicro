@@ -1,6 +1,6 @@
 package com.kmicro.order.utils;
 
-import com.kmicro.order.Constants.AppConstants;
+import com.kmicro.order.constants.AppConstants;
 
 import java.time.Instant;
 import java.time.LocalDateTime;

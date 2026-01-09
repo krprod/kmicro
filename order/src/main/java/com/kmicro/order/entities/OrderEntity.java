@@ -1,7 +1,7 @@
 package com.kmicro.order.entities;
 
-import com.kmicro.order.Constants.OrderStatus;
-import com.kmicro.order.Constants.PaymentMethod;
+import com.kmicro.order.constants.OrderStatus;
+import com.kmicro.order.constants.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -47,8 +47,13 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "shipping_fee")
     private  String shippingFee;
 
+    @Column(name = "shipping_address")
+    private  String shippingAddress;
+
     @Column(name = "tracking_number")
     private  String trackingNumber;
+
+
 
     @OneToMany(mappedBy = "order", targetEntity = OrderItemEntity.class, cascade = CascadeType.ALL, fetch = FetchType.LAZY,   orphanRemoval = true)
     private List<OrderItemEntity> orderItems;

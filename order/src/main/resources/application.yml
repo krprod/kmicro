@@ -1,6 +1,9 @@
 server:
       port: 8091
 spring:
+#      sql:
+#            init:
+#                  mode: always
       application:
             name: order-cart-service
       profiles:
@@ -9,12 +12,26 @@ spring:
             url: jdbc:postgresql://localhost:5432/springmicro
             username: bloguser
             password: bloguser
+      flyway:
+            enabled: true
+            # If the history table is missing, create it and mark current state as version 1
+            baseline-on-migrate: true
+            # The version to assign to the existing database
+            baseline-version: 1
+            # The name of the baseline marker
+            baseline-description: "Existing Database State"
+            locations: classpath:db/migration
       jpa:
             hibernate:
+                # Validate | Update | Create
                   ddl-auto: create
             show-sql: true
-#      kafka:
-#            bootstrap-servers: localhost:9092
+      kafka:
+            bootstrap-servers: localhost:9092
+            listener:
+                  # If true, the container starts when the context is refreshed.
+                  # If the broker is down, it will log errors but NOT stop the app from starting.
+                  missing-topics-fatal: false
 #            consumer:
 #                  group-id: order-group
 #                  auto-offset-reset: earliest
@@ -23,14 +40,25 @@ spring:
 #            producer:
 #                  key-serializer: org.apache.kafka.common.serialization.StringSerializer
 #                  value-serializer: org.apache.kafka.common.serialization.StringSerializer
+            properties:
+                  enable.idempotence: true
+                  compression.type: snappy
+                  metadata.max.age.ms: 3000
+            retry:
+                        topic:
+                              enabled: true
+                              attempts: 3
+                              delay: 5000 # 5 seconds between retries
       redis:
             host: localhost
             port: 6379
+
 logging:
       level:
             org:
                   springframework:
-#                        kafka: DEBUG
+                        cache: TRACE
+                     #   kafka: DEBUG
 
 management:
       endpoints:
