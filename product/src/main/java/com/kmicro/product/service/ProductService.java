@@ -6,7 +6,9 @@ import com.kmicro.product.exception.DataNotExistException;
 import com.kmicro.product.mapper.ProductMapper;
 import com.kmicro.product.repository.ProductRepository;
 import com.kmicro.product.repository.ProductSpecifications;
+import com.kmicro.product.utils.CacheUtils;
 import com.kmicro.product.utils.PaginationUtils;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.common.errors.ResourceNotFoundException;
@@ -15,10 +17,8 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -26,16 +26,34 @@ import java.util.Optional;
 public class ProductService {
 
     private final ProductRepository productRepository;
+    private final CacheUtils cacheUtils;
+//    private final Logger log = LoggerFactory.getLogger(ProductService.class);
+
 
     @Transactional(readOnly = true)
+//    @Cacheable(value = AppConstants.CACHE_PREFIX_PRODUCT_LIST, key = " 'all' ")
     public List<ProductDTO> getAllProducts() {
+        List<ProductDTO> getCachedProductsList =  cacheUtils.getProductListFromCache() ;
+
+       if(getCachedProductsList != null && getCachedProductsList.size() == productRepository.count()){
+           log.info("Cache found");
+           return getCachedProductsList;
+       }
+
         List<ProductEntity> productEntities = productRepository.findAll();
         if(productEntities.isEmpty()){
             return Collections.emptyList();
         }
-        return ProductMapper.mapEntityToDtoList(productEntities);
+        List<ProductDTO> dtos = ProductMapper.mapEntityToDtoList(productEntities);
+        cacheUtils.addProductListToCache(dtos);
+        log.info("Caching Not Found. Caching DB Result for next time");
+        return new ArrayList<>(dtos); // Ensure it is a standard ArrayList
+//        return ProductMapper.mapEntityToDtoList(productEntities);
     }
 
+//    @Caching(evict = {
+//            @CacheEvict(value = AppConstants.CACHE_PREFIX_PRODUCT_LIST, key = " 'all' "),
+//    })
     @Transactional
     public List<ProductDTO> addProduct(List<ProductDTO> productList) {
         // need to handle agr categoryID exist nahi, to product  add na ho
@@ -49,7 +67,9 @@ public class ProductService {
             return Collections.emptyList();
         }
         log.info("Products added successful");
-        return ProductMapper.mapEntityToDtoList(savedEntityList);
+        List<ProductDTO> dtos = ProductMapper.mapEntityToDtoList(savedEntityList);
+        cacheUtils.updateProductListToCache(dtos);
+        return dtos;
     }
 
     /*
@@ -83,12 +103,17 @@ public class ProductService {
 
         List<ProductEntity> savedEntityList = productRepository.saveAll(resultEntities);
         log.info("Products Updated Successfully");
-        return ProductMapper.mapEntityToDtoList(savedEntityList);
+        List<ProductDTO> dtos = ProductMapper.mapEntityToDtoList(savedEntityList);
+        cacheUtils.updateProductListToCache(dtos);
+        return dtos;
     }
 
     /*
     *   Update Product Fail-Safe
     * */
+//    @Caching(evict = {
+//            @CacheEvict(value = AppConstants.CACHE_PREFIX_PRODUCT_LIST, key = " 'all' "),
+//    })
     @Transactional
     public BulkUpdateResponseRecord bulkUpdateProduct(List<ProductDTO> productList) {
         List<Long> successIds = new ArrayList<>();
@@ -119,11 +144,13 @@ public class ProductService {
                 // Catch unexpected mapping errors for a specific row
                 errors.add(new BulkErrorResponseRecord(dto.getId(), "Internal error: " + e.getMessage()));
                 log.error("Product Fail-Safe -- Internal error:",e);
+                log.debug("DEBUG: ", e.fillInStackTrace());
             }
 
         }
         if (!entitiesToSave.isEmpty()) {
-            productRepository.saveAll(entitiesToSave);
+           var savedEntityList = productRepository.saveAll(entitiesToSave);
+            cacheUtils.updateProductListToCache(ProductMapper.mapEntityToDtoList(savedEntityList));
             log.info("Product Fail-Safe -- Product Updated Successful");
         }
 
@@ -137,11 +164,19 @@ public class ProductService {
     }
 
     public ProductDTO getProductById(Long id) {
+        ProductDTO cachedProduct = cacheUtils.getSingleProductFromCache(id);
+        if(cachedProduct != null){
+            log.info("Cached Product FOUND");
+            return cachedProduct;
+        }
         Optional<ProductEntity> product = productRepository.findById(id);
         if(product.isEmpty()){
             throw  new DataNotExistException("Product not found:  "+id);
         }
-        return  ProductMapper.EntityToDTO(product.get());
+        log.info("Cache Not FOUND, Saving DB result in Cache");
+        ProductDTO dbResult  = ProductMapper.EntityToDTO(product.get());
+        cacheUtils.updateProductListToCache(List.of(dbResult));
+        return dbResult ;
     }
 
     public Slice<ProductEntity> filterAndSortedProductList() {
@@ -182,13 +217,14 @@ public class ProductService {
         return  productRepository.existsById(id);
     }
 
+
     @Transactional
-    public BulkUpdateResponseRecord changeQtyBoughtProduct(List<BoughtProductRecord> productRecord) {
+    public BulkUpdateResponseRecord changeQtyBoughtProduct(List<BoughtProductRecord> productRecords) {
         List<Long> successIds = new ArrayList<>();
         List<BulkErrorResponseRecord> errors = new ArrayList<>();
         List<ProductEntity> entitiesToSave = new ArrayList<>();
 
-        for(var product : productRecord){
+        for(var product : productRecords){
             try{
                 Optional<ProductEntity> productOpt = productRepository.findById(product.id());
 
@@ -220,9 +256,66 @@ public class ProductService {
         }
 
         if(!entitiesToSave.isEmpty()){
-            productRepository.saveAll(entitiesToSave);
+            var savedEntityList = productRepository.saveAll(entitiesToSave);
+            cacheUtils.updateProductListToCache(ProductMapper.mapEntityToDtoList(savedEntityList));
         }
 
         return new BulkUpdateResponseRecord(successIds, errors);
+    }
+
+    @Transactional
+    public BulkUpdateResponseRecord changeQtyBoughtProductOptimized(List<BoughtProductRecord> productRecords){
+        List<Long> successIds = new ArrayList<>();
+        List<BulkErrorResponseRecord> errors = new ArrayList<>();
+        List<ProductEntity> entitiesToSave = new ArrayList<>();
+
+        //-- Query for Unique IDs
+        Set<Long> productRecIdSet = productRecords.stream().map(BoughtProductRecord::id).collect(Collectors.toSet());
+        Map<Long, ProductEntity> productIdAndEntityMap = productRepository.findByIdIn(productRecIdSet)
+                .stream().collect(Collectors.toMap(ProductEntity::getId, productEntity ->productEntity));
+
+        for (BoughtProductRecord record : productRecords) {
+            ProductEntity product = productIdAndEntityMap.get(record.id());
+
+            if (product == null) {
+                errors.add(new BulkErrorResponseRecord(record.id(), "Product ID not found in database"));
+                log.error("Product ID: {} not found in database", record.id());
+                continue;
+            }
+            try{
+                // 2. check if qty > existingQty and existingQty-qty < 1
+                if(product.getStockQuantity() > record.qty() && product.getStockQuantity() - record.qty() > 1){
+                    // 3. change existingQty
+                    product.setStockQuantity(product.getStockQuantity() - record.qty());
+                    entitiesToSave.add(product);
+                    successIds.add(product.getId());
+                    log.info("Bought Product ID: {} Quantity left: {}",product.getId(), product.getStockQuantity());
+                }else {
+                    errors.add(new BulkErrorResponseRecord(product.getId(),"Product is not in sufficient quantity: "+product.getStockQuantity()));
+                    log.info("Product is not in sufficient quantity: {}",product.getStockQuantity());
+                }
+
+            } catch (Exception ex) {
+                errors.add(new BulkErrorResponseRecord(record.id(),"Internal error: " + ex.getMessage()));
+                log.error("Exception Occured in BoughtProduct:", ex);
+//                log.debug(ex.printStackTrace());
+            }
+        }
+
+        if(!entitiesToSave.isEmpty()){
+            var savedEntityList = productRepository.saveAll(entitiesToSave);
+            cacheUtils.updateProductListToCache(ProductMapper.mapEntityToDtoList(savedEntityList));
+        }
+        return new BulkUpdateResponseRecord(successIds, errors);
+    }
+
+
+    public ProductDTO checkProductAvailability(@Valid BoughtProductRecord productRecord) {
+        ProductDTO product = getProductById(productRecord.id());
+        if(product.getQuantity() > productRecord.qty() && product.getQuantity() - productRecord.qty() > 1){
+            return product;
+        }
+        log.info("Product is not in sufficient quantity: {}",product.getQuantity());
+        throw new DataNotExistException("Product is not in sufficient quantity: {}",product.getQuantity());
     }
 }// endClass

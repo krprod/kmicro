@@ -25,6 +25,8 @@ public class OutboxEntity {
     private Long id;
 
     private String topic;
+    private String eventType;
+    private String sourceSystem;
     private String aggregateId; // e.g., Order ID
 
     @Column(columnDefinition = "TEXT")

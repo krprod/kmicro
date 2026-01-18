@@ -5,6 +5,7 @@ import com.kmicro.order.dtos.OrderAddressDTO;
 import com.kmicro.order.dtos.OrderDTO;
 import com.kmicro.order.dtos.ResponseDTO;
 import com.kmicro.order.service.OrderService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -67,18 +68,6 @@ public class OrderController {
         return  ResponseEntity.ok(orderDTO);
     }
 
-    @Operation(summary = "Get  Orders  by Order ID From Redis/Cache")
-    @ApiResponses(value = {
-            @ApiResponse(responseCode = "200", description = "Single Order Retrieved Successfully"),
-            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
-    })
-    @GetMapping("/cache/{orderID}")
-    public ResponseEntity<OrderDTO> getOrderFromCache(@PathVariable(value = "orderID") Long orderID) {
-        OrderDTO  cachedOrder =  orderService.getOrderFromCache(orderID);
-        return  ResponseEntity.ok(cachedOrder);
-    }
-
-
     @Operation(summary = "Update Order Status")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Status Changed Successfully"),
@@ -90,6 +79,17 @@ public class OrderController {
         return ResponseEntity.ok(responseDTO);
     }
 
+    @Hidden
+    @Operation(summary = "Get  Orders  by Order ID From Redis/Cache")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Single Order Retrieved Successfully"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @GetMapping("/cache/{orderID}")
+    public ResponseEntity<OrderDTO> getOrderFromCache(@PathVariable(value = "orderID") Long orderID) {
+        OrderDTO  cachedOrder =  orderService.getOrderFromCache(orderID);
+        return  ResponseEntity.ok(cachedOrder);
+    }
 
 
 

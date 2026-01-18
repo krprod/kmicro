@@ -9,22 +9,40 @@ spring:
       profiles:
             active: "prod"
       datasource:
-            url: jdbc:postgresql://localhost:5432/springmicro
+            url: jdbc:postgresql://localhost:5432/springmicro?currentSchema=order_schema
             username: bloguser
             password: bloguser
-      flyway:
-            enabled: true
-            # If the history table is missing, create it and mark current state as version 1
-            baseline-on-migrate: true
-            # The version to assign to the existing database
-            baseline-version: 1
-            # The name of the baseline marker
-            baseline-description: "Existing Database State"
-            locations: classpath:db/migration
+            driver-class-name: org.postgresql.Driver
+            hikari:
+                  pool-name: orderServiceHikariPool
+                  maximum-pool-size: 10
+                  minimum-idle: 5
+                  idle-timeout: 300000 # 5 minutes
+                  connection-timeout: 20000 # 20 seconds
+                  max-lifetime: 1200000 # 20 minutes
+                  auto-commit: true
+            flyway:
+                  enabled: true
+                  schemas: order_schema
+                  baseline-on-migrate: true # Crucial for existing databases
+                  out-of-order: false        # Strict linear progression in prod
+                  lock-retry-count: 50 # Retries before failing
+                  locations:
+                        - classpath:db/migration
+#                  table: order_schema_history
+#      flyway:
+#            enabled: true
+#            # If the history table is missing, create it and mark current state as version 1
+#            baseline-on-migrate: true
+#            # The version to assign to the existing database
+#            baseline-version: 1
+#            # The name of the baseline marker
+#            baseline-description: "Existing Database State"
+#            locations: classpath:db/migration
       jpa:
             hibernate:
                 # Validate | Update | Create
-                  ddl-auto: create
+                  ddl-auto: validate
             show-sql: true
       kafka:
             bootstrap-servers: localhost:9092

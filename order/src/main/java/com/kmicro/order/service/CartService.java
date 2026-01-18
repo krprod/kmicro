@@ -45,7 +45,7 @@ public class CartService {
                                 cartDTO.getProductId().toString());
 
         if (deletedCount == 0) {
-            throw new DataNotFoundException("Item Not Found In Cart: "+ cartDTO.getProductId());
+            throw new DataNotFoundException("Item Not Found In Cart: {}", cartDTO.getProductId());
         }
         log.info("Item removed remove cart Successfully: {}", cartDTO.getProductId());
     }
@@ -53,7 +53,7 @@ public class CartService {
     public void deleteCart(String userID) {
         Boolean deletedCount = redisTemplate.delete(AppConstants.REDIS_CART_KEY_PREFIX + userID);
         if(!deletedCount){
-            throw new DataNotFoundException("Cart Not Exists of ID: "+AppConstants.REDIS_CART_KEY_PREFIX + userID);
+            throw new DataNotFoundException("Cart Not Exists of ID: {} ",AppConstants.REDIS_CART_KEY_PREFIX + userID);
         }
         log.info("deleting cart ID: {}",AppConstants.REDIS_CART_KEY_PREFIX + userID);
     }

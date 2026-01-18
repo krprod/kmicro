@@ -1,7 +1,0 @@
--- CREATE TABLE IF NOT EXISTS outbox_events (
---                                id BIGSERIAL PRIMARY KEY,
---                                topic VARCHAR(255) NOT NULL,
---                                payload TEXT,
---                                status VARCHAR(50),
---                                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
--- );

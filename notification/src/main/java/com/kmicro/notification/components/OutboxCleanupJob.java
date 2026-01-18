@@ -17,6 +17,11 @@ public class OutboxCleanupJob {
     // Runs once every hour (or use a CRON expression for off-peak hours)
 //    @Scheduled(cron = "0 0 * * * *")
 //    @Scheduled(cron = "0 */10 * * * *")
+//    @SchedulerLock(
+//            name = "importantTaskLock",
+//            lockAtMostFor = "10m",
+//            lockAtLeastFor = "1m"
+//    )
 //    @Transactional
     public void cleanupProcessedEvents() {
         LocalDateTime threshold = LocalDateTime.now().minusDays(1);

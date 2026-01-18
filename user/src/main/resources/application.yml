@@ -6,16 +6,56 @@ spring:
       profiles:
             active: "prod"
       datasource:
-            url: jdbc:postgresql://localhost:5432/springmicro
+            url: jdbc:postgresql://localhost:5432/springmicro?currentSchema=user_schema
             username: bloguser
             password: bloguser
+            driver-class-name: org.postgresql.Driver
+            hikari:
+                  pool-name: userServiceHikariPool
+                  maximum-pool-size: 10
+                  minimum-idle: 5
+                  idle-timeout: 300000 # 5 minutes
+                  connection-timeout: 20000 # 20 seconds
+                  max-lifetime: 1200000 # 20 minutes
+                  auto-commit: true
+            flyway:
+                  enabled: true
+                  schemas: user_schema
+                  baseline-on-migrate: true # Crucial for existing databases
+                  out-of-order: false        # Strict linear progression in prod
+                  lock-retry-count: 50 # Retries before failing
+                  locations:
+                        - classpath:db/migration
+#                  table: user_schema_history
       jpa:
             hibernate:
-                  ddl-auto: update
+                  ddl-auto: validate
             show-sql: true
-
+      kafka:
+            bootstrap-servers: localhost:9092
+            #            producer:
+            #                  key-serializer: org.apache.kafka.common.serialization.StringSerializer
+            #                  value-serializer: org.apache.kafka.common.serialization.StringSerializer
+            ##                  acks: all
+            #                  properties:
+            #                        enable.idempotence: true
+            #                  consumer:
+            #                        group-id: notification-group
+            #                        auto-offset-reset: earliest
+            #                        key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            #                        value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+            properties:
+                  enable.idempotence: true
+                  compression.type: snappy
+            #            # Retry & DLT Logic (Requires Spring Kafka 2.7+)
+            retry:
+                  topic:
+                        enabled: true
+                        attempts: 3
+                        delay: 5000 # 5 seconds between retries
 logging:
       level:
             org:
                   springframework:
                         security: DEBUG
+#                        kafka: DEBUG

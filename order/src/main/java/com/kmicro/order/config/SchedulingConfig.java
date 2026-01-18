@@ -11,7 +11,7 @@ public class SchedulingConfig {
         @Bean
         public ThreadPoolTaskScheduler taskScheduler() {
             ThreadPoolTaskScheduler scheduler = new ThreadPoolTaskScheduler();
-            scheduler.setPoolSize(2); // Allow up to 5 parallel scheduled tasks
+            scheduler.setPoolSize(4); // Allow up to 5 parallel scheduled tasks
             scheduler.setThreadNamePrefix("outbox-scheduler-");
             return scheduler;
         }

@@ -3,6 +3,7 @@ package com.kmicro.order.components;
 import com.kmicro.order.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,6 +19,11 @@ public class OutboxCleanupJob {
 
     // Runs once every hour (or use a CRON expression for off-peak hours)
 //    @Scheduled(cron = "0 0 * * * *")
+    @SchedulerLock(
+            name = "OutboxCleanupJobTaskLock",
+            lockAtMostFor = "15s",
+            lockAtLeastFor = "5s"
+    )
     @Scheduled(cron = "0 */10 * * * *")
     @Transactional
     public void cleanupProcessedEvents() {

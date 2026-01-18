@@ -31,8 +31,11 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "order_status")
     private OrderStatus orderStatus ;
 
-    @Column(name = "order_total")
-    private Double orderTotal;
+    @Column(name = "subtotal")
+    private Double subtotal;
+
+    @Column(name = "total_amount")
+    private Double totalAmount;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "payment_method")
@@ -45,7 +48,7 @@ public class OrderEntity extends BaseEntity {
     private  String paymentStatus;
 
     @Column(name = "shipping_fee")
-    private  String shippingFee;
+    private  Double shippingFee;
 
     @Column(name = "shipping_address")
     private  String shippingAddress;

@@ -1,14 +1,21 @@
 package com.kmicro.notification.components;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.kmicro.notification.constansts.AppConstants;
 import com.kmicro.notification.entities.NotificationsEntity;
+import com.kmicro.notification.entities.UserDataEntity;
 import com.kmicro.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -40,4 +47,32 @@ public class OutboxUtils {
     }
 
 
+    public void updateMailBodyMapping(UserDataEntity userData, NotificationsEntity entity) {
+        Map<String, Object> details = new HashMap<>();
+        Map<String, Object> mailBody = entity.getMailBody();
+
+        details.put("name", userData.getRecipientName());
+        details.put("contact", userData.getContact());
+        details.put("email", userData.getEmail());
+        details.put("country", userData.getCountry());
+        details.put("city", userData.getCity());
+        details.put("address_id", userData.getAddressId());
+        details.put("shipping_address", userData.getShipping_address());
+        details.put("zip_code", userData.getZipCode());
+
+        mailBody.put("details", details);
+
+        entity.setSendTo(userData.getEmail());
+       entity.setRecipientName(userData.getRecipientName());
+    }
+
+    public ProducerRecord<String, String> generateUserEventRecord(String key, String payload){
+        // 1. Create the base record
+        ProducerRecord<String, String> record = new ProducerRecord<>(AppConstants.USERS_TOPIC, key, payload);
+
+        // 2. Add custom headers (Note: values must be byte[])
+        record.headers().add(new RecordHeader("eventType", AppConstants.EVENT_TYPES.get("USER_REQ").getBytes(StandardCharsets.UTF_8)));
+        record.headers().add(new RecordHeader("source-system", AppConstants.SOURCE_SYSTEMS.get("USER").getBytes(StandardCharsets.UTF_8)));
+        return  record;
+    }
 }//EC

@@ -5,5 +5,5 @@ import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Positive;
 
 public record BoughtProductRecord(
-        @Schema(accessMode = Schema.AccessMode.READ_ONLY) @Positive long id,
+        @Schema(description = "Product ID") @Positive long id,
         @Schema(description = "Quantity of the product", example = "2")@Min(1) int qty) {}

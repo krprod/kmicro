@@ -44,7 +44,7 @@ public class AddressService {
     public AddressDTO addUpdateAddressList(AddressDTO addressList) {
         AddressEntity addressEntity = null;
 
-        if(addressRepository.existsById(addressList.getId())){
+        if(addressRepository.existsById(addressList.getId()) && addressRepository.existsByUserId(addressList.getUserId())){
             AddressEntity addressEntityOpt = addressRepository.findById(addressList.getId()).get();
             addressEntity = this.updateAddress(addressList,addressEntityOpt);
         }else{
@@ -67,5 +67,31 @@ public class AddressService {
         AddressEntity updateEntity = AddressMapper.dtoToEntityOld(addressDTO,oldAddress);
         log.info("Address Update for ID: {}", updateEntity.getId());
         return updateEntity;
+    }
+
+    @Transactional
+    public AddressDTO addUpdateAddress(AddressDTO address) {
+
+        AddressEntity addressEntity = addressRepository.findByIdAndUserId(address.getId(), address.getUserId())
+                .orElseGet(AddressEntity::new);
+
+        if(addressEntity.getId() != null){
+            addressEntity = this.updateAddress(address,addressEntity);
+            log.info("AddressUpdated for User ID: {} AddressID: {}", address.getUserId(), address.getId());
+        }
+        else{
+
+            if(addressRepository.countByUserId(address.getUserId()) >= 5){
+                throw  new AddressException("Addresses Limit Reached, Only 5 addresses Can be Added");
+            }
+            UserEntity user = usersRepository.findById(address.getUserId())
+                    .orElseThrow(()-> new UserNotFoundException("Address Not Added, User Not Found ID: "+address.getUserId()));
+
+            addressEntity = AddressMapper.dtoToEntityNew(address,user);
+            log.info("New Address Added for User ID: {}", user.getId());
+        }
+
+        AddressEntity SaveEntity = addressRepository.save(addressEntity);
+        return AddressMapper.EntityToDTO(SaveEntity );
     }
 }

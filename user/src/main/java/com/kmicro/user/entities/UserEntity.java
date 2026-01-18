@@ -26,6 +26,15 @@ public class UserEntity implements UserDetails {
     @Column(name = "login_name")
     private String loginName;
 
+    @Column(name = "first_name")
+    private String firstName;
+
+    @Column(name = "last_name")
+    private String LastName;
+
+    @Column(name = "contact")
+    private String contact;
+
     @Column(unique = true, nullable = false)
     private String email;
 

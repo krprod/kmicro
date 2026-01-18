@@ -1,6 +1,6 @@
 package com.kmicro.user.utils;
 
-import com.kmicro.user.constants.ApplicationConstants;
+import com.kmicro.user.constants.AppContants;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class JwtUtil {
     private Key secretKey(){
         String secret = null;
         if(null != env){
-            secret = env.getProperty(ApplicationConstants.JWT_SECRET_KEY, ApplicationConstants.JWT_SECRET_DEFAULT_VALUE);
+            secret = env.getProperty(AppContants.JWT_SECRET_KEY, AppContants.JWT_SECRET_DEFAULT_VALUE);
         }
         return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }

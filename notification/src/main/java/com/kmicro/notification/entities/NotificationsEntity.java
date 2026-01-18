@@ -26,6 +26,9 @@ public class NotificationsEntity extends BaseEntity{
     @Column(name = "recipient_name")
     private String recipientName;
 
+    @Column(name = "recipient_id")
+    private Integer recipientId;
+
     @Column(name = "fragment_path")
     private String fragment;
 
@@ -60,7 +63,7 @@ public class NotificationsEntity extends BaseEntity{
     @Column(name = "scheduled_at")
     private LocalDateTime scheduledAt; // -- For delayed notifications
 
-    public Object getBodyFromPayload(){
-        return this.payload.get("body");
-    }
+//    public Object getBodyFromPayload(){
+//        return this.payload.get("body");
+//    }
 }

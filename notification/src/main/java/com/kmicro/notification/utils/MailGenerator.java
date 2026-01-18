@@ -23,6 +23,7 @@ import java.io.IOException;
 @RequiredArgsConstructor
 public class MailGenerator {
     private final JavaMailSender javaMailSender;
+    private final CommonHelperUtils commonHelperUtils;
 
     public MimeMessage getMessage(){
         log.debug("MimeMessage Created");
@@ -61,30 +62,16 @@ public class MailGenerator {
 
     @Async("emailExecutor")
     public void sendSimpleMail(SimpleMailMessage mailMessage){
-        //javaMailSender.send(mailMessage);
+        javaMailSender.send(mailMessage);
         log.info("Simple Mail Sent Successfully");
     }
 
 
     public void sendMultiPartMail(MimeMessage mailMessage){
-        javaMailSender.send(mailMessage);
-//        double  failureProbability = 0.5;
-//        double chance = ThreadLocalRandom.current().nextDouble();
         try {
-            Thread.sleep(5000);
-//            double  failureProbability = 0.5;
-//            double chance = ThreadLocalRandom.current().nextDouble();
-//            if (chance < failureProbability) {
-//                log.error("❌ RANDOM ERROR: Chaos Monkey triggered! (Chance: {} < Probability: {})",
-//                        String.format("%.2f", chance), failureProbability);
-//
-//                throw  new RuntimeException(new MessagingException("Meri Marzi"));
-//            }
+//            javaMailSender.send(mailMessage);
+            commonHelperUtils.chaosMonkey(false);
             log.info("Multi-Part Mail Sent Successfully");
-//            log.info("✅ SUCCESS: Operation completed. (Chance: {} >= Probability: {})",
-//                    String.format("%.2f", chance), failureProbability);
-//            String Text = getTextFromMessage(mailMessage);
-//           log.info("Text: {}",Text);
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
@@ -132,4 +119,25 @@ public class MailGenerator {
             throw new RuntimeException(e);
         }
     }
+
+   /* public void chaosMonkey(Boolean enabled){
+        if(!enabled) return;
+        try {
+            Thread.sleep(5000);
+            double  failureProbability = 0.5;
+            double chance = ThreadLocalRandom.current().nextDouble();
+            if (chance < failureProbability) {
+                log.error("❌ RANDOM ERROR: Chaos Monkey triggered! (Chance: {} < Probability: {})",
+                        String.format("%.2f", chance), failureProbability);
+
+                throw  new RuntimeException(new MessagingException("Meri Marzi"));
+            }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+        //            log.info("✅ SUCCESS: Operation completed. (Chance: {} >= Probability: {})",
+//                    String.format("%.2f", chance), failureProbability);
+//            String Text = getTextFromMessage(mailMessage);
+//           log.info("Text: {}",Text);
+    }*/
 }//EC

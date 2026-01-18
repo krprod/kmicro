@@ -74,7 +74,8 @@ public class OrderService {
            log.info("Generating Event for Notification Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
            this.OutboxEventList.add(
                    outboxUtils.generatePendingEvent(
-                           OrderMapper.mapEntityToDTOWithItems(savedOrder),
+//                           OrderMapper.mapEntityToDTOWithItems(savedOrder),
+                           OrderMapper.mapDynmicFieldOrderConfirmation(savedOrder, objectMapper),
                            savedOrder.getId().toString(),
                            "t-order-placed")
            );
@@ -140,7 +141,7 @@ public class OrderService {
    public ProcessPaymentRecord getPaymentRecordOfSavedOrder(OrderEntity order){
        return  new ProcessPaymentRecord(
                order.getId(),
-               order.getOrderTotal(),
+               order.getTotalAmount(),
                order.getPaymentMethod().name(),
                order.getUserId(),
                order.getShippingFee());
@@ -195,6 +196,25 @@ public class OrderService {
 //              orderUtils.saveOrderInRedis(savedOrder);
 
               // Send Notification To User
+               this.OutboxEventList.add(
+                       outboxUtils.generatePendingEvent(
+        //                            orderTransport,
+                               OrderMapper.mapDynmicFieldOrderStatusUpdate(savedOrder, objectMapper),
+                               savedOrder.getId().toString(),
+                               AppConstants.ORDER_TOPIC,
+                               AppConstants.EVENT_TYPES.get("ORDER_STATUS_UPDATE"),
+                               AppConstants.SOURCE_SYSTEMS.get("NOTIFICATION")
+                       )
+               );
+       //------------------- Saving Data In DB So Kafka Can Consume From that
+       log.info("Start Saving Events In Outbox Table: {}", LocalDateTime.now(ASIA_ZONE_ID));
+       int size = this.OutboxEventList.size();
+       List<OutboxEntity> entityList = outboxUtils.saveAllEvents(this.OutboxEventList);
+       if( size == entityList.size()){
+           this.OutboxEventList.clear();
+       }
+//           this.orderUtils.purgeEventList();
+       log.info("End Events In Outbox Table: {}", LocalDateTime.now(ASIA_ZONE_ID));
 
         return new ResponseDTO("200","Order Status Changed Successfully");
     }
@@ -223,21 +243,27 @@ public class OrderService {
                     outboxUtils.generatePendingEvent(
                             processPaymentRecord,
                             processPaymentRecord.orderId().toString(),
-                            "payment-events")
+                            AppConstants.PAYMENT_TOPIC,
+                            AppConstants.EVENT_TYPES.get("PAYMENT_REQ"),
+                            AppConstants.SOURCE_SYSTEMS.get("PAYMENT")
+                            )
             );
 
             // ----------  Send Notification -- New Order Created
             log.info("Generating Event for Notification Service: {}", LocalDateTime.now(ASIA_ZONE_ID));
 
             OrderDTO orderTransport = OrderMapper.mapEntityToDTOWithItems(savedOrder, objectMapper);
-
 //            orderTransport.setShippingAddress(objectMapper.readValue(savedOrder.getShippingAddress(), OrderAddressDTO.class));
 
             this.OutboxEventList.add(
                     outboxUtils.generatePendingEvent(
-                            orderTransport,
+//                            orderTransport,
+                            OrderMapper.mapDynmicFieldOrderConfirmation(savedOrder, objectMapper),
                             savedOrder.getId().toString(),
-                            "t-order-placed")
+                            AppConstants.ORDER_TOPIC,
+                            AppConstants.EVENT_TYPES.get("ORDER_CONFIRM"),
+                            AppConstants.SOURCE_SYSTEMS.get("NOTIFICATION")
+                    )
             );
 
             //------------------- Saving Data In DB So Kafka Can Consume From that

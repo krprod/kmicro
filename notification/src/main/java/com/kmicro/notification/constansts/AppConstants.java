@@ -1,6 +1,7 @@
 package com.kmicro.notification.constansts;
 
 import java.time.ZoneId;
+import java.util.Map;
 
 public final class AppConstants {
     private AppConstants() {}
@@ -19,5 +20,21 @@ public final class AppConstants {
     public static final String TEMP_TRANSACTION_ID = "tranx_01";
     public static final String TEMP_TRACKING_ID = "track_01";
 
-    public static final String NO_REPLY_MAIL  ="no-reply.kmicro.com";
+    public static final String NO_REPLY_MAIL  = System.getenv("NO_REPLY_MAIL_ADDRESS");
+
+    public static final String ORDER_TOPIC = "t-order-events";
+    public static final String PAYMENT_TOPIC = "t-payment-events";
+    public static final String USERS_TOPIC = "t-user-events";
+    public static final String KAFKA_KEY_PREFIX = "PFX_NTF_";
+
+    public static final Map<String, String> EVENT_TYPES = Map.of(
+            "USER_REQ","requestUserData"
+    );
+
+    public static final Map<String, String> SOURCE_SYSTEMS = Map.of(
+            "NOTIFICATION","notification-service",
+            "ORDER","order-cart-service",
+            "USER","user-service",
+            "PAYMENT","payment-service"
+    );
 }

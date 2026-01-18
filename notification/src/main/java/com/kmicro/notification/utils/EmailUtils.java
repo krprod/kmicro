@@ -1,14 +1,12 @@
 package com.kmicro.notification.utils;
 
-import com.fasterxml.jackson.core.JacksonException;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kmicro.notification.constansts.AppConstants;
 import com.kmicro.notification.constansts.Status;
 import com.kmicro.notification.constansts.Templates;
 import com.kmicro.notification.dtos.MailRequestRec;
 import jakarta.mail.MessagingException;
+import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailException;
@@ -24,7 +22,6 @@ import org.thymeleaf.context.Context;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 
@@ -39,6 +36,7 @@ public class EmailUtils {
     private final ContextCreatorUtils contextCreatorUtils;
     private final MailGenerator mailGenerator;
     private final ObjectMapper objectMapper;
+    private final CommonHelperUtils commonHelperUtils;
 
     public SimpleMailMessage createSimpleTextMail(MailRequestRec requestRec){
         SimpleMailMessage message = new SimpleMailMessage();
@@ -53,38 +51,27 @@ public class EmailUtils {
         return message;
     }
 
-/*    public MimeMessage createMultiPartMailHelper(MailRequestRec requestRec) {
+    public MimeMessage createMultiPartMail(MailRequestRec requestRec) {
         try {
-//            MimeMessage message = javaMailSender.createMimeMessage();
-            MimeMessage message = mailGenerator.getMessage();
-            this.getMimeHelper(message, requestRec);
+            var message = mailGenerator.getMessage();
+            var helper = mailGenerator.getMimeHelper(message);
+            mailGenerator.setRequiredFields(helper, requestRec);
+
+            Map<String, Object> mailBodyMap = commonHelperUtils.getDataMapFromContent(requestRec.body());
+            Context context =  contextCreatorUtils.getNewContextForMap(mailBodyMap);
+            String html =  this.prepareHtmlBody(context, this.getFragment(mailBodyMap.get("frag").toString()));
+
+            mailGenerator.setHtml(helper,html);
+            mailGenerator.sendMultiPartMail(message);
+            /*   FileSystemResource file = mockEmaiData.getMockFile(requestRec.attachementPath());
+                    log.info("Sending File: {} from Path: {}",file.getFilename(), file.getURL());
+                    helper.addAttachment(file.getFilename(), file);*/
             log.info("MimeMessage Generated Successfully for Request: {}", requestRec.toString());
             return message;
-        } catch (MessagingException | IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(e);
         }
-    }*/
-
-   /* private void getMimeHelper(MimeMessage message, MailRequestRec requestRec) throws MessagingException, IOException {
-       *//* MimeMessageHelper helper = new MimeMessageHelper(
-                message,
-                true,
-                "UTF-8");*//*
-        MimeMessageHelper helper = mailGenerator.getMimeHelper(message);
-        mailGenerator.setRequiredFields(helper, requestRec);
-     *//*   helper.setFrom(requestRec.sendfrom() == "" ? "no-reply.xyz.com" : requestRec.sendfrom());
-        helper.setTo(requestRec.sendTo());
-        helper.setSubject(requestRec.subject());
-        helper.setReplyTo(requestRec.sendfrom() == "" ? "no-reply.xyz.com" : requestRec.sendfrom());*//*
-
-        String html = templateEngine.process("thyEmailTemplate.html", mockEmaiData.getContext());
-    //        helper.setText(html, true);
-        mailGenerator.setHtml(helper,html);
-
-    //        FileSystemResource file = mockEmaiData.getMockFile(requestRec.attachementPath());
-    //        log.info("Sending File: {} from Path: {}",file.getFilename(), file.getURL());
-    //        helper.addAttachment(file.getFilename(), file);
-    }*/
+    }
 
     public String prepareHtmlBody(Context cntxt, String fragment) {
         try {
@@ -128,42 +115,11 @@ public class EmailUtils {
         return frag;
     }
 
-    public  Map<String, Object> getMapObjectFromJsonNode(JsonNode data){
-        return objectMapper.convertValue(data, new TypeReference<Map<String, Object>>() {});
-    }
-
-    public <T> Map<String, Object> createMapObject(T data){
-        return objectMapper.convertValue(data, new TypeReference<Map<String, Object>>() {});
-    }
-
-    public  Map<String, Object> getMapObjectFromString(String data){
-        try {
-            JsonNode node = objectMapper.readTree(data);
-            return getMapObjectFromJsonNode(node);
-        }catch (JacksonException e) {
-            log.error("Casting String Msg to JsonNode Failed", e);
-            throw new RuntimeException(e);
-        }
-    }
-
     public  <T> String getHtmlBodyFromContent(T data, String fragment) {
-        Map<String, Object> dataMap = this.getDataMapFromContent(data);
+        Map<String, Object> dataMap = commonHelperUtils.getDataMapFromContent(data);
         Context context =  contextCreatorUtils.getNewContextForMap(dataMap);
         return  prepareHtmlBody(context, fragment);
     }
-
-    public  <T> Map<String, Object> getDataMapFromContent(T data){
-            Map<String, Object> dataMap = new HashMap<>();
-            if(data instanceof String d1){
-                dataMap = this.getMapObjectFromString(d1);
-            } else if (data instanceof JsonNode d2) {
-                dataMap = this.getMapObjectFromJsonNode(d2);
-            }else{
-                dataMap = this.createMapObject(data);
-            }
-            log.info("DataMapFromContent Generated Successfully");
-            return dataMap;
-        }
 
     public void sendMailAsync(MailRequestRec requestRec) {
         try {
@@ -216,6 +172,7 @@ public class EmailUtils {
             helper.setSubject(subject);
             helper.setTo(sendto);
             mailGenerator.setHtml(helper, html);
+        System.out.println(html);
             log.info("------------   ALL SET, INITIATING MAIL SENDER -------------------");
             mailGenerator.sendMultiPartMail(message);
             notificationDBUtils.updateDeliveryStatus(notificationID, Status.DELIVERED);
@@ -231,4 +188,36 @@ public class EmailUtils {
         notificationDBUtils.updateDeliveryStatus(notificationID, Status.PERMANENT_FAILURE, e);
         log.error("EXCEPTION: ", e);
     }
+
+
+    /* public  Map<String, Object> getMapObjectFromJsonNode(JsonNode data){
+        return objectMapper.convertValue(data, new TypeReference<Map<String, Object>>() {});
+    }*/
+
+   /* public <T> Map<String, Object> createMapObject(T data){
+        return objectMapper.convertValue(data, new TypeReference<Map<String, Object>>() {});
+    }*/
+
+    /*public  Map<String, Object> getMapObjectFromString(String data){
+        try {
+            JsonNode node = objectMapper.readTree(data);
+            return getMapObjectFromJsonNode(node);
+        }catch (JacksonException e) {
+            log.error("Casting String Msg to JsonNode Failed", e);
+            throw new RuntimeException(e);
+        }
+    }*/
+
+    /*    public  <T> Map<String, Object> getDataMapFromContent(T data){
+            Map<String, Object> dataMap = new HashMap<>();
+            if(data instanceof String d1){
+                dataMap = this.getMapObjectFromString(d1);
+            } else if (data instanceof JsonNode d2) {
+                dataMap = this.getMapObjectFromJsonNode(d2);
+            }else{
+                dataMap = this.createMapObject(data);
+            }
+            log.info("DataMapFromContent Generated Successfully");
+            return dataMap;
+        }*/
 }//EC

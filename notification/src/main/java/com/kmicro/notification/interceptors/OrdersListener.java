@@ -1,7 +1,7 @@
 package com.kmicro.notification.interceptors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kmicro.notification.service.EventProcessor;
+import com.kmicro.notification.interceptors.processors.MailEventProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -15,7 +15,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OrdersListener {
 
-        private final EventProcessor eventProcessor;
+        private final MailEventProcessor mailEventProcessor;
         private final ObjectMapper objectMapper;
 
     @KafkaListener(
@@ -31,7 +31,7 @@ public class OrdersListener {
             // Recommendation: Map to a specific DTO for cleaner code
 //            log.info("Headers Value:{} ", eventType);
             //-----------eventType = orderConfirm, orderStatusUpdate,
-            eventProcessor.processRawEvent(requestRecord.value(), eventType);
+            mailEventProcessor.processRawEvent(requestRecord.value(), eventType);
 //            log.info("Event Processed : {}",requestRecord);
 //            log.info("MailRequestRec: {}", requestMap);
 //            processNotification(record.value());

@@ -1,13 +1,16 @@
-package com.kmicro.notification.config;
+package com.kmicro.payment.config;
 
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
-public class PfxSerializer extends StringRedisSerializer {
+public class RedisPfxSerializer extends StringRedisSerializer {
+//public class PfxSerializer implements RedisSerializer<Object> {
     private final String prefix;
+    private final StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
-    public PfxSerializer(String serviceName) {
+    public RedisPfxSerializer(String serviceName) {
         this.prefix = serviceName + ":";
     }
+
     @Override
     public byte[] serialize(String string) {
         // Prepend prefix before saving to Redis

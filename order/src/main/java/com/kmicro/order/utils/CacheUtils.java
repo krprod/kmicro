@@ -17,7 +17,7 @@ public class CacheUtils {
 
     public <T> T get(String key, Class<T> targetClass) {
         Object value = redisTemplateClassCast.opsForValue().get(key);
-        if (value == null) throw new DataNotFoundException("Data Not Found In Redis for Key: "+key);
+        if (value == null) throw new DataNotFoundException("Data Not Found In Redis for Key: {}",key);
 
         // If it's already the right type, return it; otherwise, convert it
         return targetClass.isInstance(value)

@@ -1,6 +1,6 @@
 package com.kmicro.user.controller;
 
-import com.kmicro.user.constants.ApplicationConstants;
+import com.kmicro.user.constants.AppContants;
 import com.kmicro.user.dtos.LoginRequest;
 import com.kmicro.user.dtos.LoginResponse;
 import com.kmicro.user.dtos.ResponseDTO;
@@ -41,7 +41,7 @@ public class AuthController {
         LoginResponse response = authService.processLogin(loginRequest);
 
         if(!response.token().isEmpty() && response.status().equalsIgnoreCase("ok")){
-            ResponseEntity.status(HttpStatus.OK).header(ApplicationConstants.JWT_HEADER,response.token()).body(response);
+            ResponseEntity.status(HttpStatus.OK).header(AppContants.JWT_HEADER,response.token()).body(response);
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
