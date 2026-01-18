@@ -4,11 +4,15 @@ import com.kmicro.order.entities.OutboxEntity;
 import com.kmicro.order.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Component
@@ -19,6 +23,11 @@ public class OutboxProcessor {
     private final OutboxRepository outboxRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
+    @SchedulerLock(
+            name = "OutboxProcessorTaskLock",
+            lockAtMostFor = "15s",
+            lockAtLeastFor = "5s"
+    )
     @Scheduled(fixedDelay = 30000) // Runs every 10 seconds
     @Transactional
     public void processOutbox() {
@@ -26,8 +35,14 @@ public class OutboxProcessor {
 
         for (OutboxEntity event : events) {
             try {
+                // 1. Create the base record
+                ProducerRecord<String, String> record = new ProducerRecord<>(event.getTopic(), event.getAggregateId(), event.getPayload());
+
+                // 2. Add custom headers (Note: values must be byte[])
+                record.headers().add(new RecordHeader("eventType", event.getEventType().getBytes(StandardCharsets.UTF_8)));
+                record.headers().add(new RecordHeader("source-system", event.getSourceSystem().getBytes(StandardCharsets.UTF_8)));
                 // Send to Kafka
-                kafkaTemplate.send(event.getTopic(), event.getAggregateId(), event.getPayload())
+                kafkaTemplate.send(record)
                         .whenComplete((result, ex) -> {
                             if (ex == null) {
                                 // Update status to PROCESSED on success

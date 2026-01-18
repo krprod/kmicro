@@ -27,7 +27,7 @@ public class OutboxUtils {
                     .aggregateId(aggregateKey)
                     // Serializes the actual object instance 'data'
                     .payload(objectMapper.writeValueAsString(data))
-                    .status("PENDING")
+                    .status("WAITING")
                     .createdAt(LocalDateTime.now())
                     .build();
         } catch (JsonProcessingException e) {
@@ -41,5 +41,22 @@ public class OutboxUtils {
         return outboxRepository.saveAll(eventList);
     }
 
+    public <T> OutboxEntity generatePendingEvent(T data, String aggregateKey,String topicName, String eventType, String SourceSystem){
+        try {
+            return OutboxEntity.builder()
+                    .topic(topicName)
+                    .aggregateId(aggregateKey)
+                    .eventType(eventType)
+                    .sourceSystem(SourceSystem)
+                    // Serializes the actual object instance 'data'
+                    .payload(objectMapper.writeValueAsString(data))
+                    .status("PENDING")
+                    .createdAt(LocalDateTime.now())
+                    .build();
+        } catch (JsonProcessingException e) {
+            // Handle serialization error (e.g., log it or throw a custom runtime exception)
+            throw new RuntimeException("Failed to serialize outbox payload", e);
+        }
+    }
 
 }//EC

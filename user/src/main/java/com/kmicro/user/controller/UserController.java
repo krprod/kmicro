@@ -1,6 +1,7 @@
 package com.kmicro.user.controller;
 
 import com.kmicro.user.dtos.UserDTO;
+import com.kmicro.user.dtos.UserDetailUpdateRec;
 import com.kmicro.user.service.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
@@ -44,6 +45,17 @@ public class UserController {
     public ResponseEntity<String>deleteUser(HttpServletRequest request){
         userService.deleteUser(request);
         return ResponseEntity.ok("Success");
+    }
+
+    @Operation(summary = "Update Existing User")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Updation Successful"),
+            @ApiResponse(responseCode = "400", description = "Global Error Handles")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<UserDTO>updateExistingUser(@RequestBody UserDetailUpdateRec userDetailUpdateRec, @PathVariable(name = "id") Long id){
+        UserDTO userDTO  = userService.updateExistingUser(userDetailUpdateRec, id);
+        return ResponseEntity.ok(userDTO);
     }
 
 

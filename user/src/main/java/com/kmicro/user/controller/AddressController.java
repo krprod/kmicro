@@ -21,14 +21,14 @@ public class AddressController {
     @Autowired
     AddressService addressService;
 
-    @Operation(summary = "Add-Update Addresses")
+    @Operation(summary = "Add-Update Address")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Creation/Updation Successful"),
             @ApiResponse(responseCode = "400", description = "Failed GlobalHandler")
     })
     @PutMapping("/add-update")
     public ResponseEntity<AddressDTO> updateAddress(@RequestBody AddressDTO addressDTO){
-        AddressDTO address = addressService.addUpdateAddressList(addressDTO);
+        AddressDTO address = addressService.addUpdateAddress(addressDTO);
         return ResponseEntity.ok(address);
     }
 

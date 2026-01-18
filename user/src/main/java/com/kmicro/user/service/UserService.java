@@ -2,6 +2,7 @@ package com.kmicro.user.service;
 
 import com.kmicro.user.dtos.ResponseDTO;
 import com.kmicro.user.dtos.UserDTO;
+import com.kmicro.user.dtos.UserDetailUpdateRec;
 import com.kmicro.user.dtos.UserRegistrationRecord;
 import com.kmicro.user.entities.UserEntity;
 import com.kmicro.user.exception.AlreadyExistException;
@@ -56,7 +57,7 @@ public class UserService{
         return new ResponseDTO("200", "User created successfully with ID: "+savedUser.getId());
     }
 
-
+    @Transactional(readOnly = true)
     public  UserDTO getUserById(Long id, Boolean withAddress) {
         Optional<UserEntity> userEntityOpt = usersRepository.findById(id);
         if(userEntityOpt.isEmpty()){
@@ -67,7 +68,6 @@ public class UserService{
                 UserMapper.EntityWithAddressToDTOWithAddress(userEntityOpt.get()):
                 UserMapper.EntityToDTO(userEntityOpt.get());
     }
-
 
     @Transactional
     public void deleteUser(HttpServletRequest request) {
@@ -112,4 +112,18 @@ public class UserService{
         return usersRepository.existsByEmail(loginName);
     }
 
+    @Transactional
+    public UserDTO updateExistingUser(UserDetailUpdateRec userRec, Long userID) {
+        UserEntity user = usersRepository.findById(userID)
+                .orElseThrow(()-> new UserNotFoundException("User not Found:  ID: "+ userID));
+
+        user.setFirstName(userRec.firstname());
+        user.setLastName(userRec.lastname());
+        user.setContact(userRec.contact());
+        user.setAvtar(userRec.avtar());
+
+        return UserMapper.EntityToDTO(usersRepository.save(user));
+        // --- IF UPDATING EMAIL, PASSWORD --- VERIFICATION EMAIL SENT WITH LINK
+        // this.updateEmailOrPassword();
+    }
 }//EC

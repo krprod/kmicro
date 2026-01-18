@@ -62,7 +62,7 @@ public class ProductController {
             return ResponseEntity.status(200).body(true);
         }
 
-        @Operation(summary = "Bought Product and Change Quantity ", description = "check bought product and update product quantity ")
+        @Operation(summary = "Order- Bought Product and Change Quantity ", description = "check bought product and update product quantity ")
         @ApiResponses(value = {
                 @ApiResponse(responseCode = "207", description = "Partial success - some items failed"),
                 @ApiResponse(responseCode = "200", description = "Successfully processed all data"),
@@ -70,10 +70,22 @@ public class ProductController {
         })
         @PostMapping(value = "/bought-products")
         public ResponseEntity<BulkUpdateResponseRecord>boughtProduct(@RequestBody  @Valid List<BoughtProductRecord> productRecord){
-            BulkUpdateResponseRecord response  = productService.changeQtyBoughtProduct(productRecord);
+//            BulkUpdateResponseRecord response  = productService.changeQtyBoughtProduct(productRecord);
+            BulkUpdateResponseRecord response  = productService.changeQtyBoughtProductOptimized(productRecord);
             HttpStatus status = response.errors().isEmpty() ? HttpStatus.OK : HttpStatus.MULTI_STATUS;
             return ResponseEntity.status(status).body(response);
         }
+
+    @Operation(summary = "Cart- Check Product and Its Quantity ", description = "check product quantity available ")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully processed returned Product"),
+            @ApiResponse(responseCode = "400", description = "Failed to process data handled globalError Handler")
+    })
+    @PostMapping(value = "/qty-check")
+    public ResponseEntity<ProductDTO>checkProductQuantity(@RequestBody  @Valid BoughtProductRecord productRecord){
+            ProductDTO productDTO = productService.checkProductAvailability(productRecord);
+            return ResponseEntity.status(200).body(productDTO);
+    }
 
     @Operation(summary = "Paginated Results | search, filter,sort ", description = "search, filter,sort products list returns in paginated manner ")
     @ApiResponses(value = {
@@ -141,12 +153,4 @@ public class ProductController {
         productService.deleteProduct(id);
         return  ResponseEntity.status(200).body("Deleted");
     }
-
-
-
-
-
-
-
-
 }//endClass

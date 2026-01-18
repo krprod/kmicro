@@ -52,7 +52,7 @@ public class OrderUtils {
         OrderEntity orderEntity = new OrderEntity();
         try {
 
-            Double totalAmount = getTotalPrice(orderItemDTOList);
+            Double totalAmount = getSubTotalPrice(orderItemDTOList);
 
             // ----------- generate  OrderEntity Object
 
@@ -61,7 +61,7 @@ public class OrderUtils {
 //            orderEntity.setUpdatedAt(LocalDateTime.now(ZoneId.of(AppConstants.TIME_ZONE_ID)));
             orderEntity.setInitialTimeStamp(Instant.now());
 
-            orderEntity.setOrderTotal(totalAmount);
+            orderEntity.setSubtotal(totalAmount);
             orderEntity.setUserId(orderItemDTOList.getFirst().getUserId());
             orderEntity.setOrderStatus(OrderStatus.PENDING);
             orderEntity.setPaymentMethod(PaymentMethod.ONLINE);
@@ -69,6 +69,8 @@ public class OrderUtils {
             orderEntity.setTrackingNumber(AppConstants.TEMP_TRACKING_ID);
             orderEntity.setPaymentStatus(OrderStatus.PENDING.name());
 
+            orderEntity.setShippingFee(100.00);
+            orderEntity.setTotalAmount(totalAmount + 100.00);
             // -------- generate  OrderItemEntity Object
             List<OrderItemEntity> orderItemEntities = OrderItemMapper.mapDTOListToEntityList(orderItemDTOList, orderEntity);
 
@@ -84,7 +86,7 @@ public class OrderUtils {
         return orderEntity;
     }
 
-    public Double getTotalPrice(List<OrderItemDTO> orderItemDTOList) {
+    public Double getSubTotalPrice(List<OrderItemDTO> orderItemDTOList) {
         Double totalPrice = 0.0;
         for (OrderItemDTO orderItemDTO : orderItemDTOList) {
             totalPrice += orderItemDTO.getPrice() * orderItemDTO.getQuantity();
@@ -155,8 +157,8 @@ public class OrderUtils {
 
     @Transactional
     public OrderEntity changeOrderStatus(ChangeOrderStatusRec orderStatusRec) {
-        OrderEntity order = orderRepository.findById(orderStatusRec.orderID())
-                .orElseThrow(()-> new OrderException("Order Not Exists By ID: "+orderStatusRec.orderID()));
+        OrderEntity order = orderRepository.findByIdAndUserId(orderStatusRec.orderID(), orderStatusRec.userID())
+                .orElseThrow(()-> new OrderException("Order Not Exists By ID: {} for UserID: {}", orderStatusRec.orderID(), orderStatusRec.userID()));
 
         log.info("Changing Status from: {} to: {} of Order ID: {}",order.getOrderStatus(), orderStatusRec.orderStatus(), order.getId());
         order.setOrderStatus(OrderStatus.valueOf(orderStatusRec.orderStatus()));
@@ -199,7 +201,6 @@ public class OrderUtils {
             this.OutboxEventList.clear();
         }
     }
-
 
     public OrderEntity generateOrderEntityWithAddress(OrderAddressDTO orderAddress, List<OrderItemDTO> orderItemDTOList) {
         OrderEntity order = this.generateOrderEntity(orderItemDTOList);

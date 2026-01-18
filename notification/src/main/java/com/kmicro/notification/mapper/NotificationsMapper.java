@@ -21,7 +21,7 @@ public  class NotificationsMapper {
             // --- Dynamic
             entity.setFragment(frag);
             entity.setMailBody(mailBody);
-            entity.setPayload(data);
+//            entity.setPayload(data);
             return  entity;
         }
 

@@ -1,5 +1,6 @@
 package com.kmicro.notification.interceptors;
 
+import com.kmicro.notification.interceptors.processors.UsersEventProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -13,21 +14,26 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class UsersListerner {
 
+    private final UsersEventProcessor usersEventProcessor;
+
     @KafkaListener(
             containerFactory = "notificationKafkaListenerContainerFactory",
             topics = "t-user-events",
             groupId = "notification-service-group"
     )
-    public void listener(ConsumerRecord<String, String> requestRecord, @Header("eventType") String eventType, Acknowledgment ack) {
-        log.info("User Event Received. EventType: {}, Key: {}, Partition: {}",eventType, requestRecord.key(), requestRecord.partition());
+    public void listener(ConsumerRecord<String, String> requestRecord,
+                         @Header("eventType") String eventType,
+                         @Header("source-system") String sourceSystem,
+                         Acknowledgment ack) {
+        log.info("User Event Received. EventType: {}, Source: {}, Key: {}, Partition: {}",eventType, sourceSystem, requestRecord.key(), requestRecord.partition());
         try {
-            // 1. Process Business Logic (e.g., Sending Notification)
-            // Recommendation: Map to a specific DTO for cleaner code
-//            processNotification(record.value());
-
-            // 2. Commit manually only AFTER success
-
-            // This ensures if the app crashes before this line, Kafka will redeliver
+            //-----------eventType = userDetailShared
+            if(sourceSystem.equalsIgnoreCase("notification-service")){
+                usersEventProcessor.processRawEvent(requestRecord.value(), eventType);
+                log.info("Processing Value: {}", requestRecord.value());
+            }else {
+                log.info("NOT NOTIFICATION SERVICE EVENT ---IGNORE Processing ---REVERT Acknowledgment ");
+            }
             ack.acknowledge();
         } catch (Exception  e) {
             log.error("User Event Processing Failed. Not acknowledging so message stays in Kafka.");

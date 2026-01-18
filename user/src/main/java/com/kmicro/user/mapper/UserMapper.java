@@ -42,6 +42,10 @@ public class UserMapper {
         userDTO.setRoles(userEntity.getRoles());
         userDTO.setLatitude(userEntity.getLatitude());
         userDTO.setLongitude(userEntity.getLongitude());
+        // ------ new Updated Fields
+        userDTO.setFirstName(userEntity.getFirstName());
+        userDTO.setLastName(userEntity.getLastName());
+        userDTO.setContactNumber(userEntity.getContact());
         return userDTO;
     }
 

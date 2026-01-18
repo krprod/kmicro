@@ -6,18 +6,36 @@ spring:
       profiles:
             active: "prod"
       datasource:
-            url: jdbc:postgresql://localhost:5432/springmicro
+            url: jdbc:postgresql://localhost:5432/springmicro?currentSchema=notification_schema
             username: bloguser
             password: bloguser
+            driver-class-name: org.postgresql.Driver
+            hikari:
+                  pool-name: notificationServiceHikariPool
+                  maximum-pool-size: 10
+                  minimum-idle: 5
+                  idle-timeout: 300000 # 5 minutes
+                  connection-timeout: 20000 # 20 seconds
+                  max-lifetime: 1200000 # 20 minutes
+                  auto-commit: true
+            flyway:
+                  enabled: true
+                  schemas: notification_schema
+                  baseline-on-migrate: true # Crucial for existing databases
+                  out-of-order: false        # Strict linear progression in prod
+                  lock-retry-count: 50 # Retries before failing
+                  locations:
+                        - classpath:db/migration
+#                  table: notification_schema_history
       jpa:
             hibernate:
-                  ddl-auto: create
+                  ddl-auto: validate
             show-sql: true
       mail:
-            host: smtp.gmail.com
-            port: 587
-            username: ${GMAILNAME:""}
-            password: ${GMAILPASSWORD:""}
+            host: ${SMTP_SERVER:""}
+            port: ${SMTP_PORT:587}
+            username: ${SMTP_LOGIN:""}
+            password: ${SMTP_KEY:""}
             properties:
                   mail.smtp.auth: true
                   mail.smtp.starttls.enable: true

@@ -39,7 +39,7 @@ public class RedisConfig {
 
         Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(mapper,Object.class);
         //------ Custom Prefixing Serializer for Keys
-        PfxSerializer prefixSerializer = new PfxSerializer(serviceName);
+        RedisPfxSerializer prefixSerializer = new RedisPfxSerializer(serviceName);
 //        StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
         template.setKeySerializer(prefixSerializer);
@@ -90,7 +90,7 @@ public class RedisConfig {
 
         GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
         //------ Custom Prefixing Serializer for Keys
-        PfxSerializer prefixSerializer = new PfxSerializer(serviceName);
+        RedisPfxSerializer prefixSerializer = new RedisPfxSerializer(serviceName);
 
 //        template.setKeySerializer(new StringRedisSerializer());
         template.setKeySerializer(prefixSerializer);

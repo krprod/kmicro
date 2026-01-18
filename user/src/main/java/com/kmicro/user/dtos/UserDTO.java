@@ -13,13 +13,23 @@ public class UserDTO {
 
     private Long id;
     private String login_name;
+    //-------- Updatable Fields
     private String email;
+    @JsonProperty("first_name")
+    private String firstName;
+
+    @JsonProperty("last_name")
+    private String LastName;
+
+    @JsonProperty("contact")
+    private String contactNumber;
 
     @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
     private String password;
     private String avtar;
-    private boolean isLoggedIn;
+    //-------- Updatable Fields
 
+    private boolean isLoggedIn;
     private Double latitude ;
     private Double longitude;
 //    private lastLogin;

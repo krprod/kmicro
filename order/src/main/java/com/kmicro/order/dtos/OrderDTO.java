@@ -29,8 +29,11 @@ public class OrderDTO  implements Serializable {
     @JsonProperty("order_status")
     private String orderStatus;
 
-    @JsonProperty( "order_total")
-    private Double orderTotal;
+    @JsonProperty( "subtotal")
+    private Double subtotal;
+
+    @JsonProperty("total_amount")
+    private Double totalAmount;
 
     @JsonProperty("payment_method")
     private  String paymentMethod;
@@ -42,7 +45,7 @@ public class OrderDTO  implements Serializable {
     private  String paymentStatus;
 
     @JsonProperty("shipping_fee")
-    private  String shippingFee;
+    private  Double shippingFee;
 
     @JsonProperty("shipping_address")
     private OrderAddressDTO shippingAddress;

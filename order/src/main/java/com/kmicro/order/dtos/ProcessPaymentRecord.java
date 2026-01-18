@@ -5,6 +5,6 @@ public record ProcessPaymentRecord(
         Double amount,
         String method,
         Long userID,
-        String shipping_fee
+        Double shipping_fee
 //        OrderStatus order_status
         ) { }
