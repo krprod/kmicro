@@ -23,6 +23,10 @@ public class OutboxProcessor {
     private final OutboxRepository outboxRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
+//    @AsyncPublisher(operation = @AsyncOperation(
+//            channelName = "order-placed-topic",
+//            description = "Publishes a message when a new customer order is created"
+//    ))
     @SchedulerLock(
             name = "OutboxProcessorTaskLock",
             lockAtMostFor = "15s",

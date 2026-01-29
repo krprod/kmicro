@@ -1,7 +1,10 @@
-package com.kmicro.notification.interceptors;
+package com.kmicro.notification.kafka.interceptors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kmicro.notification.interceptors.processors.MailEventProcessor;
+import com.kmicro.notification.kafka.processors.MailEventProcessor;
+import com.kmicro.notification.kafka.schemas.OrderConfirmed;
+import io.github.springwolf.core.asyncapi.annotations.AsyncListener;
+import io.github.springwolf.core.asyncapi.annotations.AsyncOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -18,6 +21,18 @@ public class OrdersListener {
         private final MailEventProcessor mailEventProcessor;
         private final ObjectMapper objectMapper;
 
+    @AsyncListener(operation = @AsyncOperation(
+            channelName = "t-order-events",
+            description = "Consumes inventory updates to sync local cache",
+            payloadType = OrderConfirmed.class,
+            headers = @AsyncOperation.Headers(
+                    values = {
+                            @AsyncOperation.Headers.Header(name = "X-Correlation-ID", description = "Tracing ID"),
+                            @AsyncOperation.Headers.Header(name = "eventType" ),
+                            @AsyncOperation.Headers.Header(name = "source-system")
+                    }
+            )
+    ))
     @KafkaListener(
             containerFactory = "notificationKafkaListenerContainerFactory",
             topics = "t-order-events",

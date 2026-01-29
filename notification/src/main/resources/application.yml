@@ -62,6 +62,23 @@ spring:
                         attempts: 3
                         delay: 5000 # 5 seconds between retries
 
+springwolf:
+      docket:
+            base-package: com.kmicro.notification
+            servers:
+                  dev-kafka:
+                        protocol: kafka
+                        host: localhost:9092
+            info:
+                  title: Notification Service API
+                  version: 1.0.0
+                  description: AsyncAPI documentation for the Notification Microservice
+      ui:
+            path: /asyncapi-ui.html
+            endpoint:
+                  docs:
+                        path: /asyncapi/docs
+
 logging:
       level:
             org:

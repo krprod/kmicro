@@ -1,6 +1,9 @@
-package com.kmicro.notification.interceptors;
+package com.kmicro.notification.kafka.interceptors;
 
-import com.kmicro.notification.interceptors.processors.UsersEventProcessor;
+import com.kmicro.notification.kafka.processors.UsersEventProcessor;
+import com.kmicro.notification.kafka.schemas.SharedUserDetails;
+import io.github.springwolf.core.asyncapi.annotations.AsyncListener;
+import io.github.springwolf.core.asyncapi.annotations.AsyncOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -16,6 +19,18 @@ public class UsersListerner {
 
     private final UsersEventProcessor usersEventProcessor;
 
+    @AsyncListener(operation = @AsyncOperation(
+            channelName = "t-user-events",
+            description = "Consumes inventory updates to sync local cache",
+            headers = @AsyncOperation.Headers(
+                    values = {
+                            @AsyncOperation.Headers.Header(name = "X-Correlation-ID", description = "Tracing ID"),
+                            @AsyncOperation.Headers.Header(name = "eventType" ),
+                            @AsyncOperation.Headers.Header(name = "source-system")
+                    }
+            ),
+            payloadType = SharedUserDetails.class
+    ))
     @KafkaListener(
             containerFactory = "notificationKafkaListenerContainerFactory",
             topics = "t-user-events",
