@@ -7,9 +7,11 @@ import com.kmicro.user.dtos.UserRegistrationRecord;
 import com.kmicro.user.entities.UserEntity;
 import com.kmicro.user.exception.AlreadyExistException;
 import com.kmicro.user.exception.UserNotFoundException;
+import com.kmicro.user.kafka.producers.InternalEventProducers;
 import com.kmicro.user.mapper.UserMapper;
 import com.kmicro.user.repository.UsersRepository;
 import com.kmicro.user.security.RolesConstants;
+import com.kmicro.user.utils.DBOps;
 import com.kmicro.user.utils.UserAuthUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,8 +35,9 @@ public class UserService{
    private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserAuthUtil userAuthUtil;
+    private final DBOps dbOps;
+    private final InternalEventProducers internalEventProducers;
 
-    @Transactional
     public ResponseDTO createUser(UserRegistrationRecord user) {
         if(this.LoginNameExists(user.login_name())){
             throw new AlreadyExistException("Login Name already exists: "+user.login_name());
@@ -47,19 +50,17 @@ public class UserService{
         userEntity.setLoginName(user.login_name());
         userEntity.setPassword( passwordEncoder.encode(user.password()));
         userEntity.setEmail(user.email());
-
         userEntity.setRoles(Set.of(RolesConstants.USER, RolesConstants.ORDERS));
-        userEntity.setActive(true);
+//        userEntity.setActive(true);
 
-        UserEntity savedUser = usersRepository.save(userEntity);
+        UserEntity savedUser = dbOps.saveUser(userEntity);
         log.info("User created successfully with ID: {}", savedUser.getId());
-
+        internalEventProducers.userCreated(savedUser);
         return new ResponseDTO("200", "User created successfully with ID: "+savedUser.getId());
     }
 
-    @Transactional(readOnly = true)
     public  UserDTO getUserById(Long id, Boolean withAddress) {
-        Optional<UserEntity> userEntityOpt = usersRepository.findById(id);
+        Optional<UserEntity> userEntityOpt = dbOps.findUserByID(id);
         if(userEntityOpt.isEmpty()){
             throw new UserNotFoundException("User not Found: "+id);
         }
@@ -69,19 +70,19 @@ public class UserService{
                 UserMapper.EntityToDTO(userEntityOpt.get());
     }
 
-    @Transactional
+//    @Transactional
     public void deleteUser(HttpServletRequest request) {
 
         Claims token = userAuthUtil.getClaimsAndInvalidate(request);
 
         String userEmail = token.getSubject();
 
-        UserEntity user = usersRepository.findByEmail(userEmail)
+        UserEntity user =dbOps.findUserByEmail(userEmail)
                 .orElseThrow(()->new UserNotFoundException("User Email not exists in DB: "+userEmail));
 
         user.deactivateAccount();
 
-        UserEntity blockUser = usersRepository.save(user);
+        UserEntity blockUser = dbOps.saveUser(user);
         SecurityContextHolder.clearContext();
         log.info("User account {} has been successfully deactivated and locked.", userEmail);
     }
@@ -112,9 +113,9 @@ public class UserService{
         return usersRepository.existsByEmail(loginName);
     }
 
-    @Transactional
+//    @Transactional
     public UserDTO updateExistingUser(UserDetailUpdateRec userRec, Long userID) {
-        UserEntity user = usersRepository.findById(userID)
+        UserEntity user =dbOps.findUserByID(userID)
                 .orElseThrow(()-> new UserNotFoundException("User not Found:  ID: "+ userID));
 
         user.setFirstName(userRec.firstname());
@@ -122,7 +123,7 @@ public class UserService{
         user.setContact(userRec.contact());
         user.setAvtar(userRec.avtar());
 
-        return UserMapper.EntityToDTO(usersRepository.save(user));
+        return UserMapper.EntityToDTO(dbOps.saveUser(user));
         // --- IF UPDATING EMAIL, PASSWORD --- VERIFICATION EMAIL SENT WITH LINK
         // this.updateEmailOrPassword();
     }

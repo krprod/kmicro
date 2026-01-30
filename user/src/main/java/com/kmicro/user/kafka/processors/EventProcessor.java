@@ -1,4 +1,4 @@
-package com.kmicro.user.service;
+package com.kmicro.user.kafka.processors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

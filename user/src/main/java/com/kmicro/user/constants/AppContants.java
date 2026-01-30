@@ -17,8 +17,11 @@ public final class AppContants {
     public static final Map<String, String> EVENT_TYPES = Map.of(
             "SHARE_USER_DETAILS","userDetailShared",
             "ORDER_CONFIRM","orderConfirm",
-            "PAYMENT_REQ","newPaymentRequest"
+            "PAYMENT_REQ","newPaymentRequest",
+            "USER_CREATED","newUserCreated"
     );
+    public static final String ET_USER_CREATED = "newUserCreated";
+
 
     public static final Map<String, String> SOURCE_SYSTEMS = Map.of(
             "NOTIFICATION","notification-service",
@@ -26,4 +29,22 @@ public final class AppContants {
             "USER","user-service",
             "PAYMENT","payment-service"
     );
-}
+    public static final String SYSTEM_NOTIFICATION = "notification-service";
+    public static final String SYSTEM_ORDER ="order-cart-service";
+    public static final String SYSTEM_USER = "user-service";
+    public static final String SYSTEM_PAYMENT = "payment-service";
+
+
+    public static final Map<String, String> TOPICS_LIST = Map.of(
+            "USERS","t-user-events",
+            "ORDERS","t-order-events",
+            "PAYMENT","t-payment-events"
+//            "NOTIFICATION","newPaymentRequest",
+    );
+    public static final String TOPIC_ORDER ="t-order-events";
+    public static final String TOPIC_USER = "t-user-events";
+    public static final String TOPIC_PAYMENT = "t-payment-events";
+
+
+
+}//EC

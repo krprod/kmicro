@@ -1,7 +1,7 @@
-package com.kmicro.user.interceptor;
+package com.kmicro.user.kafka.listeners;
 
 import com.kmicro.user.constants.AppContants;
-import com.kmicro.user.service.EventProcessor;
+import com.kmicro.user.kafka.processors.EventProcessor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
