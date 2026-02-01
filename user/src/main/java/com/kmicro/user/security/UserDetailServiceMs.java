@@ -2,6 +2,7 @@ package com.kmicro.user.security;
 
 import com.kmicro.user.entities.UserEntity;
 import com.kmicro.user.exception.AccountDeactivated;
+import com.kmicro.user.exception.VerificationExecption;
 import com.kmicro.user.repository.UsersRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.User;
@@ -22,12 +23,12 @@ public class UserDetailServiceMs implements UserDetailsService {
                 .orElseThrow(() -> new UsernameNotFoundException("User details not found for the user: " + useremail));
 
         if(!user.isVerified()){
-            throw  new AccountDeactivated("User Email Is Not Verified Yet, Check inbox For verification link");
+            throw  new VerificationExecption("User Email Is Not Verified Yet, Verify Your Account First, Then Do Something!!!");
         }
 
         if(!user.isActive()){
             throw  new AccountDeactivated("User Deactivated the Account on: "
-                    + user.getLastloginTime());
+                    + user.getLastloginTime().toString());
         }
 
         return new User(

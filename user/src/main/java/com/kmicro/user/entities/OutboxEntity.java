@@ -23,7 +23,7 @@ public class OutboxEntity {
 
     private String topic;
     private String eventType;
-    private String sourceSystem;
+    private String targetSystem;
     private String aggregateId;
 
     @Column(columnDefinition = "TEXT")

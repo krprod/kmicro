@@ -3,19 +3,14 @@ package com.kmicro.user.utils;
 import com.fasterxml.jackson.core.JacksonException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kmicro.user.constants.AppContants;
 import com.kmicro.user.dtos.AddressDTO;
 import com.kmicro.user.dtos.UserDTO;
-import com.kmicro.user.entities.OutboxEntity;
 import com.kmicro.user.exception.UserNotFoundException;
-import com.kmicro.user.repository.OutboxRepository;
 import com.kmicro.user.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
@@ -25,7 +20,6 @@ import java.util.NoSuchElementException;
 @RequiredArgsConstructor
 public class EventProcessHelper {
     private final UserService userService;
-    private final OutboxRepository outboxRepository;
     private final ObjectMapper objectMapper;
 
     public Map<String, Object> getUserDetailMap(Long userID, Long addressID, String requestID) {
@@ -62,7 +56,8 @@ public class EventProcessHelper {
         return userDetails;
     }
 
-    @Transactional
+
+/*    @Transactional
     public OutboxEntity saveEventInOutbox(OutboxEntity entity){
           return  outboxRepository.save(entity);
     }
@@ -72,8 +67,8 @@ public class EventProcessHelper {
            return OutboxEntity.builder()
                    .topic(AppContants.USERS_TOPIC)
                    .aggregateId(requestID)
-                   .eventType(AppContants.EVENT_TYPES.get("SHARE_USER_DETAILS"))
-                   .sourceSystem(AppContants.SOURCE_SYSTEMS.get("NOTIFICATION"))
+                   .eventType(AppContants.ET_SHARE_USER_DETAILS)
+                   .targetSystem(AppContants.SYSTEM_NOTIFICATION)
                    .payload(objectMapper.writeValueAsString(userDetails))
                    .status(status)
                    .createdAt(LocalDateTime.now())
@@ -84,6 +79,40 @@ public class EventProcessHelper {
        }
     }
 
+    public OutboxEntity makeOutboxEntity(Map<String, Object> mailBodyMap, Long userID, String topic,  String targetSystem, String eventType, String aggregateKey ){
+        try {
+            return OutboxEntity.builder()
+                    .topic(topic)
+                    .aggregateId(aggregateKey)
+                    .eventType(eventType)
+                    .targetSystem(targetSystem)
+                    .payload(objectMapper.writeValueAsString(mailBodyMap))
+                    .status(Status.PENDING.name())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+        } catch (Exception e) {
+            log.info("OutboxEntity CREATION Failed for userID: {}, aggregateID: {}", userID, aggregateKey);
+            throw new RuntimeException(e);
+        }
+    }
+
+    public OutboxEntity makeOutboxEntity(String mailBody, Long userID, String topic,String targetSystem, String eventType,  String aggregateKey ){
+        try {
+            return OutboxEntity.builder()
+                    .topic(topic)
+                    .aggregateId(aggregateKey)
+                    .eventType(eventType)
+                    .targetSystem(targetSystem)
+                    .payload(mailBody)
+                    .status(Status.PENDING.name())
+                    .createdAt(LocalDateTime.now())
+                    .build();
+        } catch (Exception e) {
+            log.info("OutboxEntity CREATION Failed for userID: {}, aggregateID: {}", userID, aggregateKey);
+            throw new RuntimeException(e);
+        }
+    }*/
+
     public JsonNode getMapObjectFromString(String data){
         try {
             return objectMapper.readTree(data);
@@ -93,8 +122,6 @@ public class EventProcessHelper {
         }
     }
 
-    @Transactional(readOnly = true)
-    public Boolean checkIfAggregateIDAlreadyExist(String requestID){
-        return outboxRepository.existsByAggregateId(requestID);
-    }
+
+
 }//EC

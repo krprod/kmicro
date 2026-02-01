@@ -1,5 +1,6 @@
 package com.kmicro.user.component;
 
+import com.kmicro.user.constants.KafkaConstants;
 import com.kmicro.user.constants.Status;
 import com.kmicro.user.entities.OutboxEntity;
 import com.kmicro.user.repository.OutboxRepository;
@@ -40,8 +41,9 @@ public class OutboxProcessor {
                 ProducerRecord<String, String> record = new ProducerRecord<>(event.getTopic(), event.getAggregateId(), event.getPayload());
 
                 // 2. Add custom headers (Note: values must be byte[])
-                record.headers().add(new RecordHeader("eventType", event.getEventType().getBytes(StandardCharsets.UTF_8)));
-                record.headers().add(new RecordHeader("source-system", event.getSourceSystem().getBytes(StandardCharsets.UTF_8)));
+                record.headers().add(new RecordHeader("event-type", event.getEventType().getBytes(StandardCharsets.UTF_8)));
+                record.headers().add(new RecordHeader("target-system", event.getTargetSystem().getBytes(StandardCharsets.UTF_8)));
+                record.headers().add(new RecordHeader("source-system", KafkaConstants.SYSTEM_USER.getBytes(StandardCharsets.UTF_8)));
                 // Send to Kafka
                 kafkaTemplate.send(record)
                         .whenComplete((result, ex) -> {

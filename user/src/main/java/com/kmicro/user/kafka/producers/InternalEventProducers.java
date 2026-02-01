@@ -2,7 +2,7 @@ package com.kmicro.user.kafka.producers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kmicro.user.constants.AppContants;
+import com.kmicro.user.constants.KafkaConstants;
 import com.kmicro.user.entities.UserEntity;
 import com.kmicro.user.mapper.UserMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -29,9 +29,9 @@ public class InternalEventProducers {
 
     public Map<String, String> defaultHeader(){
         Map<String, String> defaultHeader = new HashMap<>();
-        defaultHeader.put("source-system",AppContants.SYSTEM_USER);
-        defaultHeader.put("target-system",AppContants.SYSTEM_USER);
-        defaultHeader.put("event-type",AppContants.ET_USER_CREATED);
+        defaultHeader.put("source-system",KafkaConstants.SYSTEM_USER);
+        defaultHeader.put("target-system",KafkaConstants.SYSTEM_USER);
+        defaultHeader.put("event-type", KafkaConstants.ET_WELCOME_USER);
         return defaultHeader;
     }
 
@@ -40,7 +40,7 @@ public class InternalEventProducers {
         String key = "createUser_"+user.getId();
         Map<String, String> headers = defaultHeader();
 
-        ProducerRecord<String, String> record = new ProducerRecord<>(AppContants.TOPIC_USER, key, payload);
+        ProducerRecord<String, String> record = new ProducerRecord<>(KafkaConstants.USERS_TOPIC, key, payload);
 
         addHeaders(record,headers);
         sendEvent(record);
