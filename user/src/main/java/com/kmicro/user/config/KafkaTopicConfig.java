@@ -1,6 +1,6 @@
 package com.kmicro.user.config;
 
-import com.kmicro.user.constants.AppContants;
+import com.kmicro.user.constants.KafkaConstants;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -16,7 +16,7 @@ public class KafkaTopicConfig {
     @Bean
     public NewTopic userEventTopic() {
         // Industry practice: Explicitly define partitions and replication factor
-        return TopicBuilder.name(AppContants.USERS_TOPIC)
+        return TopicBuilder.name(KafkaConstants.USERS_TOPIC)
                 .partitions(3)
                 .replicas(1) // Set to 3 in production
                 .compact()   // If you want to keep the latest state per key

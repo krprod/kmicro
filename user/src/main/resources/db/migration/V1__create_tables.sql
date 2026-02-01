@@ -51,7 +51,7 @@ CREATE TABLE IF NOT EXISTS user_schema.users_outbox_events (
                                             event_type character varying(255) NULL,
                                             payload text NULL,
                                             retry_count integer NOT NULL,
-                                            source_system character varying(255) NULL,
+                                            target_system character varying(255) NULL,
                                             status character varying(255) NULL,
                                             topic character varying(255) NULL
 );
@@ -68,3 +68,21 @@ CREATE TABLE user_schema.shedlock (
 
 ALTER TABLE user_schema.shedlock
     ADD CONSTRAINT shedlock_pkey PRIMARY KEY (name);
+
+CREATE SEQUENCE IF NOT EXISTS user_schema.token_verification_seq
+    START WITH 1
+    INCREMENT BY 50;
+
+CREATE TABLE IF NOT EXISTS user_schema.token_verification (
+                                                   id bigint NOT NULL,
+                                                   token character varying(255) NULL,
+                                                   user_id bigint NULL,
+                                                   attempt_count int NULL,
+                                                   is_verified boolean NULL,
+                                                   expiry_date timestamp(6) without time zone NULL,
+                                                   updated_at timestamp(6) without time zone NULL,
+                                                   created_at timestamp(6) without time zone NULL
+);
+
+ALTER TABLE IF EXISTS user_schema.token_verification
+    ADD CONSTRAINT token_verification_pkey PRIMARY KEY (id);

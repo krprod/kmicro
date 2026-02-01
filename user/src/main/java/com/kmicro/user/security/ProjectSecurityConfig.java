@@ -78,13 +78,14 @@ public class ProjectSecurityConfig {
                     }
                 }))
                 .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
-                        .ignoringRequestMatchers( "/api/auth/register","/api/auth/generate-csrf","/swagger-ui/**","/v3/api-docs/**","/api/users/**")
+                        .ignoringRequestMatchers( "/api/auth/register","/api/auth/generate-csrf"
+                                ,"/swagger-ui/**","/v3/api-docs/**","/api/users/**","/api/auth/verify","/api/auth/resend-verification")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints for authentication and registration
                         .requestMatchers("/api/users/**",
-                                "/api/auth/generate-csrf","/api/auth/register",
+                                "/api/auth/generate-csrf","/api/auth/register","/api/auth/verify","/api/auth/resend-verification",
                                 "/api/auth/login","/swagger-ui/**","/v3/api-docs/**").permitAll()
 //                        .requestMatchers("/api/auth/login").authenticated()
                         // Require ADMIN role for specific endpoints

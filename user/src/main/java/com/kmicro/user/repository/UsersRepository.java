@@ -11,7 +11,9 @@ import java.util.Optional;
 
 public interface UsersRepository  extends JpaRepository<UserEntity, Long> {
 
-    public Optional<UserEntity> findByEmail(String email);
+     Optional<UserEntity> findByEmail(String email);
+
+    Optional<UserEntity> findByEmailAndLoginName(String email, String loginName);
 
     @Modifying // 1. Marks the method as a modifying query (UPDATE, DELETE)
     @Transactional // 2. Ensures the operation runs in a transaction

@@ -91,4 +91,38 @@ public class AuthController {
         return ResponseEntity.status(200).body(token);
     }
 
+
+    @Operation(summary = "User Email Verification")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Data Fetched Successful"),
+            @ApiResponse(responseCode = "400", description = "Global Error Handles")
+    })
+    @GetMapping("/verify")
+    public ResponseEntity<Void> verifyUserEmail(@RequestParam(required = true) String token){
+        authService.verifyUserEmail(token);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Operation(summary = "Resend User Email Verification")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Data Fetched Successful"),
+            @ApiResponse(responseCode = "409", description = "Global Error Handles")
+    })
+    @PostMapping("/resend-verification")
+    public ResponseEntity<Void> resendVerificationMail(@RequestBody UserRegistrationRecord user){
+        authService.resendVerificationMail(user);
+        return ResponseEntity.noContent().build();
+    }
+
+//    @Operation(summary = "Delete, Lock and Invalidate JWT of current JWT Request Token Holder")
+//    @ApiResponses(value = {
+//            @ApiResponse(responseCode = "200", description = "Deletion Successful"),
+//            @ApiResponse(responseCode = "400", description = "Global Error Handles")
+//    })
+//    @PutMapping
+//    public ResponseEntity<String>passwordReset(HttpServletRequest request){
+//        .deleteUser(request);
+//        return ResponseEntity.ok("Success");
+//    }
+
 }//EC
