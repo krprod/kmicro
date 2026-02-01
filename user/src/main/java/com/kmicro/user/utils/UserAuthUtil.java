@@ -48,4 +48,9 @@ public class UserAuthUtil {
     public String generateToken(Authentication authenticationResponse) {
         return  jwtUtil.generateToken(authenticationResponse);
     }
+
+//    public String cleanAndSanitize(String data){
+//        return ;
+//    }
+
 }

@@ -8,13 +8,16 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
 @Tag(name = "User Controller", description = "Handles  User Email, Password, Avtar, Lat-Long Updates")
+@Validated
 public class UserController {
 
     @Autowired
@@ -53,7 +56,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Global Error Handles")
     })
     @PutMapping("/{id}")
-    public ResponseEntity<UserDTO>updateExistingUser(@RequestBody UserDetailUpdateRec userDetailUpdateRec, @PathVariable(name = "id") Long id){
+    public ResponseEntity<UserDTO>updateExistingUser(@Valid @RequestBody UserDetailUpdateRec userDetailUpdateRec, @PathVariable(name = "id") Long id){
         UserDTO userDTO  = userService.updateExistingUser(userDetailUpdateRec, id);
         return ResponseEntity.ok(userDTO);
     }

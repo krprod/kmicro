@@ -97,6 +97,30 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponseDTO);
     }
 
+    @ExceptionHandler(NotExistException.class)
+    public ResponseEntity<ErrorResponseDTO> handleUserNotFound(NotExistException ex, WebRequest webReq){
+
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+                webReq.getDescription(false),
+                HttpStatus.NOT_FOUND,
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+
+        log.error("NotExistException Request at {}: {}", webReq.getDescription(false), ex.getMessage());
+        return  ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponseDTO);
+    }
+
+    @ExceptionHandler(RateLimitException.class)
+    public ResponseEntity<ErrorResponseDTO> handleRateLimit(RateLimitException ex, WebRequest webReq) {
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+                webReq.getDescription(false),
+                HttpStatus.TOO_MANY_REQUESTS,
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS).body(errorResponseDTO);
+    }
     @ExceptionHandler(AccountDeactivated.class)
     public ResponseEntity<ErrorResponseDTO> handleAccountDeactivated(AccountDeactivated ex, WebRequest webReq){
 
@@ -121,6 +145,19 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 LocalDateTime.now()
         );
         log.error("Address Bad Request at {}: {}", webReq.getDescription(false), ex.getMessage());
+        return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponseDTO);
+    }
+
+    @ExceptionHandler(VerificationExecption.class)
+    public ResponseEntity<ErrorResponseDTO> handleAddressEx(VerificationExecption ex, WebRequest webReq){
+
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+                webReq.getDescription(false),
+                HttpStatus.BAD_REQUEST,
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        log.error("VerificationExecption Bad Request at {}: {}", webReq.getDescription(false), ex.getMessage());
         return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponseDTO);
     }
 

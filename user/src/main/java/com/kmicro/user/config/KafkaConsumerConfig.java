@@ -1,6 +1,6 @@
 package com.kmicro.user.config;
 
-import com.kmicro.user.constants.AppContants;
+import com.kmicro.user.constants.KafkaConstants;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +28,7 @@ public class KafkaConsumerConfig {
         public ConsumerFactory<String, String> usersConsumerFactory() {
             Map<String, Object> props = new HashMap<>();
             props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-            props.put(ConsumerConfig.GROUP_ID_CONFIG, AppContants.USERS_GROUP_ID);
+            props.put(ConsumerConfig.GROUP_ID_CONFIG, KafkaConstants.USERS_GROUP_ID);
             props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
             props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
             props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");

@@ -1,10 +1,10 @@
 package com.kmicro.user.config;
 
-import com.kmicro.user.constants.AppContants;
+import com.kmicro.user.constants.KafkaConstants;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 public class KafkaPfxSerializer extends StringSerializer {
-    private static final String PREFIX = AppContants.KAFKA_KEY_PREFIX;
+    private static final String PREFIX = KafkaConstants.KAFKA_KEY_PREFIX;
 
     @Override
     public byte[] serialize(String topic, String data) {

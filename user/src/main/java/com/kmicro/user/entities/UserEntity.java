@@ -47,6 +47,9 @@ public class UserEntity implements UserDetails {
     @Column(name = "is_active")
     private  boolean isActive;
 
+    @Column(name = "is_verified")
+    private  boolean isVerified;
+
     @Column(name = "is_logged_in")
     private boolean isLoggedIn;
 

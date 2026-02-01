@@ -7,9 +7,13 @@ import com.kmicro.user.dtos.UserRegistrationRecord;
 import com.kmicro.user.entities.UserEntity;
 import com.kmicro.user.exception.AlreadyExistException;
 import com.kmicro.user.exception.UserNotFoundException;
+import com.kmicro.user.exception.VerificationExecption;
+import com.kmicro.user.kafka.producers.ExternalEventProducers;
+import com.kmicro.user.kafka.producers.InternalEventProducers;
 import com.kmicro.user.mapper.UserMapper;
 import com.kmicro.user.repository.UsersRepository;
 import com.kmicro.user.security.RolesConstants;
+import com.kmicro.user.utils.DBOps;
 import com.kmicro.user.utils.UserAuthUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
@@ -33,33 +37,32 @@ public class UserService{
    private final UsersRepository usersRepository;
     private final PasswordEncoder passwordEncoder;
     private final UserAuthUtil userAuthUtil;
+    private final DBOps dbOps;
+    private final InternalEventProducers internalEventProducers;
+    private final ExternalEventProducers externalEventProducers;
 
-    @Transactional
     public ResponseDTO createUser(UserRegistrationRecord user) {
-        if(this.LoginNameExists(user.login_name())){
-            throw new AlreadyExistException("Login Name already exists: "+user.login_name());
-        }
-        if(this.emailExists(user.email())){
-            throw  new AlreadyExistException("Email already exists: "+user.email());
+        Optional<UserEntity> newUserRequest = usersRepository.findByEmailAndLoginName(user.email(), user.login_name());
+        if(newUserRequest.isPresent()){
+            log.info("Email: {} And LoginName: {} already exists", user.email(), user.login_name());
+            throw  new AlreadyExistException("Email And LoginName already exists, try another email ");
         }
 
         UserEntity userEntity = new UserEntity();
         userEntity.setLoginName(user.login_name());
         userEntity.setPassword( passwordEncoder.encode(user.password()));
         userEntity.setEmail(user.email());
-
         userEntity.setRoles(Set.of(RolesConstants.USER, RolesConstants.ORDERS));
-        userEntity.setActive(true);
+//        userEntity.setActive(true);
 
         UserEntity savedUser = usersRepository.save(userEntity);
         log.info("User created successfully with ID: {}", savedUser.getId());
-
+        externalEventProducers.emailVerificationNotification(savedUser,"", "");
         return new ResponseDTO("200", "User created successfully with ID: "+savedUser.getId());
     }
 
-    @Transactional(readOnly = true)
     public  UserDTO getUserById(Long id, Boolean withAddress) {
-        Optional<UserEntity> userEntityOpt = usersRepository.findById(id);
+        Optional<UserEntity> userEntityOpt = dbOps.findUserByID(id);
         if(userEntityOpt.isEmpty()){
             throw new UserNotFoundException("User not Found: "+id);
         }
@@ -69,19 +72,31 @@ public class UserService{
                 UserMapper.EntityToDTO(userEntityOpt.get());
     }
 
-    @Transactional
+    public  UserEntity getUserById(Long id) {
+        Optional<UserEntity> userEntityOpt = dbOps.findUserByID(id);
+        if(userEntityOpt.isEmpty()){
+            throw new UserNotFoundException("User not Found: "+id);
+        }
+        return userEntityOpt.get();
+    }
+
+    public  UserEntity getUserByEmail(String email) {
+        return dbOps.findUserByEmail(email)
+                .orElseThrow(()->new UserNotFoundException("User Email not exists in DB: "+ email));
+    }
+//    @Transactional
     public void deleteUser(HttpServletRequest request) {
 
         Claims token = userAuthUtil.getClaimsAndInvalidate(request);
 
         String userEmail = token.getSubject();
 
-        UserEntity user = usersRepository.findByEmail(userEmail)
+        UserEntity user =dbOps.findUserByEmail(userEmail)
                 .orElseThrow(()->new UserNotFoundException("User Email not exists in DB: "+userEmail));
 
         user.deactivateAccount();
 
-        UserEntity blockUser = usersRepository.save(user);
+        UserEntity blockUser = dbOps.saveUser(user);
         SecurityContextHolder.clearContext();
         log.info("User account {} has been successfully deactivated and locked.", userEmail);
     }
@@ -112,18 +127,33 @@ public class UserService{
         return usersRepository.existsByEmail(loginName);
     }
 
-    @Transactional
+//    @Transactional
     public UserDTO updateExistingUser(UserDetailUpdateRec userRec, Long userID) {
-        UserEntity user = usersRepository.findById(userID)
+        Boolean sendWelcomeMail = false;
+        UserEntity user =dbOps.findUserByID(userID)
                 .orElseThrow(()-> new UserNotFoundException("User not Found:  ID: "+ userID));
 
+        if(!user.isVerified() && !user.isActive()) throw new VerificationExecption("Email Not Verified, Cannot Update User.");
+
+        if((null == user.getFirstName() && null == user.getLastName()) && (user.isActive() && user.isVerified())){
+            sendWelcomeMail = true;
+        }
         user.setFirstName(userRec.firstname());
         user.setLastName(userRec.lastname());
         user.setContact(userRec.contact());
         user.setAvtar(userRec.avtar());
 
-        return UserMapper.EntityToDTO(usersRepository.save(user));
+        UserEntity savedUser = usersRepository.save(user);
+
+        if(sendWelcomeMail) externalEventProducers.welcomEmailNotification(savedUser, "","welcomeNewUser_");
+
+        return UserMapper.EntityToDTO(savedUser);
         // --- IF UPDATING EMAIL, PASSWORD --- VERIFICATION EMAIL SENT WITH LINK
         // this.updateEmailOrPassword();
     }
+
+    public void saveActiveAndVerified(UserEntity user){
+        usersRepository.save(user);
+    }
+
 }//EC
