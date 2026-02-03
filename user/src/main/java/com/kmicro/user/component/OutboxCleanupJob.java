@@ -8,7 +8,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Component
 @RequiredArgsConstructor
@@ -27,7 +28,8 @@ public class OutboxCleanupJob {
     @Scheduled(cron = "0 */10 * * * *")
     @Transactional
     public void cleanupProcessedEvents() {
-        LocalDateTime threshold = LocalDateTime.now().minusDays(1);
+//        LocalDateTime threshold = LocalDateTime.now().minusDays(1);
+        Instant threshold =Instant.now().minus(1, ChronoUnit.DAYS);
         try {
            log.info("Starting cleanup of processed outbox events older than {}", threshold);
 

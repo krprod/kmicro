@@ -1,10 +1,7 @@
 package com.kmicro.user.controller;
 
 import com.kmicro.user.constants.AppContants;
-import com.kmicro.user.dtos.LoginRequest;
-import com.kmicro.user.dtos.LoginResponse;
-import com.kmicro.user.dtos.ResponseDTO;
-import com.kmicro.user.dtos.UserRegistrationRecord;
+import com.kmicro.user.dtos.*;
 import com.kmicro.user.service.AuthService;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -98,9 +95,9 @@ public class AuthController {
             @ApiResponse(responseCode = "400", description = "Global Error Handles")
     })
     @GetMapping("/verify")
-    public ResponseEntity<Void> verifyUserEmail(@RequestParam(required = true) String token){
-        authService.verifyUserEmail(token);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<UserDTO> verifyUserEmail(@RequestParam(required = true) String token){
+        UserDTO result = authService.verifyUserEmail(token);
+        return ResponseEntity.status(200).body(result);
     }
 
     @Operation(summary = "Resend User Email Verification")
@@ -108,9 +105,9 @@ public class AuthController {
             @ApiResponse(responseCode = "204", description = "Data Fetched Successful"),
             @ApiResponse(responseCode = "409", description = "Global Error Handles")
     })
-    @PostMapping("/resend-verification")
-    public ResponseEntity<Void> resendVerificationMail(@RequestBody UserRegistrationRecord user){
-        authService.resendVerificationMail(user);
+    @PostMapping("/resend-verification/{id}")
+    public ResponseEntity<Void> resendVerificationMail(@PathVariable(name = "id") Long userID){
+        authService.resendVerificationMail(userID);
         return ResponseEntity.noContent().build();
     }
 

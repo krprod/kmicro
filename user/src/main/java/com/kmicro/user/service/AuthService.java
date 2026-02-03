@@ -1,17 +1,17 @@
 package com.kmicro.user.service;
 
-import com.kmicro.user.dtos.LoginRequest;
-import com.kmicro.user.dtos.LoginResponse;
-import com.kmicro.user.dtos.ResponseDTO;
-import com.kmicro.user.dtos.UserRegistrationRecord;
-import com.kmicro.user.entities.TokenVerification;
+import com.kmicro.user.constants.AppContants;
+import com.kmicro.user.dtos.*;
+import com.kmicro.user.entities.TokenEntity;
 import com.kmicro.user.entities.UserEntity;
 import com.kmicro.user.exception.AlreadyExistException;
 import com.kmicro.user.kafka.producers.ExternalEventProducers;
+import com.kmicro.user.mapper.UserMapper;
 import com.kmicro.user.utils.UserAuthUtil;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -62,28 +62,29 @@ public class AuthService {
         return userService.LoginNameExists(loginName);
     }
 
+    @CachePut(value = AppContants.CACHE_USER_KEY_PX, key = "#result.getId()")
     @Transactional
-    public void verifyUserEmail(String token) {
-        TokenVerification verificationToken = verificationService.verifyToken(token);
-
+    public UserDTO verifyUserEmail(String token) {
+        TokenEntity verificationToken = verificationService.verifyToken(token);
         UserEntity userEntity = userService.getUserById(verificationToken.getUserId());
         if(!userEntity.isActive() && !userEntity.isVerified()){
             // if user verified false -> set verified=true & active=true
             userEntity.setActive(true);
             userEntity.setVerified(true);
             verificationToken.setIsVerified(true);
-            verificationService.updateToken(verificationToken, userEntity);
+            verificationService.updateToken(verificationToken);
         }
-        userService.saveActiveAndVerified(userEntity);
+        UserEntity savedUser= userService.saveActivatedVerifiedUser(userEntity);
+        return UserMapper.EntityWithAddressToDTOWithAddress(savedUser);
     }
 
     @Transactional
-    public void resendVerificationMail(UserRegistrationRecord userRegistrationRecord) {
-        UserEntity user = userService.getUserByEmail(userRegistrationRecord.email());
+    public void resendVerificationMail(Long userID) {
+        UserEntity user = userService.getUserById(userID);
         if(!user.isVerified() && !user.isActive()){
             // resend Verification Mail
             String link = verificationService.getAttemptedVerificationLink(user.getId());
-            externalEventProducers.emailVerificationNotification(user, link,"reattempt_");
+            externalEventProducers.emailVerificationNotification(user, link,"verifyReattempt_");
         }else {
             throw  new AlreadyExistException("User Already Verified.");
         }

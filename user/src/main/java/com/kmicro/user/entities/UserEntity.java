@@ -8,8 +8,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDateTime;
-import java.time.ZoneId;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -57,13 +56,13 @@ public class UserEntity implements UserDetails {
     private boolean isLocked;
 
     @Column(name = "locked_date_time")
-    private LocalDateTime lockedDateTime;
+    private Instant lockedDateTime;
 
     @Column(name = "last_login_time")
-    private LocalDateTime lastloginTime;
+    private Instant lastloginTime;
 
     @Column(name = "first_login_time")
-    private LocalDateTime firstLoginTime;
+    private Instant firstLoginTime;
 
     @Column(name = "wrong_attempts")
     private int wrongAttempts = 0;
@@ -115,7 +114,8 @@ public class UserEntity implements UserDetails {
         this.isActive = false;
         this.isLoggedIn = false;
         this.isLocked= true;
-        this.lastloginTime = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
+        this.lastloginTime = Instant.now();
+        this.lockedDateTime = Instant.now();
 //        this.updateAt = LocalDateTime.now(ZoneId.of("Asia/Kolkata"));
     }
 //    @Transient

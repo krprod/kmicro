@@ -7,7 +7,7 @@ import com.kmicro.notification.dtos.KafkaEventRec;
 import com.kmicro.notification.dtos.MailRequestRec;
 import com.kmicro.notification.dtos.RequestedJsonRecord;
 import com.kmicro.notification.entities.NotificationsEntity;
-import com.kmicro.notification.interceptors.processors.MailEventProcessor;
+import com.kmicro.notification.kafka.processors.MailEventProcessor;
 import com.kmicro.notification.repository.NotificationRepository;
 import com.kmicro.notification.utils.CommonHelperUtils;
 import com.kmicro.notification.utils.EmailUtils;

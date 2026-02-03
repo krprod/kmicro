@@ -1,4 +1,4 @@
-package com.kmicro.notification.interceptors.processors;
+package com.kmicro.notification.kafka.processors;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;

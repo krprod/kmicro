@@ -26,7 +26,8 @@ __Payment Service__
 
 __Notification Service__
 - URL: http://localhost:8096/api/notifications
-- DOC: http://localhost:8096/swagger-ui/index.html | http://localhost:8096/v3/api-docs
+- DOC: http://localhost:8096/swagger-ui/index.html | http://localhost:8096/v3/api-docs 
+- Kafka Doc: http://localhost:8096/springwolf/asyncapi-ui.html#info | http://localhost:8096/springwolf/docs
 
 
 [//]: # (__Cart Service__)

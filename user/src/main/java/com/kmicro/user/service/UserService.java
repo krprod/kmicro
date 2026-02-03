@@ -1,5 +1,6 @@
 package com.kmicro.user.service;
 
+import com.kmicro.user.constants.AppContants;
 import com.kmicro.user.dtos.ResponseDTO;
 import com.kmicro.user.dtos.UserDTO;
 import com.kmicro.user.dtos.UserDetailUpdateRec;
@@ -14,17 +15,20 @@ import com.kmicro.user.mapper.UserMapper;
 import com.kmicro.user.repository.UsersRepository;
 import com.kmicro.user.security.RolesConstants;
 import com.kmicro.user.utils.DBOps;
+import com.kmicro.user.utils.RedisOps;
 import com.kmicro.user.utils.UserAuthUtil;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.CachePut;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -40,6 +44,7 @@ public class UserService{
     private final DBOps dbOps;
     private final InternalEventProducers internalEventProducers;
     private final ExternalEventProducers externalEventProducers;
+    private final RedisOps redisOps;
 
     public ResponseDTO createUser(UserRegistrationRecord user) {
         Optional<UserEntity> newUserRequest = usersRepository.findByEmailAndLoginName(user.email(), user.login_name());
@@ -63,42 +68,37 @@ public class UserService{
 
     public  UserDTO getUserById(Long id, Boolean withAddress) {
         Optional<UserEntity> userEntityOpt = dbOps.findUserByID(id);
+        log.info("HITTING DB TO GET DATA");
         if(userEntityOpt.isEmpty()){
             throw new UserNotFoundException("User not Found: "+id);
         }
 
-        return withAddress ?
-                UserMapper.EntityWithAddressToDTOWithAddress(userEntityOpt.get()):
-                UserMapper.EntityToDTO(userEntityOpt.get());
-    }
-
-    public  UserEntity getUserById(Long id) {
-        Optional<UserEntity> userEntityOpt = dbOps.findUserByID(id);
-        if(userEntityOpt.isEmpty()){
-            throw new UserNotFoundException("User not Found: "+id);
+       UserDTO userDTO = redisOps.getCachedUser(id);
+        if (!withAddress) {
+            userDTO.setAddresses(null);
         }
-        return userEntityOpt.get();
+        return userDTO;
     }
 
-    public  UserEntity getUserByEmail(String email) {
-        return dbOps.findUserByEmail(email)
-                .orElseThrow(()->new UserNotFoundException("User Email not exists in DB: "+ email));
-    }
-//    @Transactional
-    public void deleteUser(HttpServletRequest request) {
-
+    @CachePut(value = AppContants.CACHE_USER_KEY_PX, key = "#result.getId()", unless = "#result == null")
+    @CacheEvict(value = AppContants.CACHE_ADDRESS_KEY_PX, key = "#result.getId()")
+    @Transactional
+    public UserDTO deleteUser(HttpServletRequest request) {
         Claims token = userAuthUtil.getClaimsAndInvalidate(request);
 
         String userEmail = token.getSubject();
 
-        UserEntity user =dbOps.findUserByEmail(userEmail)
+        UserEntity user =usersRepository.findByEmail(userEmail)
                 .orElseThrow(()->new UserNotFoundException("User Email not exists in DB: "+userEmail));
 
-        user.deactivateAccount();
-
-        UserEntity blockUser = dbOps.saveUser(user);
+        if(user.isActive() && !user.isLocked()){
+            user.deactivateAccount();
+            UserEntity blockUser =usersRepository.save(user);
+            log.info("User account {} has been successfully deactivated and locked.", userEmail);
+            return UserMapper.EntityToDTO(blockUser);
+        }
         SecurityContextHolder.clearContext();
-        log.info("User account {} has been successfully deactivated and locked.", userEmail);
+        return null;
     }
 
 //    @RolesAllowed(RolesConstants.ADMIN)
@@ -107,11 +107,20 @@ public class UserService{
         return UserMapper.EntityListToDTOList(usersEntity);
     }
 
+
+    @CachePut(value = AppContants.CACHE_USER_KEY_PX, key = "#result.getId()")
     @Transactional
-    public void updateFieldsOnLogin(String email) {
+    public UserDTO updateFieldsOnLogin(String email) {
 
-        int updatedRows = usersRepository.updateLoginStatusByEmail(true, LocalDateTime.now(), email);
+//        int updatedRows = usersRepository.updateLoginStatusByEmail(true, LocalDateTime.now(), email);
 
+        UserEntity user = usersRepository.findByEmail(email)
+                .orElseThrow(()-> new UserNotFoundException("UserNotFoundException"));
+
+        user.setLoggedIn(true);
+        user.setLastloginTime(Instant.now());
+
+        return UserMapper.EntityWithAddressToDTOWithAddress(usersRepository.save(user));
         // 2. Clear the cache to ensure future SELECTs get fresh data from DB
 //        entityManager.clear();
 
@@ -127,11 +136,12 @@ public class UserService{
         return usersRepository.existsByEmail(loginName);
     }
 
-//    @Transactional
+    @CachePut(value = AppContants.CACHE_USER_KEY_PX, key = "#userID")
+    @Transactional
     public UserDTO updateExistingUser(UserDetailUpdateRec userRec, Long userID) {
         Boolean sendWelcomeMail = false;
-        UserEntity user =dbOps.findUserByID(userID)
-                .orElseThrow(()-> new UserNotFoundException("User not Found:  ID: "+ userID));
+        UserEntity user =usersRepository.findById(userID)
+                .orElseThrow(()-> new UserNotFoundException("User not Found ID: "+ userID));
 
         if(!user.isVerified() && !user.isActive()) throw new VerificationExecption("Email Not Verified, Cannot Update User.");
 
@@ -147,13 +157,26 @@ public class UserService{
 
         if(sendWelcomeMail) externalEventProducers.welcomEmailNotification(savedUser, "","welcomeNewUser_");
 
-        return UserMapper.EntityToDTO(savedUser);
+        return UserMapper.EntityWithAddressToDTOWithAddress(savedUser);
         // --- IF UPDATING EMAIL, PASSWORD --- VERIFICATION EMAIL SENT WITH LINK
         // this.updateEmailOrPassword();
     }
 
-    public void saveActiveAndVerified(UserEntity user){
-        usersRepository.save(user);
+    // ---- For Other Services
+    public UserEntity saveActivatedVerifiedUser(UserEntity user){
+        return usersRepository.save(user);
     }
 
+    public  UserEntity getUserById(Long id) {
+        Optional<UserEntity> userEntityOpt = dbOps.findUserByID(id);
+        if(userEntityOpt.isEmpty()){
+            throw new UserNotFoundException("User not Found: "+id);
+        }
+        return userEntityOpt.get();
+    }
+
+    public  UserEntity getUserByEmail(String email) {
+        return dbOps.findUserByEmail(email)
+                .orElseThrow(()->new UserNotFoundException("User Email not exists in DB: "+ email));
+    }
 }//EC

@@ -10,6 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.Map;
 
@@ -36,7 +37,7 @@ public class OutboxHelper {
                     .targetSystem(KafkaConstants.SYSTEM_NOTIFICATION)
                     .payload(objectMapper.writeValueAsString(userDetails))
                     .status(status)
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(Instant.now())
                     .build();
         } catch (Exception e) {
             log.info("OutboxEntity CREATION Failed for userID: {}, notification_id: {}", userID, requestID);
@@ -53,7 +54,7 @@ public class OutboxHelper {
                     .targetSystem(targetSystem)
                     .payload(objectMapper.writeValueAsString(mailBodyMap))
                     .status(Status.PENDING.name())
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(Instant.now())
                     .build();
         } catch (Exception e) {
             log.info("OutboxEntity CREATION Failed for userID: {}, aggregateID: {}", userID, aggregateKey);
@@ -70,7 +71,7 @@ public class OutboxHelper {
                     .targetSystem(targetSystem)
                     .payload(mailBody)
                     .status(Status.PENDING.name())
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(Instant.now())
                     .build();
         } catch (Exception e) {
             log.info("OutboxEntity CREATION Failed for userID: {}, aggregateID: {}", userID, aggregateKey);

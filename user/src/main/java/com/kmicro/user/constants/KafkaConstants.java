@@ -5,10 +5,12 @@ import java.util.Map;
 public final class KafkaConstants {
 
 
-    public static final String KAFKA_KEY_PREFIX = "PFX_USR_";
+    public static final String USER_KEY_PREFIX = "PFX_USR_";
+    public static final String NOTIFICATION_KEY_PREFIX = "PFX_NTF_";
 
     //-----  KAFKA GROUP ID
     public static final String USERS_GROUP_ID = "user-service-group";
+    public static final String NOTIFICATION_GROUP_ID = "notification-service-group";
 
     //-----    EVENT TYPE -- HANDLED OR GENERATED EVENTS
     public static final String ET_VERIFY_EMAIL = "emailVerification";

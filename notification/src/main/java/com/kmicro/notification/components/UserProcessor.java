@@ -8,6 +8,8 @@ import com.kmicro.notification.entities.UserDataEntity;
 import com.kmicro.notification.repository.NotificationRepository;
 import com.kmicro.notification.utils.EmailUtils;
 import com.kmicro.notification.utils.NotificationDBUtils;
+import io.github.springwolf.core.asyncapi.annotations.AsyncOperation;
+import io.github.springwolf.core.asyncapi.annotations.AsyncPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -32,6 +34,13 @@ public class UserProcessor {
     private final EmailUtils emailUtils;
     private final NotificationDBUtils notificationDBUtils;
     private final OutboxUtils outboxUtils;
+
+    @AsyncPublisher(operation = @AsyncOperation(
+            channelName = "user-placed-topic",
+            description = "Publishes a message when a new customer order is created",
+            servers = {"kafka-server"}
+//            payloadType = "{}"
+    ))
 
     @SchedulerLock(
             name = "UserProcessorTaskLock",

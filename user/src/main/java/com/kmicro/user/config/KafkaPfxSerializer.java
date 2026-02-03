@@ -4,7 +4,7 @@ import com.kmicro.user.constants.KafkaConstants;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 public class KafkaPfxSerializer extends StringSerializer {
-    private static final String PREFIX = KafkaConstants.KAFKA_KEY_PREFIX;
+    private static final String PREFIX = KafkaConstants.USER_KEY_PREFIX;
 
     @Override
     public byte[] serialize(String topic, String data) {

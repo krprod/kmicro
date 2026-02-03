@@ -2,8 +2,7 @@ package com.kmicro.user.service;
 
 import com.google.common.hash.Hashing;
 import com.kmicro.user.constants.AppContants;
-import com.kmicro.user.entities.TokenVerification;
-import com.kmicro.user.entities.UserEntity;
+import com.kmicro.user.entities.TokenEntity;
 import com.kmicro.user.exception.NotExistException;
 import com.kmicro.user.exception.RateLimitException;
 import com.kmicro.user.repository.TokenRepository;
@@ -32,15 +31,15 @@ public class VerificationService {
         this.redisOps = redisOps;
     }
 
-    public TokenVerification verifyToken(String token) {
+    public TokenEntity verifyToken(String token) {
 //        String hashedToken = hashedToken(
 //                HtmlUtils.htmlEscape(
 //                        UriUtils.encodeQueryParam(token.trim(), StandardCharsets.UTF_8)
 //                )
 //        );
-        TokenVerification cachedToken = redisOps.getVerificationToken(token);
+        TokenEntity cachedToken = redisOps.getVerificationToken(token);
 
-        TokenVerification verificationToken = null != cachedToken
+        TokenEntity verificationToken = null != cachedToken
                 ? cachedToken
                 : tokenRepository.findByToken(token).orElseThrow(()-> new NotExistException("Token not exists"));
 
@@ -50,9 +49,9 @@ public class VerificationService {
         return verificationToken;
     }
 
-    public void updateToken(TokenVerification tokenVerification, UserEntity userEntity){
-        tokenRepository.save(tokenVerification);
-        redisOps.updateToken(tokenVerification, userEntity);
+    public void updateToken(TokenEntity tokenEntity){
+        tokenRepository.save(tokenEntity);
+        redisOps.updateToken(tokenEntity);
     }
 
     public String generateToken() {
@@ -69,7 +68,7 @@ public class VerificationService {
         return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
     }
 
-    public boolean isTokenExpired(TokenVerification token) {
+    public boolean isTokenExpired(TokenEntity token) {
         return token.getExpiryDate().isBefore(Instant.now());
     }
 
@@ -81,7 +80,7 @@ public class VerificationService {
 
     public String generateNewToken(Long userID){
         String simpleToken = generateToken();
-        TokenVerification token = new TokenVerification();
+        TokenEntity token = new TokenEntity();
 //        token.setToken(hashedToken(simpleToken));
         token.setToken(simpleToken);
         token.setUserId(userID);
@@ -94,7 +93,7 @@ public class VerificationService {
         return generateVerificationLink(simpleToken);
     }
 
-    public String generateAttemptToken(Long userID, TokenVerification oldToken){
+    public String generateAttemptToken(Long userID, TokenEntity oldToken){
         String simpleToken = generateToken();
 //        oldToken.setToken(hashedToken(simpleToken));
         oldToken.setToken(simpleToken);
@@ -109,10 +108,10 @@ public class VerificationService {
 
     public String getAttemptedVerificationLink(Long userID){
         // Try redis else query DB
-        Optional<TokenVerification> tokenVerification = tokenRepository.findByUserId(userID);
+        Optional<TokenEntity> tokenVerification = tokenRepository.findByUserId(userID);
         // if currentTime >= updatedAt + 5min == createNewToken else Wait for sometime like 5min
         if(tokenVerification.isPresent()){
-            TokenVerification lastToken = tokenVerification.get();
+            TokenEntity lastToken = tokenVerification.get();
             Instant nextAllowedTime = lastToken.getUpdatedAt().plus(AppContants.RESEND_COOLDOWN_MINUTES, ChronoUnit.MINUTES);
 //            Instant nextAllowedTime = lastToken.getUpdatedAt().plus(AppContants.RESEND_COOLDOWN_MINUTES, ChronoUnit.SECONDS);
             if(Instant.now().isBefore(nextAllowedTime)){
