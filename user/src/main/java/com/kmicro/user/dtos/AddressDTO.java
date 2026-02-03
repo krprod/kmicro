@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class AddressDTO {
-
+    private static final long serialVersionUID = 1L;
     private Long id;
 
     @JsonProperty("user_id")

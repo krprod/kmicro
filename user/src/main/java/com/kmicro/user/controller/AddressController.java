@@ -38,8 +38,8 @@ public class AddressController {
             @ApiResponse(responseCode = "400", description = "Failed GlobalHandler")
     })
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteAddress(@PathVariable(name = "id") @Min(1) Long id){
-        addressService.deleteAddress(id);
+    public ResponseEntity<Void> deleteAddress(@PathVariable(name = "id") @Min(1) Long id, @RequestBody AddressDTO addressDTO){
+        addressService.deleteAddress(id, addressDTO);
         return ResponseEntity.noContent().build();
     }
 

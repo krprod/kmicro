@@ -1,5 +1,6 @@
 package com.kmicro.user.config;
 
+import com.kmicro.user.constants.AppContants;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import java.util.Arrays;
@@ -11,7 +12,8 @@ public class RedisPfxSerializer extends StringRedisSerializer {
     private final StringRedisSerializer stringSerializer = new StringRedisSerializer();
 
     public RedisPfxSerializer(String serviceName) {
-        this.prefix = serviceInitials(serviceName) + ":";
+//        this.prefix = serviceInitials(serviceName) + ":";
+        this.prefix = AppContants.SERVICE_REDIS_KEY_PREFIX + ":";
     }
 
     @Override

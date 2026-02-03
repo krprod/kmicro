@@ -2,6 +2,10 @@ package com.kmicro.user.kafka.listeners;
 
 import com.kmicro.user.constants.KafkaConstants;
 import com.kmicro.user.kafka.processors.EventProcessor;
+import com.kmicro.user.kafka.schemas.ParentSchema;
+import io.github.springwolf.bindings.kafka.annotations.KafkaAsyncOperationBinding;
+import io.github.springwolf.core.asyncapi.annotations.AsyncListener;
+import io.github.springwolf.core.asyncapi.annotations.AsyncOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
@@ -16,6 +20,31 @@ import org.springframework.stereotype.Component;
 public class NotificationListener {
 
     private final EventProcessor eventProcessor;
+
+    @AsyncListener(operation = @AsyncOperation(
+            channelName =  KafkaConstants.USERS_TOPIC,
+            description = "Consumes Incoming Events: "+ KafkaConstants.ET_REQUEST_USER_DETAILS,
+            payloadType = ParentSchema.class,
+            headers = @AsyncOperation.Headers(
+                    schemaName = KafkaConstants.SYSTEM_NOTIFICATION+"-incoming-headers",
+                    description = "Notification Service Incoming Request Headers",
+                    values = {
+                            @AsyncOperation.Headers.Header(name = "event-type" , value =  KafkaConstants.ET_REQUEST_USER_DETAILS),
+                            @AsyncOperation.Headers.Header(name = "source-system", value = KafkaConstants.SYSTEM_NOTIFICATION),
+                            @AsyncOperation.Headers.Header(name = "target-system", value = KafkaConstants.SYSTEM_USER)
+                    }
+            )
+    ))
+    @KafkaAsyncOperationBinding(
+            groupId = KafkaConstants.USERS_GROUP_ID,
+            messageBinding =   @KafkaAsyncOperationBinding.KafkaAsyncMessageBinding(
+                    key = @KafkaAsyncOperationBinding.KafkaAsyncKey(
+                            description = "The unique identifier for the user (user_id)",
+                            type = KafkaAsyncOperationBinding.KafkaAsyncKey.KafkaKeyTypes.STRING_KEY,
+                            example = KafkaConstants.NOTIFICATION_KEY_PREFIX+"1"
+                    )
+            )
+    )
 
     @KafkaListener(
             containerFactory = "userKafkaListenerContainerFactory",

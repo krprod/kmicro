@@ -2,6 +2,7 @@ package com.kmicro.user.mapper;
 
 import com.kmicro.user.dtos.UserDTO;
 import com.kmicro.user.entities.UserEntity;
+import com.kmicro.user.utils.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
@@ -38,6 +39,8 @@ public class UserMapper {
         userDTO.setEmail(userEntity.getEmail());
         userDTO.setLogin_name(userEntity.getLoginName());
         userDTO.setLoggedIn(userEntity.isLoggedIn());
+//        userDTO.setLastloginTime(userEntity.getLastloginTime());
+        userDTO.setLastloginTime(DateUtil.InstantToLDT4Asia(userEntity.getLastloginTime()));
         userDTO.setAvtar(userEntity.getAvtar());
         userDTO.setRoles(userEntity.getRoles());
         userDTO.setLatitude(userEntity.getLatitude());
@@ -46,10 +49,13 @@ public class UserMapper {
         userDTO.setFirstName(userEntity.getFirstName());
         userDTO.setLastName(userEntity.getLastName());
         userDTO.setContactNumber(userEntity.getContact());
+        //------ Setting Active & Verified For DTO
+        userDTO.setActive(userEntity.isActive());
+        userDTO.setVerified(userEntity.isVerified());
         return userDTO;
     }
 
-    public   static  UserDTO EntityWithAddressToDTOWithAddress(UserEntity userEntity){
+    public static UserDTO EntityWithAddressToDTOWithAddress(UserEntity userEntity){
         UserDTO userDTO = UserMapper.EntityToDTO(userEntity);
         userDTO.setAddresses(AddressMapper.mapEntityListToDTOList(userEntity.getAddresses()));
         return userDTO;

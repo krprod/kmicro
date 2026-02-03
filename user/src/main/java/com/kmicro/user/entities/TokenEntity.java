@@ -11,7 +11,7 @@ import java.time.Instant;
 @Setter
 //@NoArgsConstructor
 //@AllArgsConstructor
-public class TokenVerification {
+public class TokenEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

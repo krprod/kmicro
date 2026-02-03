@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 
 @Entity
@@ -32,6 +32,6 @@ public class OutboxEntity {
     private int retryCount = 0;
     private String status = "PENDING"; // PENDING, PROCESSED, FAILED
 
-    private LocalDateTime createdAt = LocalDateTime.now();
+    private Instant createdAt = Instant.now();
 
 }

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 
@@ -30,8 +31,17 @@ public class UserDTO {
     //-------- Updatable Fields
 
     private boolean isLoggedIn;
+    @JsonProperty( "last_login_time")
+    private LocalDateTime lastloginTime;
+
     private Double latitude ;
     private Double longitude;
+
+    @JsonProperty("is_active")
+    private  boolean isActive;
+
+    @JsonProperty("is_verified")
+    private  boolean isVerified;
 //    private lastLogin;
 //    createdAt
     private List<AddressDTO> addresses;

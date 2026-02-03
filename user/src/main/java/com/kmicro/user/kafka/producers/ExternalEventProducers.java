@@ -8,12 +8,18 @@ import com.kmicro.user.constants.Status;
 import com.kmicro.user.dtos.UserDTO;
 import com.kmicro.user.entities.OutboxEntity;
 import com.kmicro.user.entities.UserEntity;
+import com.kmicro.user.kafka.schemas.VerificationAndReverifyUserEmail;
+import com.kmicro.user.kafka.schemas.WelcomeUserMail;
 import com.kmicro.user.mapper.UserMapper;
 import com.kmicro.user.service.VerificationService;
+import io.github.springwolf.bindings.kafka.annotations.KafkaAsyncOperationBinding;
+import io.github.springwolf.core.asyncapi.annotations.AsyncOperation;
+import io.github.springwolf.core.asyncapi.annotations.AsyncPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,10 +37,34 @@ public class ExternalEventProducers {
         this.verificationService = verificationService;
     }
 
+    @AsyncPublisher(operation = @AsyncOperation(
+            channelName = KafkaConstants.USERS_TOPIC,
+            description = "Publishes a message to verify new registered user email",
+            payloadType = VerificationAndReverifyUserEmail.class,
+            headers = @AsyncOperation.Headers(
+                    schemaName = KafkaConstants.SYSTEM_USER+"-outgoing-headers",
+                    description = "User Service outgoing Request Headers",
+                    values = {
+                            @AsyncOperation.Headers.Header(name = "event-type" , value =  KafkaConstants.ET_VERIFY_EMAIL),
+                            @AsyncOperation.Headers.Header(name = "source-system", value = KafkaConstants.SYSTEM_USER),
+                            @AsyncOperation.Headers.Header(name = "target-system", value = KafkaConstants.SYSTEM_NOTIFICATION)
+                    }
+            )
+    ))
+    @KafkaAsyncOperationBinding(
+            groupId = KafkaConstants.NOTIFICATION_GROUP_ID,
+            messageBinding =   @KafkaAsyncOperationBinding.KafkaAsyncMessageBinding(
+                    key = @KafkaAsyncOperationBinding.KafkaAsyncKey(
+                            description = "The unique identifier for the user (user_id)",
+                            type = KafkaAsyncOperationBinding.KafkaAsyncKey.KafkaKeyTypes.STRING_KEY,
+                            example = KafkaConstants.USER_KEY_PREFIX+"verifyNewCustomer_1 | "+KafkaConstants.USER_KEY_PREFIX+"verifyReattempt_1"
+                    )
+            )
+    )
     public void emailVerificationNotification(UserEntity userE, String link, String aggregatedKey){
 
         String verificationLink  = null != link && !link.isEmpty() ? link : verificationService.generateNewToken(userE.getId());
-        String aggKey = null != aggregatedKey && !aggregatedKey.isEmpty()? aggregatedKey+userE.getId() : "newCustomer_"+userE.getId();
+        String aggKey = null != aggregatedKey && !aggregatedKey.isEmpty()? aggregatedKey+userE.getId() : "verifyNewCustomer_"+userE.getId();
 
          String mailbody = this.createEmailVerifcationMap(UserMapper.EntityToDTO(userE),"",verificationLink);
 
@@ -45,7 +75,7 @@ public class ExternalEventProducers {
                                                                                                         .targetSystem( KafkaConstants.SYSTEM_NOTIFICATION)
                                                                                                         .payload(mailbody)
                                                                                                         .status(Status.PENDING.name())
-                                                                                                        .createdAt(LocalDateTime.now())
+                                                                                                        .createdAt(Instant.now())
                                                                                                         .build();
 
         outboxHelper.saveEventInOutbox(outboxEntity);
@@ -89,9 +119,33 @@ public class ExternalEventProducers {
         }
     }
 
+    @AsyncPublisher(operation = @AsyncOperation(
+            channelName = KafkaConstants.USERS_TOPIC,
+            description = "Publishes a welcome message when new user email verified successfully",
+            payloadType = WelcomeUserMail.class,
+            headers = @AsyncOperation.Headers(
+                    schemaName = KafkaConstants.SYSTEM_USER+"-outgoing-headers",
+                    description = "User Service outgoing Request Headers",
+                    values = {
+                            @AsyncOperation.Headers.Header(name = "event-type" , value =  KafkaConstants.ET_WELCOME_USER),
+                            @AsyncOperation.Headers.Header(name = "source-system", value = KafkaConstants.SYSTEM_USER),
+                            @AsyncOperation.Headers.Header(name = "target-system", value = KafkaConstants.SYSTEM_NOTIFICATION)
+                    }
+            )
+    ))
+    @KafkaAsyncOperationBinding(
+            groupId = KafkaConstants.NOTIFICATION_GROUP_ID,
+            messageBinding =   @KafkaAsyncOperationBinding.KafkaAsyncMessageBinding(
+                    key = @KafkaAsyncOperationBinding.KafkaAsyncKey(
+                            description = "The unique identifier for the user (user_id)",
+                            type = KafkaAsyncOperationBinding.KafkaAsyncKey.KafkaKeyTypes.STRING_KEY,
+                            example = KafkaConstants.USER_KEY_PREFIX+"welcomeNewUser_1"
+                    )
+            )
+    )
     public void welcomEmailNotification(UserEntity userE, String couponCode, String aggregatedKey){
 
-        String aggKey = null != aggregatedKey && !aggregatedKey.isEmpty()? aggregatedKey+userE.getId() : "welcome"+userE.getId();
+        String aggKey = null != aggregatedKey && !aggregatedKey.isEmpty()? aggregatedKey+userE.getId() : "welcome_"+userE.getId();
 
         String mailbody = this.createWelcomEmailMap(UserMapper.EntityToDTO(userE), "",couponCode);
 
@@ -102,7 +156,7 @@ public class ExternalEventProducers {
                 .targetSystem( KafkaConstants.SYSTEM_NOTIFICATION)
                 .payload(mailbody)
                 .status(Status.PENDING.name())
-                .createdAt(LocalDateTime.now())
+                .createdAt(Instant.now())
                 .build();
 
         outboxHelper.saveEventInOutbox(outboxEntity);

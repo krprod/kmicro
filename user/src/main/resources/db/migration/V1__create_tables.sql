@@ -30,6 +30,10 @@ CREATE TABLE IF NOT EXISTS user_schema.roles (
 ALTER TABLE IF EXISTS  user_schema.roles
     ADD CONSTRAINT roles_pkey PRIMARY KEY (id);
 
+CREATE SEQUENCE IF NOT EXISTS user_schema.address_seq
+    START WITH 1
+    INCREMENT BY 50;
+
 CREATE TABLE IF NOT EXISTS user_schema.address (
                                 id bigint NOT NULL,
                                 user_id bigint NULL,
@@ -40,6 +44,7 @@ CREATE TABLE IF NOT EXISTS user_schema.address (
                                 state character varying(255) NULL,
                                 zip_code character varying(255) NULL
 );
+
 
 ALTER TABLE IF EXISTS user_schema.address
     ADD CONSTRAINT address_pkey PRIMARY KEY (id);
