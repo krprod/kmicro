@@ -1,21 +1,59 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
+
+    <appender name="SMART_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator>
+                <expression>
+                    return threadName.contains("outbox-scheduler") &amp;&amp; level == DEBUG;
+                </expression>
+            </evaluator>
+            <OnMismatch>NEUTRAL</OnMismatch>
+            <OnMatch>DENY</OnMatch>
+        </filter>
+
+        <encoder>
+            <charset>utf-8</charset>
+            <pattern>%cyan(%d{yyyy-MM-dd HH:mm:ss}) %green([%thread]) %blue(%-5level) %yellow(%logger{36}) - %magenta(%msg%n)</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="org.postgresql.jdbc" level="INFO" />
+    <logger name="org.hibernate" level="INFO" />
+    <logger name="net.javacrumbs.shedlock" level="INFO" />
+    <logger name="org.apache.kafka" level="ERROR"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="javax.activation" level="WARN"/>
+    <logger name="ch.qos.logback" level="WARN"/>
+
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
+
+    <root level="${logback.loglevel:-INFO}">
+        <appender-ref ref="SMART_CONSOLE"/>
+    </root>
+</configuration>
+
+<!--<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
 
     <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <charset>utf-8</charset>
-            <!--            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level - %msg%n</pattern>-->
+            &lt;!&ndash;            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level - %msg%n</pattern>&ndash;&gt;
             <pattern>%cyan(%d{yyyy-MM-dd HH:mm:ss}) %green([%thread]) %blue(%-5level) %yellow(%logger{36}) - %magenta(%msg%n)</pattern>
-            <!--            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
+            &lt;!&ndash;            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>&ndash;&gt;
         </encoder>
     </appender>
 
-    <!-- <root level="debug">
+    &lt;!&ndash; <root level="debug">
          <appender-ref ref="STDOUT" />
-     </root>-->
+     </root>&ndash;&gt;
 
-    <!--Custom Appender for Custom log file-->
-    <!--  <appender name="mcStan" class="ch.qos.logback.core.rolling.RollingFileAppender">
+    &lt;!&ndash;Custom Appender for Custom log file&ndash;&gt;
+    &lt;!&ndash;  <appender name="mcStan" class="ch.qos.logback.core.rolling.RollingFileAppender">
           <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
               <fileNamePattern>${LOG_FILE_PATH}/mcStan-%d{yyyy-MM-dd}.log</fileNamePattern>
           </rollingPolicy>
@@ -24,18 +62,18 @@
               <charset>utf-8</charset>
               <Pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</Pattern>
           </encoder>
-      </appender>-->
-    <!--    <logger name="custom.logger" level="DEBUG"/>-->
+      </appender>&ndash;&gt;
+    &lt;!&ndash;    <logger name="custom.logger" level="DEBUG"/>&ndash;&gt;
 
     <logger name="javax.activation" level="WARN"/>
     <logger name="ch.qos.logback" level="WARN"/>
-    <!--    <logger name="org.apache" level="WARN"/>-->
-    <!--    <logger name="org.apache.catalina.startup.DigesterFactory" level="OFF"/>-->
-    <!--    <logger name="org.hibernate.validator" level="WARN"/>-->
-    <!--    <logger name="org.hibernate" level="WARN"/>-->
-    <!--    <logger name="org.hibernate.ejb.HibernatePersistence" level="OFF"/>-->
+    &lt;!&ndash;    <logger name="org.apache" level="WARN"/>&ndash;&gt;
+    &lt;!&ndash;    <logger name="org.apache.catalina.startup.DigesterFactory" level="OFF"/>&ndash;&gt;
+    &lt;!&ndash;    <logger name="org.hibernate.validator" level="WARN"/>&ndash;&gt;
+    &lt;!&ndash;    <logger name="org.hibernate" level="WARN"/>&ndash;&gt;
+    &lt;!&ndash;    <logger name="org.hibernate.ejb.HibernatePersistence" level="OFF"/>&ndash;&gt;
     <logger name="org.apache.kafka" level="ERROR"/>
-    <!--    <logger name="kafka" level="OFF"/>-->
+    &lt;!&ndash;    <logger name="kafka" level="OFF"/>&ndash;&gt;
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.springframework.web" level="WARN"/>
     <logger name="org.springframework.security" level="WARN"/>
@@ -46,4 +84,4 @@
     <root level="${logback.loglevel}">
         <appender-ref ref="CONSOLE"/>
     </root>
-</configuration>
+</configuration>-->

@@ -2,8 +2,12 @@ package com.kmicro.notification.utils;
 
 import com.kmicro.notification.constansts.Status;
 import com.kmicro.notification.entities.NotificationsEntity;
+import com.kmicro.notification.entities.OutboxEntity;
+import com.kmicro.notification.entities.UserAddressEntity;
 import com.kmicro.notification.entities.UserDataEntity;
 import com.kmicro.notification.repository.NotificationRepository;
+import com.kmicro.notification.repository.OutboxRepository;
+import com.kmicro.notification.repository.UserAddressRepository;
 import com.kmicro.notification.repository.UserDataRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -16,24 +20,34 @@ import java.util.UUID;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class NotificationDBUtils {
+public class DBOps {
     private final NotificationRepository notificationRepository;
     private final UserDataRepository userDataRepository;
+    private final UserAddressRepository userAddressRepository;
+    private final OutboxRepository outboxRepository;
 
     @Transactional
-    public  void saveDataInDB(NotificationsEntity notificationsEntity){
+    public  NotificationsEntity saveDataInDB(NotificationsEntity notificationsEntity){
 //        if(notificationsEntities instanceof List<NotificationsEntity> entityList){
 //            notificationRepository.saveAll(notificationsEntities);
 //        }
-        notificationRepository.save(notificationsEntity);
         log.info("Saved Data In DB");
+        return notificationRepository.save(notificationsEntity);
     }
 
     @Transactional
-    public void saveBothInDB(NotificationsEntity notificationsEntity, UserDataEntity userDataEntity){
+    public void saveDataInDB(NotificationsEntity notificationsEntity, UserDataEntity userDataEntity){
         notificationRepository.save(notificationsEntity);
         userDataRepository.save(userDataEntity);
-        log.info("Both Entities Saved Data In DB");
+        log.info("Both Entities are Saved Data In DB");
+    }
+
+    @Transactional
+    public void saveDataInDB(NotificationsEntity notificationsEntity, UserDataEntity userDataEntity, UserAddressEntity userAddressEntity){
+        notificationRepository.save(notificationsEntity);
+        userDataRepository.save(userDataEntity);
+        userAddressRepository.save(userAddressEntity);
+        log.info("All Entities are Saved Data In DB");
     }
 
     @Transactional
@@ -60,7 +74,7 @@ public class NotificationDBUtils {
     }
 
     @Transactional(readOnly = true)
-    public Optional<UserDataEntity> ifUserExistsInDB(Integer userID){
+    public Optional<UserDataEntity> getUserFromDB(Integer userID){
 //        log.info("UserDataEntity Saved In DB");
         return userDataRepository.findByUserId(userID);
     }
@@ -69,4 +83,15 @@ public class NotificationDBUtils {
     public Optional<NotificationsEntity> findByNotificationID(UUID notificationID) {
         return notificationRepository.findById(notificationID);
     }
-}
+
+    @Transactional(readOnly = true)
+    public Optional<UserAddressEntity> getAddressByUserId(Integer addressID, Integer userID){
+        return userAddressRepository.findByAddressIdAndUserId(addressID, userID);
+    }
+
+    @Transactional
+    public void saveOutboxEvent(OutboxEntity outboxEntity){
+        outboxRepository.save(outboxEntity);
+    }
+
+}//EC

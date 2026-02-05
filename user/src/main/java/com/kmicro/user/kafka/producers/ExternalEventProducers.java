@@ -1,13 +1,11 @@
 package com.kmicro.user.kafka.producers;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kmicro.user.component.OutboxHelper;
 import com.kmicro.user.constants.KafkaConstants;
 import com.kmicro.user.constants.Status;
-import com.kmicro.user.dtos.UserDTO;
 import com.kmicro.user.entities.OutboxEntity;
 import com.kmicro.user.entities.UserEntity;
+import com.kmicro.user.kafka.helper.MapCreationHelper;
 import com.kmicro.user.kafka.schemas.VerificationAndReverifyUserEmail;
 import com.kmicro.user.kafka.schemas.WelcomeUserMail;
 import com.kmicro.user.mapper.UserMapper;
@@ -17,24 +15,24 @@ import io.github.springwolf.core.asyncapi.annotations.AsyncOperation;
 import io.github.springwolf.core.asyncapi.annotations.AsyncPublisher;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 @Component
 public class ExternalEventProducers {
-    private final ObjectMapper objectMapper;
+//    private final ObjectMapper objectMapper;
     private final OutboxHelper outboxHelper;
     private final VerificationService verificationService;
+//    private final EventProcessHelper eventProcessHelper;
+    private final MapCreationHelper mapCreationHelper;
 
-    ExternalEventProducers(ObjectMapper objectMapper, OutboxHelper outboxHelper, VerificationService verificationService){
-        this.objectMapper = objectMapper;
+    ExternalEventProducers(OutboxHelper outboxHelper,
+                           VerificationService verificationService, MapCreationHelper mapCreationHelper){
+//        this.objectMapper = objectMapper;
         this.outboxHelper = outboxHelper;
         this.verificationService = verificationService;
+         this.mapCreationHelper = mapCreationHelper;
     }
 
     @AsyncPublisher(operation = @AsyncOperation(
@@ -66,7 +64,7 @@ public class ExternalEventProducers {
         String verificationLink  = null != link && !link.isEmpty() ? link : verificationService.generateNewToken(userE.getId());
         String aggKey = null != aggregatedKey && !aggregatedKey.isEmpty()? aggregatedKey+userE.getId() : "verifyNewCustomer_"+userE.getId();
 
-         String mailbody = this.createEmailVerifcationMap(UserMapper.EntityToDTO(userE),"",verificationLink);
+         String mailbody = mapCreationHelper.createEmailVerifcationMap(UserMapper.EntityToDTO(userE),"",verificationLink);
 
         OutboxEntity outboxEntity = OutboxEntity.builder()
                                                                                                         .topic( KafkaConstants.USERS_TOPIC)
@@ -79,44 +77,6 @@ public class ExternalEventProducers {
                                                                                                         .build();
 
         outboxHelper.saveEventInOutbox(outboxEntity);
-    }
-
-    public String createEmailVerifcationMap(UserDTO user, String msgLine, String verifyLink){
-        try {
-            Map<String, Object> userMap = new HashMap<>();
-            Map<String, Object> mailMap = new HashMap<>();
-            userMap.put("title", "Verify Your Email");
-            userMap.put("greetingByName", "Hi "+user.getLogin_name());
-            userMap.put("msgLine1", "Click on the below link button to verify your email address");
-            userMap.put("verifyLink", verifyLink);
-
-            mailMap.put("sendto",user.getEmail());
-            mailMap.put("subject", "Email verification");
-            mailMap.put("body",userMap);
-            return objectMapper.writeValueAsString(mailMap);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public String createWelcomEmailMap(UserDTO user, String msgLine, String couponCode){
-        ;
-        try {
-            String coupon  = null != couponCode && !couponCode.isEmpty() ? couponCode : "WELCOME100";
-            Map<String, Object> userMap = new HashMap<>();
-            Map<String, Object> mailMap = new HashMap<>();
-            userMap.put("title", "Welcome To Kmicro");
-            userMap.put("userName", "Hi "+ StringUtils.capitalize(user.getFirstName())+" "+ StringUtils.capitalize(user.getLastName()));
-            userMap.put("msgLine1", "We're thrilled to have you here. To get you started, use the code below for 10% off your first order.");
-            userMap.put("discountCode", coupon);
-
-            mailMap.put("sendto",user.getEmail());
-            mailMap.put("subject", "Welcome To Kmicro");
-            mailMap.put("body",userMap);
-            return objectMapper.writeValueAsString(mailMap);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     @AsyncPublisher(operation = @AsyncOperation(
@@ -147,7 +107,7 @@ public class ExternalEventProducers {
 
         String aggKey = null != aggregatedKey && !aggregatedKey.isEmpty()? aggregatedKey+userE.getId() : "welcome_"+userE.getId();
 
-        String mailbody = this.createWelcomEmailMap(UserMapper.EntityToDTO(userE), "",couponCode);
+        String mailbody = mapCreationHelper.createWelcomEmailMap(UserMapper.EntityToDTO(userE), "",couponCode);
 
         OutboxEntity outboxEntity = OutboxEntity.builder()
                 .topic( KafkaConstants.USERS_TOPIC)
@@ -162,22 +122,23 @@ public class ExternalEventProducers {
         outboxHelper.saveEventInOutbox(outboxEntity);
     }
 
-    public String createPasswordResetEmailMap(UserDTO user, String msgLine, String verifyLink){
-        try {
-            Map<String, Object> userMap = new HashMap<>();
-            Map<String, Object> mailMap = new HashMap<>();
-            userMap.put("title", "Verify Your Email");
-            userMap.put("greetingByName", "Hi "+user.getLogin_name());
-            userMap.put("msgLine1", "Click on the below link button to verify your email address");
-            userMap.put("verifyLink", verifyLink);
+    public void passwordResetOrForgetNotification(UserEntity userEntity, String link, String aggregatedKey){
 
-            mailMap.put("sendto",user.getEmail());
-            mailMap.put("subject", "Email verification");
-            mailMap.put("body",userMap);
-            return objectMapper.writeValueAsString(mailMap);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
+        String mailbody = mapCreationHelper.createPasswordResetEmailMap(UserMapper.EntityToDTO(userEntity),"","");
+
+        OutboxEntity outboxEntity = OutboxEntity.builder()
+                .topic( KafkaConstants.USERS_TOPIC)
+                .aggregateId(aggregatedKey)
+                .eventType(KafkaConstants.ET_PASSWORD_RESET)
+                .targetSystem( KafkaConstants.SYSTEM_NOTIFICATION)
+                .payload(mailbody)
+                .status(Status.PENDING.name())
+                .createdAt(Instant.now())
+                .build();
+
+        outboxHelper.saveEventInOutbox(outboxEntity);
     }
+
+
 
 }//EC

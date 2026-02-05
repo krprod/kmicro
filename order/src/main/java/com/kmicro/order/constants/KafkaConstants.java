@@ -1,6 +1,4 @@
-package com.kmicro.user.constants;
-
-import java.util.Map;
+package com.kmicro.order.constants;
 
 public final class KafkaConstants {
 
@@ -19,6 +17,9 @@ public final class KafkaConstants {
     public static final String ET_PASSWORD_RESET = "resetPassword";
     public static final String ET_SHARE_USER_DETAILS = "shareUserDetails";
     public static final String ET_REQUEST_USER_DETAILS = "requestUserDetails";
+    public static final String ET_ORDER_CREATED = "orderCreated";
+    public static final String ET_ORDER_CONFIRMERD = "orderConfirmed";
+    public static final String ET_ORDER_STATUS_UPDATED = "orderStatusUpdated";
 
     //-----    SYSTEM NAMES -- CAN BE TARGET OR SOURCE
     public static final String SYSTEM_NOTIFICATION = "notification-service";
@@ -48,24 +49,4 @@ public final class KafkaConstants {
     public static final String DT_ZCODE= "zip_code";
     public static final String DT_COUNTRY= "country";
     public static final String DT_STATE= "state";
-
-    public static final Map<String, String> SOURCE_SYSTEMS = Map.of(
-            "NOTIFICATION","notification-service",
-            "ORDER","order-cart-service",
-            "USER","user-service",
-            "PAYMENT","payment-service"
-    );
-    public static final Map<String, String> TOPICS_LIST = Map.of(
-            "USERS","t-user-events",
-            "ORDERS","t-order-events",
-            "PAYMENT","t-payment-events"
-//            "NOTIFICATION","newPaymentRequest",
-    );
-    public static final Map<String, String> EVENT_TYPES = Map.of(
-            "SHARE_USER_DETAILS","userDetailShared",
-            "ORDER_CONFIRM","orderConfirm",
-            "PAYMENT_REQ","newPaymentRequest",
-            "USER_CREATED","newUserCreated"
-    );
-
 }//EC

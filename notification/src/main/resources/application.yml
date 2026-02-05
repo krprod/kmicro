@@ -2,7 +2,7 @@ server:
       port: 8096
 spring:
       application:
-            name: notification
+            name: notification-service
       profiles:
             active: "prod"
       datasource:
@@ -28,9 +28,14 @@ spring:
                         - classpath:db/migration
 #                  table: notification_schema_history
       jpa:
+#            show-sql: true
             hibernate:
                   ddl-auto: validate
-            show-sql: true
+            properties:
+                  hibernate:
+                        default_schema: notification_schema
+                        #This helps format the SQL logs to be readable
+#                        format_sql: true
       mail:
             host: ${SMTP_SERVER:""}
             port: ${SMTP_PORT:587}
@@ -61,38 +66,35 @@ spring:
                         enabled: true
                         attempts: 3
                         delay: 5000 # 5 seconds between retries
-
 springwolf:
       docket:
             base-package: com.kmicro.notification
             servers:
-                  dev-kafka:
-                        protocol: kafka
+                  kafka-server:
+                        url: ${KAFKA_BOOTSTRAP_SERVERS}
+                        protocol: KAFKA
                         host: localhost:9092
             info:
-                  title: Notification Service API
+                  title: Notification Service Kafka Doc
                   version: 1.0.0
                   description: AsyncAPI documentation for the Notification Microservice
-      ui:
-            path: /asyncapi-ui.html
-            endpoint:
-                  docs:
-                        path: /asyncapi/docs
-
-logging:
-      level:
-            org:
-                  springframework:
-#                        kafka: DEBUG
-
-management:
-      endpoints:
-            web:
-                  exposure:
-                        include: health,info,metrics,prometheus
-      endpoint:
-            health:
-                  show-details: always
+#logging:
+#      level:
+#            org:
+#                  springframework:
+#                   kafka: DEBUG
+#                  hibernate:
+#                        orm:
+#                              jdbc:
+#                                    bind: TRACE
+#management:
+#      endpoints:
+#            web:
+#                  exposure:
+#                        include: health,info,metrics,prometheus
+#      endpoint:
+#            health:
+#                  show-details: always
 #      health:
 #            jdbc:
 #                  enabled: true

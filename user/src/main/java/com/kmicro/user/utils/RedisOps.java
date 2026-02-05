@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 
@@ -48,11 +49,13 @@ public class RedisOps {
         return null == verificationToken ? null : objectMapper.convertValue(verificationToken, TokenEntity.class);
     }
 
-    @Cacheable(value = AppContants.CACHE_USER_KEY_PX, key = "#id")
+    @Cacheable(value = AppContants.CACHE_USER_KEY_PX, key = "#id", unless = "#result == null")
+    @Transactional
     public UserDTO getCachedUser(Long id) {
         // This method ALWAYS fetches everything from DB
         UserEntity entity = dbOps.findUserByID(id)
                 .orElseThrow(()-> new UserNotFoundException("User Not Found."));
-        return UserMapper.EntityWithAddressToDTOWithAddress(entity);
+        UserDTO userDTO = UserMapper.EntityWithAddressToDTOWithAddress(entity);
+        return userDTO;
     }
 }//EC

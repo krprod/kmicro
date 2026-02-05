@@ -1,4 +1,4 @@
-package com.kmicro.user.kafka.schemas;
+package com.kmicro.notification.kafka.schemas;
 
 
 import io.swagger.v3.oas.annotations.media.Schema;

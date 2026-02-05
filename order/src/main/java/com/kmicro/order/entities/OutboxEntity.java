@@ -21,7 +21,9 @@ import java.time.LocalDateTime;
 @Builder
 public class OutboxEntity {
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
+//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "outbox_events_seq")
+    @SequenceGenerator(name = "outbox_events_seq", allocationSize = 50)
     private Long id;
 
     private String topic;

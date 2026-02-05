@@ -1,21 +1,29 @@
-CREATE TABLE notification_schema.notification_users (
-                                           address_id integer NULL,
+CREATE TABLE notification_schema.user_data (
                                            user_id integer NULL,
                                            created_at timestamp(6) with time zone NOT NULL,
                                            updated_at timestamp(6) with time zone NULL,
-                                           id uuid NOT NULL,
-                                           city character varying(255) NULL,
+                                           id bigint NOT NULL,
                                            contact character varying(255) NULL,
-                                           country character varying(255) NULL,
                                            email character varying(255) NULL,
-                                           recipient_name character varying(255) NULL,
-                                           shipping_address character varying(255) NULL,
-                                           state character varying(255) NULL,
-                                           zip_code character varying(255) NULL
+                                           login_name character varying(255) NULL,
+                                           user_name character varying(255) NULL
 );
 
-ALTER TABLE notification_schema.notification_users
-    ADD CONSTRAINT notification_users_pkey PRIMARY KEY (id);
+ALTER TABLE notification_schema.user_data
+    ADD CONSTRAINT user_data_pkey PRIMARY KEY (id);
+
+CREATE TABLE  notification_schema.user_address(
+                                                user_id integer NULL,
+                                                id bigint NOT NULL,
+                                                shipping_address character varying(255) NULL,
+                                                state character varying(255) NULL,
+                                                zip_code character varying(255) NULL,
+                                                address_id integer NULL,
+                                                city character varying(255) NULL,
+                                                country character varying(255) NULL
+);
+ALTER TABLE notification_schema.user_address
+    ADD CONSTRAINT user_address_pkey PRIMARY KEY (id);
 
 CREATE TABLE notification_schema.notifications (
                                       priority integer NULL,

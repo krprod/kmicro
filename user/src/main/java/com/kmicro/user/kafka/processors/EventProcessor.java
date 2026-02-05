@@ -2,12 +2,12 @@ package com.kmicro.user.kafka.processors;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kmicro.user.component.OutboxHelper;
 import com.kmicro.user.constants.KafkaConstants;
 import com.kmicro.user.constants.Status;
 import com.kmicro.user.entities.OutboxEntity;
+import com.kmicro.user.kafka.helper.EventProcessHelper;
+import com.kmicro.user.kafka.producers.ExternalEventProducers;
 import com.kmicro.user.repository.OutboxRepository;
-import com.kmicro.user.utils.EventProcessHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +24,7 @@ public class EventProcessor {
         private final ObjectMapper objectMapper;
         private final EventProcessHelper eventProcessHelper;
         private final OutboxRepository outboxRepository;
-        private final OutboxHelper outboxHelper;
+        private final ExternalEventProducers externalEventProducers;
         private final Map<String, String> eventTypes = Map.of(
                 "requestUserData", "requestUserData"
         );
@@ -53,17 +53,9 @@ public class EventProcessor {
 
                                log.info("Duplicate  Event Updated for userID: {} and Notification_ID: {}", userID, requestID);
                        }else{
-                               Map<String, Object> userDetailMap =  eventProcessHelper.getUserDetailMap(userID,addressID,requestID);
-                               if(!userDetailMap.isEmpty()) {
-//                                       outboxEntity = eventProcessHelper.makeOutboxEntity(userDetailMap,userID, Status.PENDING.name(), requestID);
-                                       outboxEntity = outboxHelper.makeOutboxEntity(userDetailMap,userID,
-                                               KafkaConstants.USERS_TOPIC, KafkaConstants.SYSTEM_NOTIFICATION, KafkaConstants.ET_SHARE_USER_DETAILS,  requestID);
-                                       log.info("New  Event Created for userID: {} and Notification_ID: {}", userID, requestID);
-                               }
+                               eventProcessHelper.shareUserDetailsToNotification(userID,addressID,requestID);
                        }
-                       if(outboxEntity != null){
-                               outboxHelper.saveEventInOutbox(outboxEntity);
-                       }
+
                } catch (Exception e) {
                        throw new RuntimeException(e);
                }

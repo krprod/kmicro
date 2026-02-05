@@ -62,7 +62,7 @@ public class MailGenerator {
 
     @Async("emailExecutor")
     public void sendSimpleMail(SimpleMailMessage mailMessage){
-        javaMailSender.send(mailMessage);
+//        javaMailSender.send(mailMessage);
         log.info("Simple Mail Sent Successfully");
     }
 

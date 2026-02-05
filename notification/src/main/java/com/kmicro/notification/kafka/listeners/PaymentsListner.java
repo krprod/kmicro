@@ -1,8 +1,8 @@
-package com.kmicro.notification.kafka.interceptors;
+package com.kmicro.notification.kafka.listeners;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.support.Acknowledgment;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.stereotype.Component;
@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class PaymentsListner {
 
-    @KafkaListener(
-            containerFactory = "notificationKafkaListenerContainerFactory",
-            topics = "t-payment-events",
-            groupId = "notification-service-group"
-    )
+//    @KafkaListener(
+//            containerFactory = "notificationKafkaListenerContainerFactory",
+//            topics = "t-payment-events",
+//            groupId = "notification-service-group"
+//    )
     public void listener(ConsumerRecord<String, String> requestRecord, @Header("eventType") String eventType, Acknowledgment ack) {
         log.info("Payment Event Received. EventType: {}, Key: {}, Partition: {}",eventType, requestRecord.key(), requestRecord.partition());
         try {

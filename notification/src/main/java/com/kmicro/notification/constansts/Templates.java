@@ -14,7 +14,8 @@ public enum Templates {
     FR_PAYMENT_FAIL("email/templates/fragment/payment-failure :: email-body"),
     FR_SECURITY_ALERT("email/templates/fragment/security-alert :: email-body"),
     FR_SHIPPING_UPDATE("email/templates/fragment/shipping-update :: email-body"),
-    FR_WELCOME("email/templates/fragment/welcome :: email-body");
+    FR_WELCOME("email/templates/fragment/welcome :: email-body"),
+    FR_VERIFY_USER_EMAIL("email/templates/fragment/user-verification :: email-body");
 
     private String name;
     private Templates(String name) {
