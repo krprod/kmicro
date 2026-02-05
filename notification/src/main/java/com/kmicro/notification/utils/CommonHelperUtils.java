@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.kmicro.notification.entities.UserDataEntity;
 import jakarta.mail.MessagingException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
@@ -80,18 +79,4 @@ public class CommonHelperUtils {
         return objectMapper.readTree(data);
     }
 
-    public UserDataEntity createUserDataEntity(JsonNode userDetailJSON) {
-        return UserDataEntity.builder()
-                .userId(userDetailJSON.get("user_id").asInt())
-                .addressId(userDetailJSON.get("address_id").asInt())
-                .state(userDetailJSON.get("state").asText())
-                .country(userDetailJSON.get("country").asText())
-                .city(userDetailJSON.get("city").asText())
-                .zipCode(userDetailJSON.get("zip_code").asText())
-                .shipping_address(userDetailJSON.get("shipping_address").asText())
-                .recipientName(userDetailJSON.get("name").asText())
-                .email(userDetailJSON.get("email").asText())
-                .contact(userDetailJSON.get("contact").asText())
-                .build();
-    }
 }

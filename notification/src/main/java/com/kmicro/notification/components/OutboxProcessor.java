@@ -1,8 +1,10 @@
-package com.kmicro.order.components;
+package com.kmicro.notification.components;
 
-import com.kmicro.order.constants.KafkaConstants;
-import com.kmicro.order.entities.OutboxEntity;
-import com.kmicro.order.repository.OutboxRepository;
+
+import com.kmicro.notification.constansts.KafkaConstants;
+import com.kmicro.notification.constansts.Status;
+import com.kmicro.notification.entities.OutboxEntity;
+import com.kmicro.notification.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
@@ -24,19 +26,15 @@ public class OutboxProcessor {
     private final OutboxRepository outboxRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-//    @AsyncPublisher(operation = @AsyncOperation(
-//            channelName = "order-placed-topic",
-//            description = "Publishes a message when a new customer order is created"
-//    ))
     @SchedulerLock(
             name = "OutboxProcessorTaskLock",
             lockAtMostFor = "15s",
             lockAtLeastFor = "5s"
     )
-    @Scheduled(fixedDelay = 30000) // Runs every 10 seconds
+    @Scheduled(fixedDelay = 10000) // Runs every 10 seconds
     @Transactional
     public void processOutbox() {
-        List<OutboxEntity> events = outboxRepository.findByStatus("PENDING");
+        List<OutboxEntity> events = outboxRepository.findByStatus(Status.PENDING.name());
 
         for (OutboxEntity event : events) {
             try {
@@ -45,8 +43,8 @@ public class OutboxProcessor {
 
                 // 2. Add custom headers (Note: values must be byte[])
                 record.headers().add(new RecordHeader("event-type", event.getEventType().getBytes(StandardCharsets.UTF_8)));
-                record.headers().add(new RecordHeader("source-system", KafkaConstants.SYSTEM_ORDER.getBytes(StandardCharsets.UTF_8)));
-                record.headers().add(new RecordHeader("target-system", event.getSourceSystem().getBytes(StandardCharsets.UTF_8)));
+                record.headers().add(new RecordHeader("target-system", event.getTargetSystem().getBytes(StandardCharsets.UTF_8)));
+                record.headers().add(new RecordHeader("source-system", KafkaConstants.SYSTEM_USER.getBytes(StandardCharsets.UTF_8)));
                 // Send to Kafka
                 kafkaTemplate.send(record)
                         .whenComplete((result, ex) -> {
@@ -54,7 +52,7 @@ public class OutboxProcessor {
                                 // Update status to PROCESSED on success
                                 event.setStatus("PROCESSED");
                                 outboxRepository.save(event);
-                                log.info("Outbox eventID: {} published to Kafka Topic: {} eventKey: {}", event.getId(), event.getTopic(), event.getAggregateId());
+                                log.info("Outbox eventID: {} published to Kafka --Topic: {}  --eventKey: {}", event.getId(), event.getTopic(), event.getAggregateId());
                             } else {
                                 handleFailure(event);
                             }

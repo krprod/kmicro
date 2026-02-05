@@ -30,7 +30,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class EmailUtils {
 
-    private final NotificationDBUtils notificationDBUtils;
+    private final DBOps DBOps;
     private final MockEmaiData mockEmaiData;
     private final TemplateEngine templateEngine;
     private final ContextCreatorUtils contextCreatorUtils;
@@ -175,7 +175,7 @@ public class EmailUtils {
         System.out.println(html);
             log.info("------------   ALL SET, INITIATING MAIL SENDER -------------------");
             mailGenerator.sendMultiPartMail(message);
-            notificationDBUtils.updateDeliveryStatus(notificationID, Status.DELIVERED);
+            DBOps.updateDeliveryStatus(notificationID, Status.DELIVERED);
 //        } catch (Exception e) {
 //            throw new RuntimeException(e);
 //        }
@@ -185,7 +185,7 @@ public class EmailUtils {
     public void recover(Exception e, UUID notificationID, String sendto, String subject, String html ) {
         // Logic for total failure: Save to a 'failed_emails' DB table or alert DevOps
         log.error("PERMANENT EMAIL FAILURE: Could not send {} to {}. Manual intervention required. For ID: {}", subject, sendto, notificationID);
-        notificationDBUtils.updateDeliveryStatus(notificationID, Status.PERMANENT_FAILURE, e);
+        DBOps.updateDeliveryStatus(notificationID, Status.PERMANENT_FAILURE, e);
         log.error("EXCEPTION: ", e);
     }
 

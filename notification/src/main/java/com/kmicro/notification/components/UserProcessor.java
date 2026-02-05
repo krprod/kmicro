@@ -6,17 +6,12 @@ import com.kmicro.notification.constansts.Status;
 import com.kmicro.notification.entities.NotificationsEntity;
 import com.kmicro.notification.entities.UserDataEntity;
 import com.kmicro.notification.repository.NotificationRepository;
+import com.kmicro.notification.utils.DBOps;
 import com.kmicro.notification.utils.EmailUtils;
-import com.kmicro.notification.utils.NotificationDBUtils;
-import io.github.springwolf.core.asyncapi.annotations.AsyncOperation;
-import io.github.springwolf.core.asyncapi.annotations.AsyncPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.List;
@@ -32,30 +27,30 @@ public class UserProcessor {
     private final ObjectMapper objectMapper;
     private final KafkaTemplate<String, String> kafkaTemplate;
     private final EmailUtils emailUtils;
-    private final NotificationDBUtils notificationDBUtils;
+    private final DBOps DBOps;
     private final OutboxUtils outboxUtils;
 
-    @AsyncPublisher(operation = @AsyncOperation(
-            channelName = "user-placed-topic",
-            description = "Publishes a message when a new customer order is created",
-            servers = {"kafka-server"}
-//            payloadType = "{}"
-    ))
-
-    @SchedulerLock(
-            name = "UserProcessorTaskLock",
-            lockAtMostFor = "15s",
-            lockAtLeastFor = "5s"
-    )
-    @Scheduled(fixedDelay = 10000) // Runs every 10 seconds
-    @Transactional
+//    @AsyncPublisher(operation = @AsyncOperation(
+//            channelName = "user-placed-topic",
+//            description = "Publishes a message when a new customer order is created",
+//            servers = {"kafka-server"}
+////            payloadType = "{}"
+//    ))
+//
+//    @SchedulerLock(
+//            name = "UserProcessorTaskLock",
+//            lockAtMostFor = "15s",
+//            lockAtLeastFor = "5s"
+//    )
+//    @Scheduled(fixedDelay = 10000) // Runs every 10 seconds
+//    @Transactional
     public void processUser() {
         List<NotificationsEntity> waitingNotificationEvents = notificationRepository.findByStatus(Status.REQUEST_USER_SERVICE);
 
         for (NotificationsEntity entity : waitingNotificationEvents) {
             try {
                 // check If User Exists
-                Optional<UserDataEntity> userData = notificationDBUtils.ifUserExistsInDB(entity.getRecipientId());
+                Optional<UserDataEntity> userData = DBOps.getUserFromDB(entity.getRecipientId());
 
                if(userData.isPresent()){
                    // update ReciepentName, sendto, mailbody in table
@@ -82,7 +77,7 @@ public class UserProcessor {
 //                                log.info("Outbox eventID: {} published to Kafka Topic: {} eventKey: {}", event.getId(), event.getTopic(), event.getAggregateId());
                                    log.info("Event SENT TO USER SERVICE for UserID: {}, NotificationID:{}",entity.getRecipientId(), entity.getId());
 
-                                   notificationDBUtils.saveDataInDB(entity);
+                                   DBOps.saveDataInDB(entity);
                                } else {
 //                                handleFailure(event);
                                    log.info("Event FAILED");

@@ -19,6 +19,7 @@ __User Service__
   - Auth Service Endpoint: /api/auth
   - Users Service Endpoint: /api/users
 - DOC: http://localhost:8085/swagger-ui/index.html | http://localhost:8085/v3/api-docs
+- Kafka Doc: http://localhost:8085/springwolf/asyncapi-ui.html#info | http://localhost:8085/springwolf/docs
 
 __Payment Service__
 - URL: http://localhost:8095/api/payment

@@ -93,28 +93,36 @@
         </tr>
            <tr style="padding:10px;">
                <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">For User:</td>
-               <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.name}">User Name</td>
+               <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.userData.name}">User Name</td>
            </tr>
+        <tr style="padding:10px; " >
+            <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Contact No: </td>
+            <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.userData.contact}">91 569745664</td>
+        </tr>
+        <tr style="padding:10px; " >
+            <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Email Id: </td>
+            <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.userData.email}">User@mail.com</td>
+        </tr>
             <tr style="padding:10px; " >
                 <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Shipping address:</td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.shipping_address}">shipping_address</td>
+                <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.address.shipping_address}">shipping_address</td>
             </tr>
             <tr style="padding:10px; " >
                 <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">City:</td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.city}">Delhi</td>
+                <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.address.city}">Delhi</td>
             </tr>
-            <tr style="padding:10px; " >
-                <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Pincode: </td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.zip_code}">110057</td>
-            </tr>
-            <tr style="padding:10px; " >
-                <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Contact No: </td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.contact}">91 569745664</td>
-            </tr>
-            <tr style="padding:10px; " >
-                <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Email Id: </td>
-                <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.email}">User@mail.com</td>
-            </tr>
+        <tr style="padding:10px; " >
+            <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">State:</td>
+            <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.address.state}">Delhi</td>
+        </tr>
+        <tr style="padding:10px; " >
+            <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Pincode: </td>
+            <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.address.zip_code}">110057</td>
+        </tr>
+        <tr style="padding:10px; " >
+            <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Country:</td>
+            <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${details.address.country}">Delhi</td>
+        </tr>
         </tbody>
     </table>
 

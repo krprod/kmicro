@@ -1,37 +1,39 @@
 package com.kmicro.notification.components;
 
-import com.kmicro.notification.repository.NotificationRepository;
+import com.kmicro.notification.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 
 @Component
 @RequiredArgsConstructor
 @Slf4j
 public class OutboxCleanupJob {
 
-    private final NotificationRepository notificationRepository;
+    private final OutboxRepository outboxRepository;
 
     // Runs once every hour (or use a CRON expression for off-peak hours)
 //    @Scheduled(cron = "0 0 * * * *")
-//    @Scheduled(cron = "0 */10 * * * *")
 //    @SchedulerLock(
-//            name = "importantTaskLock",
-//            lockAtMostFor = "10m",
-//            lockAtLeastFor = "1m"
+//            name = "OutboxCleanupJobTaskLock",
+//            lockAtMostFor = "15s",
+//            lockAtLeastFor = "5s"
 //    )
+//    @Scheduled(cron = "0 */10 * * * *")
 //    @Transactional
     public void cleanupProcessedEvents() {
-        LocalDateTime threshold = LocalDateTime.now().minusDays(1);
+//        LocalDateTime threshold = LocalDateTime.now().minusDays(1);
+        Instant threshold =Instant.now().minus(1, ChronoUnit.DAYS);
         try {
            log.info("Starting cleanup of processed outbox events older than {}", threshold);
 
            // Custom query to delete in bulk
-//           int deletedCount = notificationRepository.deleteProcessedOlderThan(threshold);
+           int deletedCount = outboxRepository.deleteProcessedOlderThan(threshold);
 
-//           log.info("Cleanup finished. Removed {} processed events.", deletedCount);
+           log.info("Cleanup finished. Removed {} processed events.", deletedCount);
        } catch (Exception e) {
            log.info("Cleanup Failed for outbox events older than {}", threshold);
            throw new RuntimeException(e);

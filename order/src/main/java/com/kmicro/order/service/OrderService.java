@@ -3,6 +3,7 @@ package com.kmicro.order.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kmicro.order.components.OutboxUtils;
 import com.kmicro.order.constants.AppConstants;
+import com.kmicro.order.constants.KafkaConstants;
 import com.kmicro.order.constants.OrderStatus;
 import com.kmicro.order.dtos.*;
 import com.kmicro.order.entities.OrderEntity;
@@ -261,8 +262,8 @@ public class OrderService {
                             OrderMapper.mapDynmicFieldOrderConfirmation(savedOrder, objectMapper),
                             savedOrder.getId().toString(),
                             AppConstants.ORDER_TOPIC,
-                            AppConstants.EVENT_TYPES.get("ORDER_CONFIRM"),
-                            AppConstants.SOURCE_SYSTEMS.get("NOTIFICATION")
+                            KafkaConstants.ET_ORDER_CONFIRMERD,
+                            KafkaConstants.SYSTEM_NOTIFICATION
                     )
             );
 

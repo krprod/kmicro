@@ -6,7 +6,7 @@ import com.kmicro.notification.entities.NotificationsEntity;
 import com.kmicro.notification.mapper.NotificationsMapper;
 import com.kmicro.notification.utils.CommonHelperUtils;
 import com.kmicro.notification.utils.EmailUtils;
-import com.kmicro.notification.utils.NotificationDBUtils;
+import com.kmicro.notification.utils.DBOps;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -21,7 +21,7 @@ import java.util.Map;
 public class MailEventProcessor {
 
         private final EmailUtils emailUtils;
-        private final NotificationDBUtils notificationDBUtils;
+        private final DBOps DBOps;
         private final CommonHelperUtils commonHelperUtils;
 
         private final Map<String, Templates> eventFragMap = Map.of(
@@ -77,7 +77,7 @@ public class MailEventProcessor {
         }
 
         private void flushEntity(NotificationsEntity entity){
-                notificationDBUtils.saveDataInDB(entity);
+                DBOps.saveDataInDB(entity);
                 log.info("Entity Flushed Successful");
         }
 }

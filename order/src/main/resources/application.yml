@@ -40,10 +40,14 @@ spring:
 #            baseline-description: "Existing Database State"
 #            locations: classpath:db/migration
       jpa:
-            hibernate:
-                # Validate | Update | Create
-                  ddl-auto: validate
             show-sql: true
+            hibernate:
+                  ddl-auto: validate
+            properties:
+                  hibernate:
+                        default_schema: order_schema
+                        #This helps format the SQL logs to be readable
+                        format_sql: true
       kafka:
             bootstrap-servers: localhost:9092
             listener:
@@ -71,12 +75,29 @@ spring:
             host: localhost
             port: 6379
 
+springwolf:
+      docket:
+            base-package: com.kmicro.order
+            servers:
+                  kafka-server:
+                        url: ${KAFKA_BOOTSTRAP_SERVERS}
+                        protocol: KAFKA
+                        host: localhost:9092
+            info:
+                  title: Order and Cart Service Kafka Doc
+                  version: 1.0.0
+                  description: AsyncAPI documentation for the Order-Cart Microservice
+
 logging:
       level:
             org:
                   springframework:
                         cache: TRACE
                      #   kafka: DEBUG
+#                  hibernate:
+#                        orm:
+#                              jdbc:
+#                                    bind: TRACE
 
 management:
       endpoints:

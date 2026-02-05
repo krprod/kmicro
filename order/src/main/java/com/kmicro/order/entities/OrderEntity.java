@@ -17,7 +17,9 @@ import java.util.List;
 public class OrderEntity extends BaseEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+//    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "orders_seq")
+    @SequenceGenerator(name = "orders_seq", allocationSize = 50)
      private  Long Id;
 
     @Column(name = "user_id")

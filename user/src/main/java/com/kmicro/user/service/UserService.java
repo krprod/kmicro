@@ -67,11 +67,11 @@ public class UserService{
     }
 
     public  UserDTO getUserById(Long id, Boolean withAddress) {
-        Optional<UserEntity> userEntityOpt = dbOps.findUserByID(id);
+/*        Optional<UserEntity> userEntityOpt = dbOps.findUserByID(id);
         log.info("HITTING DB TO GET DATA");
         if(userEntityOpt.isEmpty()){
             throw new UserNotFoundException("User not Found: "+id);
-        }
+        }*/
 
        UserDTO userDTO = redisOps.getCachedUser(id);
         if (!withAddress) {
