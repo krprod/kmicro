@@ -32,8 +32,8 @@ import static com.razorpay.Utils.verifySignature;
 @Service
 public class PaymentService {
 
-    private  static  final  String API_KEY = "rzp_test_fiaOechiVIrbmK";
-    private  static  final  String SECRET_KEY = "DrdgBVbmgBgtYjSVAuOuphPd";
+    private  static  final  String API_KEY = "";
+    private  static  final  String SECRET_KEY = "";
 
     @Autowired
     PaymentEventService paymentEventService;
