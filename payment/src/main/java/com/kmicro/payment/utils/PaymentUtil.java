@@ -31,7 +31,7 @@ public class PaymentUtil {
 
     public  static String paymentSign(String orderId, String paymentId, String secretKey) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
         String payload = orderId + "|" + paymentId;
-//        String keySecret = "DrdgBVbmgBgtYjSVAuOuphPd";
+//        String keySecret = "";
         Mac mac = Mac.getInstance("HmacSHA256");
         SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(String.valueOf(StandardCharsets.UTF_8)), "HmacSHA256");
         mac.init(secretKeySpec);
