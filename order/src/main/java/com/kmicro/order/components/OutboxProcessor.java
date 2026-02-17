@@ -6,6 +6,7 @@ import com.kmicro.order.repository.OutboxRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -24,10 +25,6 @@ public class OutboxProcessor {
     private final OutboxRepository outboxRepository;
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-//    @AsyncPublisher(operation = @AsyncOperation(
-//            channelName = "order-placed-topic",
-//            description = "Publishes a message when a new customer order is created"
-//    ))
     @SchedulerLock(
             name = "OutboxProcessorTaskLock",
             lockAtMostFor = "15s",
@@ -45,8 +42,14 @@ public class OutboxProcessor {
 
                 // 2. Add custom headers (Note: values must be byte[])
                 record.headers().add(new RecordHeader("event-type", event.getEventType().getBytes(StandardCharsets.UTF_8)));
-                record.headers().add(new RecordHeader("source-system", KafkaConstants.SYSTEM_ORDER.getBytes(StandardCharsets.UTF_8)));
-                record.headers().add(new RecordHeader("target-system", event.getSourceSystem().getBytes(StandardCharsets.UTF_8)));
+
+                if(StringUtils.contains(event.getAggregateId(), "PMT_")){
+                    record.headers().add(new RecordHeader("source-system", KafkaConstants.SYSTEM_PAYMENT.getBytes(StandardCharsets.UTF_8)));
+                }else {
+                    record.headers().add(new RecordHeader("source-system", KafkaConstants.SYSTEM_ORDER.getBytes(StandardCharsets.UTF_8)));
+                }
+
+                record.headers().add(new RecordHeader("target-system", event.getTargetSystem().getBytes(StandardCharsets.UTF_8)));
                 // Send to Kafka
                 kafkaTemplate.send(record)
                         .whenComplete((result, ex) -> {

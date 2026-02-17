@@ -1,3 +1,8 @@
+CREATE SCHEMA IF NOT EXISTS order_schema;
+
+CREATE SEQUENCE order_schema.orders_seq
+    START WITH 1
+    INCREMENT BY 50;
 CREATE TABLE if not exists order_schema.orders (
                                shipping_fee double precision NULL,
                                subtotal double precision NULL,
@@ -10,14 +15,18 @@ CREATE TABLE if not exists order_schema.orders (
                                order_status character varying(255) NULL,
                                payment_method character varying(255) NULL,
                                payment_status character varying(255) NULL,
-                               shipping_address character varying(255) NULL,
+                               shipping_address text NULL,
                                tracking_number character varying(255) NULL,
                                transaction_id character varying(255) NULL
 );
 
 ALTER TABLE if exists order_schema.orders
     ADD CONSTRAINT orders_pkey PRIMARY KEY (id);
+SELECT setval('order_schema.orders_seq', COALESCE((SELECT MAX(id) FROM  order_schema.orders), 0) + 1, false);
 
+CREATE SEQUENCE order_schema.order_item_seq
+    START WITH 1
+    INCREMENT BY 50;
 CREATE TABLE if not exists order_schema.order_item (
                                    quantity integer NULL,
                                    unit_price double precision NULL,
@@ -30,7 +39,11 @@ CREATE TABLE if not exists order_schema.order_item (
 
 ALTER TABLE if exists order_schema.order_item
     ADD CONSTRAINT order_item_pkey PRIMARY KEY (id);
+SELECT setval('order_schema.order_item_seq', COALESCE((SELECT MAX(id) FROM  order_schema.order_item), 0) + 1, false);
 
+CREATE SEQUENCE order_schema.outbox_events_seq
+    START WITH 1
+    INCREMENT BY 50;
 CREATE TABLE if not exists order_schema.outbox_events (
                                       retry_count integer NOT NULL,
                                       created_at timestamp(6) without time zone NULL,
@@ -39,13 +52,14 @@ CREATE TABLE if not exists order_schema.outbox_events (
                                       aggregate_id character varying(255) NULL,
                                       event_type character varying(255) NULL,
                                       payload text NULL,
-                                      source_system character varying(255) NULL,
+                                      target_system character varying(255) NULL,
                                       status character varying(255) NULL,
                                       topic character varying(255) NULL
 );
 
 ALTER TABLE if exists order_schema.outbox_events
     ADD CONSTRAINT outbox_events_pkey PRIMARY KEY (id);
+SELECT setval('order_schema.outbox_events_seq', COALESCE((SELECT MAX(id) FROM  order_schema.outbox_events), 0) + 1, false);
 
 CREATE TABLE order_schema.shedlock (
                                          name character varying(64) NOT NULL,

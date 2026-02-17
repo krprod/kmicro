@@ -13,6 +13,7 @@ __Order Service__
   - Cart Service Endpoint: /api/carts
   - Order Service Endpoint: /api/orders
 - DOC: http://localhost:8091/swagger-ui/index.html | http://localhost:8091/v3/api-docs
+- - Kafka Doc: http://localhost:8091/springwolf/asyncapi-ui.html#info | http://localhost:8091/springwolf/docs
  
 __User Service__
 - URL: http://localhost:8085/api/

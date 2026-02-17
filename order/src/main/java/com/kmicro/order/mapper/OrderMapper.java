@@ -3,7 +3,7 @@ package com.kmicro.order.mapper;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kmicro.order.constants.AppConstants;
-import com.kmicro.order.dtos.OrderAddressDTO;
+import com.kmicro.order.dtos.CheckoutDetailsDTO;
 import com.kmicro.order.dtos.OrderDTO;
 import com.kmicro.order.entities.OrderEntity;
 import com.kmicro.order.utils.DateUtil;
@@ -51,7 +51,7 @@ public class OrderMapper {
         orderDTO.setId(orderEntity.getId());
         orderDTO.setUserId(orderEntity.getUserId());
         orderDTO.setOrderDate(DateUtil.convertInstantToLDT(orderEntity.getOrderDate()));
-        orderDTO.setOrderStatus(orderEntity.getOrderStatus().name());
+        orderDTO.setOrderStatus(orderEntity.getStatus().name());
         orderDTO.setSubtotal(orderEntity.getSubtotal());
         orderDTO.setTotalAmount(orderEntity.getTotalAmount());
         orderDTO.setPaymentMethod(orderEntity.getPaymentMethod().name());
@@ -65,7 +65,7 @@ public class OrderMapper {
     public static  OrderDTO mapEntityToDTOWithoutItems(OrderEntity orderEntity, ObjectMapper mapper) {
         var orderdto = OrderMapper.mapEntityToDTOWithoutItems(orderEntity);
         try {
-            orderdto.setShippingAddress(mapper.readValue(orderEntity.getShippingAddress(), OrderAddressDTO.class));
+            orderdto.setShippingAddress(mapper.readValue(orderEntity.getShippingAddress(), CheckoutDetailsDTO.class));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -77,7 +77,7 @@ public class OrderMapper {
         orderDTO.setId(orderEntity.getId());
         orderDTO.setUserId(orderEntity.getUserId());
         orderDTO.setOrderDate(DateUtil.convertInstantToLDT(orderEntity.getOrderDate()));
-        orderDTO.setOrderStatus(orderEntity.getOrderStatus().name());
+        orderDTO.setOrderStatus(orderEntity.getStatus().name());
         orderDTO.setSubtotal(orderEntity.getSubtotal());
         orderDTO.setTotalAmount(orderEntity.getTotalAmount());
         orderDTO.setPaymentMethod(orderEntity.getPaymentMethod().name());
@@ -91,7 +91,7 @@ public class OrderMapper {
     public static  OrderDTO mapEntityToDTOWithItems(OrderEntity orderEntity, ObjectMapper mapper){
         var orderdto = OrderMapper.mapEntityToDTOWithItems(orderEntity);
         try {
-            orderdto.setShippingAddress(mapper.readValue(orderEntity.getShippingAddress(), OrderAddressDTO.class));
+            orderdto.setShippingAddress(mapper.readValue(orderEntity.getShippingAddress(), CheckoutDetailsDTO.class));
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }
@@ -145,7 +145,7 @@ public class OrderMapper {
         body.add("items",listOfItems);
         //------ User Details Object
         try {
-            var shippingDetails = mapper.readValue(order.getShippingAddress(), OrderAddressDTO.class);
+            var shippingDetails = mapper.readValue(order.getShippingAddress(), CheckoutDetailsDTO.class);
             details.addFluently("name", "TEMPA")
                     .addFluently("contact", "TEMPA")
                     .addFluently("email", "TEMPA")
@@ -185,7 +185,7 @@ public class OrderMapper {
         dynamicEventCreator.add("subject","Order Status Update");
 
         body.add("title","Order Status Update");
-        body.add("statusTitle","Your Order Status is updated to "+order.getOrderStatus().name());
+        body.add("statusTitle","Your Order Status is updated to "+order.getStatus().name());
         body.add("statusMessage","You can get lastest tracking updates for your package using below link and trackingNumber");
         body.add("trackingNumber",order.getTrackingNumber());
         body.add("carrierName","FedEx");

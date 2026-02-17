@@ -16,8 +16,8 @@ public class OrderItemEntity {
 
     @Id
 //    @GeneratedValue(strategy = GenerationType.AUTO)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_item_seq")
-    @SequenceGenerator(name = "order_item_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_schema.order_item_seq")
+    @SequenceGenerator(name = "order_schema.order_item_seq", allocationSize = 50)
     private Long id;
 
  /*   @ManyToOne

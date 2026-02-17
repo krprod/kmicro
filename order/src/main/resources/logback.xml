@@ -1,15 +1,40 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+    <include resource="org/springframework/boot/logging/logback/defaults.xml" />
 
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+    <appender name="SMART_CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <filter class="ch.qos.logback.core.filter.EvaluatorFilter">
+            <evaluator>
+                <expression>
+                    return threadName.contains("outbox-scheduler") &amp;&amp; level == DEBUG;
+                </expression>
+            </evaluator>
+            <OnMismatch>NEUTRAL</OnMismatch>
+            <OnMatch>DENY</OnMatch>
+        </filter>
+
         <encoder>
             <charset>utf-8</charset>
-            <!--            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level - %msg%n</pattern>-->
-<!--            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
             <pattern>%cyan(%d{yyyy-MM-dd HH:mm:ss}) %green([%thread]) %blue(%-5level) %yellow(%logger{36}) - %magenta(%msg%n)</pattern>
-            <!--            <pattern>%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n</pattern>-->
         </encoder>
     </appender>
+
+    <logger name="org.postgresql.jdbc" level="INFO" />
+    <logger name="org.hibernate" level="INFO" />
+    <logger name="net.javacrumbs.shedlock" level="INFO" />
+    <logger name="org.apache.kafka" level="ERROR"/>
+    <logger name="org.springframework" level="WARN"/>
+    <logger name="javax.activation" level="WARN"/>
+    <logger name="ch.qos.logback" level="WARN"/>
+
+    <contextListener class="ch.qos.logback.classic.jul.LevelChangePropagator">
+        <resetJUL>true</resetJUL>
+    </contextListener>
+
+    <root level="${logback.loglevel:-INFO}">
+        <appender-ref ref="SMART_CONSOLE"/>
+    </root>
+</configuration>
 
     <!-- <root level="debug">
          <appender-ref ref="STDOUT" />

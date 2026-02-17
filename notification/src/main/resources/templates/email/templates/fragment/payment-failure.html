@@ -1,11 +1,41 @@
 <div th:fragment="email-body" xmlns:th="http://www.thymeleaf.org">
-    <h1 style="font-size:24px;font-weight:500;color:#de350b;margin-top:40px;">Payment Unsuccessful</h1>
-    <p>We were unable to process your payment for Order <strong th:text="${orderId}">#123</strong>. Don't worry, your items are still reserved.</p>
+    <h1 style="font-size:24px;font-weight:500;color:#de350b;margin-top:40px;"  th:text="${title}">Payment Unsuccessful</h1>
+<!--    <p th:text="${greetingByName}">We were unable to process your payment for Order <strong th:text="${payment.order_id}">#123</strong>. Don't worry, your items are still reserved.</p>-->
+    <p style="text-transform: capitalize; " th:utext="${greetingByName}">We were unable to process your payment for Order. Don't worry, your items are still reserved.</p>
 
-    <p>Please update your payment method to complete the purchase.</p>
+    <table width="100%" border="0" cellspacing="0" cellpadding="0" style="border-collapse:collapse; margin-top:20px; border: 1px solid #c1c7d0;">
+        <tbody th:if="${payment != null}">
+        <tr>
+            <td  colspan="2" style="background-color: #f4f5f7; padding:10px; text-align:center; border-bottom:1px solid #c1c7d0; font-weight:bold;">Payment Details</td>
+        </tr>
+        <tr style="padding:10px;">
+            <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Payment ID: </td>
+            <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${payment.payment_id}">352</td>
+        </tr>
+        <tr style="padding:10px; " >
+            <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Order ID: </td>
+            <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${payment.order_id}">602</td>
+        </tr>
+        <tr style="padding:10px; " >
+            <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Transaction Id: </td>
+            <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${payment.transaction_id}">pay_gDEBvGtGSMESIB</td>
+        </tr>
+        <tr style="padding:10px; " >
+            <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Payment Status: </td>
+            <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;" th:text="${payment.payment_status}">SUCCESS</td>
+        </tr>
+        <tr style="padding:10px; " >
+            <td style="padding:10px; text-align:left; border-bottom:1px solid #c1c7d0;font-weight:bold;">Amount: </td>
+            <td style="padding:10px; text-align:right; border-bottom:1px solid #c1c7d0;">
+                <span th:utext="${currencySymbol}"></span>  <span  th:text="${payment.amount}"></span></td>
+        </tr>
+        </tbody>
+    </table>
+
+    <p th:text="${msgLine1}">Please update your payment method to complete the purchase.</p>
 
     <div style="text-align: center; margin-top: 30px;">
-        <a th:href="@{${siteUrl} + '/checkout/retry/' + ${orderId}}"
+        <a th:if="${payment != null}" th:href="@{ ${siteUrl} + '/checkout/retry/' + ${payment.order_id} }"
            style="background-color: #0052cc; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 3px; display: inline-block;">Retry Payment</a>
     </div>
 </div>

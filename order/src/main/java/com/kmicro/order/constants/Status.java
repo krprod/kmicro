@@ -1,6 +1,6 @@
 package com.kmicro.order.constants;
 
-public enum OrderStatus {
+public enum Status {
 
     PENDING("PENDING"),
     PROCESSING("PROCESSING"),
@@ -8,14 +8,17 @@ public enum OrderStatus {
     SHIPPED("SHIPPED"),
     DELIVERED("DELIVERED"),
     FAILED("FAILED"),
-    FAILED_PAYMENT("FAILED_PAYMENT"),
+    PAYMENT_FAILED("PAYMENT_FAILED"),
+    PAYMENT_RETRY("PAYMENT_RETRY"),
+    PAYMENT_PENDING("PAYMENT_PENDING"),
+    PAYMENT_SUCCESS("PAYMENT_SUCCESS"),
     COMPLETED("COMPLETED"),
     CONFIRMED("CONFIRMED"),
     FAILED_PLATFORM("FAILED_PLATFORM"),
     CANCELLED("CANCELLED");
 
     private String name;
-    private OrderStatus(String name) {
+    private Status(String name) {
         this.name = name;
     }
 }

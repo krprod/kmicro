@@ -103,6 +103,9 @@ public class EmailUtils {
         else if (Templates.FR_PAYMENT_FAIL.toString().equalsIgnoreCase(fragName)) {
             frag = Templates.FR_PAYMENT_FAIL.getName();
         }
+        else if (Templates.FR_PAYMENT_SUCCESS.toString().equalsIgnoreCase(fragName)) {
+            frag = Templates.FR_PAYMENT_SUCCESS.getName();
+        }
         else if (Templates.FR_ORDER_CONFIRM.toString().equalsIgnoreCase(fragName)) {
             frag = Templates.FR_ORDER_CONFIRM.getName();
         }

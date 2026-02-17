@@ -49,7 +49,7 @@ public class OrdersEventProcessor {
 
             switch (eventType){
                 case KafkaConstants.ET_ORDER_CONFIRMERD -> this.ordersNotification(data, eventType);
-//                case KafkaConstants.ET_ORDER_CREATED -> this.orderConfirmationNtf(data, eventType);
+                case KafkaConstants.ET_ORDER_CREATED -> this.ordersNotification(data, eventType);
                 case KafkaConstants.ET_ORDER_STATUS_UPDATED -> this.ordersNotification(data, eventType);
             }
 

@@ -1,6 +1,6 @@
 package com.kmicro.order.entities;
 
-import com.kmicro.order.constants.OrderStatus;
+import com.kmicro.order.constants.Status;
 import com.kmicro.order.constants.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -18,8 +18,8 @@ public class OrderEntity extends BaseEntity {
 
     @Id
 //    @GeneratedValue(strategy = GenerationType.AUTO)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "orders_seq")
-    @SequenceGenerator(name = "orders_seq", allocationSize = 50)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_schema.orders_seq")
+    @SequenceGenerator(name = "order_schema.orders_seq", allocationSize = 50)
      private  Long Id;
 
     @Column(name = "user_id")
@@ -31,7 +31,7 @@ public class OrderEntity extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     @Column(name = "order_status")
-    private OrderStatus orderStatus ;
+    private Status status;
 
     @Column(name = "subtotal")
     private Double subtotal;
@@ -52,7 +52,7 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "shipping_fee")
     private  Double shippingFee;
 
-    @Column(name = "shipping_address")
+    @Column(name = "shipping_address", columnDefinition = "TEXT")
     private  String shippingAddress;
 
     @Column(name = "tracking_number")

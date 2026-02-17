@@ -9,7 +9,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 
 @Component
@@ -28,7 +28,7 @@ public class OutboxUtils {
                     // Serializes the actual object instance 'data'
                     .payload(objectMapper.writeValueAsString(data))
                     .status("WAITING")
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(Instant.now())
                     .build();
         } catch (JsonProcessingException e) {
             // Handle serialization error (e.g., log it or throw a custom runtime exception)
@@ -47,16 +47,18 @@ public class OutboxUtils {
                     .topic(topicName)
                     .aggregateId(aggregateKey)
                     .eventType(eventType)
-                    .sourceSystem(SourceSystem)
+                    .targetSystem(SourceSystem)
                     // Serializes the actual object instance 'data'
                     .payload(objectMapper.writeValueAsString(data))
                     .status("PENDING")
-                    .createdAt(LocalDateTime.now())
+                    .createdAt(Instant.now())
                     .build();
         } catch (JsonProcessingException e) {
             // Handle serialization error (e.g., log it or throw a custom runtime exception)
             throw new RuntimeException("Failed to serialize outbox payload", e);
         }
     }
+
+
 
 }//EC

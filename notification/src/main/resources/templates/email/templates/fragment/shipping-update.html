@@ -1,5 +1,5 @@
 <div th:fragment="email-body" xmlns:th="http://www.thymeleaf.org">
-    <h1 style="font-size:24px;font-weight:500;color:#172b4d;margin-top:40px;" th:text="${statusTitle}">Your order is on its way!</h1>
+    <h1 style="font-size:18px;font-weight:400;color:#172b4d;margin-top:40px; text-transform: capitalize;" th:utext="${statusTitle}">Your order is on its way!</h1>
     <p th:text="${statusMessage}">Great news! Your package has been handed over to the courier.</p>
 
     <div style="background-color: #f4f5f7; padding: 15px; border-left: 4px solid #0052cc; margin: 20px 0;">
