@@ -12,6 +12,7 @@ public enum Templates {
     FR_ABANDON_CART("email/templates/fragment/abandoned-cart :: email-body"),
     FR_OPT_VERIFICATION("email/templates/fragment/otp-verification :: email-body"),
     FR_PAYMENT_FAIL("email/templates/fragment/payment-failure :: email-body"),
+    FR_PAYMENT_SUCCESS("email/templates/fragment/payment-success :: email-body"),
     FR_SECURITY_ALERT("email/templates/fragment/security-alert :: email-body"),
     FR_SHIPPING_UPDATE("email/templates/fragment/shipping-update :: email-body"),
     FR_WELCOME("email/templates/fragment/welcome :: email-body"),

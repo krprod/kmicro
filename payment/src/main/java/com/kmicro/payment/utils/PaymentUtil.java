@@ -1,7 +1,5 @@
 package com.kmicro.payment.utils;
 
-import com.razorpay.QrCode;
-import com.razorpay.RazorpayClient;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Hex;
 import org.json.JSONObject;
@@ -13,8 +11,6 @@ import java.nio.charset.StandardCharsets;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Map;
 
 @Slf4j
 public class PaymentUtil {
@@ -31,7 +27,6 @@ public class PaymentUtil {
 
     public  static String paymentSign(String orderId, String paymentId, String secretKey) throws NoSuchAlgorithmException, UnsupportedEncodingException, InvalidKeyException {
         String payload = orderId + "|" + paymentId;
-//        String keySecret = "DrdgBVbmgBgtYjSVAuOuphPd";
         Mac mac = Mac.getInstance("HmacSHA256");
         SecretKeySpec secretKeySpec = new SecretKeySpec(secretKey.getBytes(String.valueOf(StandardCharsets.UTF_8)), "HmacSHA256");
         mac.init(secretKeySpec);

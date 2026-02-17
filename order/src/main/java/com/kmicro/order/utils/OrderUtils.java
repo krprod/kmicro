@@ -4,7 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kmicro.order.components.OutboxUtils;
 import com.kmicro.order.constants.AppConstants;
-import com.kmicro.order.constants.OrderStatus;
+import com.kmicro.order.constants.Status;
 import com.kmicro.order.constants.PaymentMethod;
 import com.kmicro.order.dtos.*;
 import com.kmicro.order.entities.OrderEntity;
@@ -17,6 +17,7 @@ import com.kmicro.order.mapper.OrderMapper;
 import com.kmicro.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
@@ -63,11 +64,11 @@ public class OrderUtils {
 
             orderEntity.setSubtotal(totalAmount);
             orderEntity.setUserId(orderItemDTOList.getFirst().getUserId());
-            orderEntity.setOrderStatus(OrderStatus.PENDING);
+            orderEntity.setStatus(Status.PENDING);
             orderEntity.setPaymentMethod(PaymentMethod.ONLINE);
             orderEntity.setTransactionId(AppConstants.TEMP_TRANSACTION_ID);
             orderEntity.setTrackingNumber(AppConstants.TEMP_TRACKING_ID);
-            orderEntity.setPaymentStatus(OrderStatus.PENDING.name());
+            orderEntity.setPaymentStatus(Status.PAYMENT_PENDING.name());
 
             orderEntity.setShippingFee(100.00);
             orderEntity.setTotalAmount(totalAmount + 100.00);
@@ -126,6 +127,12 @@ public class OrderUtils {
         log.info("Order Saved In Redis ID: {}  and Key: {}", order.getId(), key);
     }
 
+    public void saveOrderInRedis(OrderDTO order) {
+        String key = AppConstants.REDIS_ORDER_KEY_PREFIX + order.getId();
+        redisTemplate.opsForValue().set(key, order);
+        log.info("Order Saved In Redis ID: {}  and Key: {}", order.getId(), key);
+    }
+
     public Object getOrderFromRedis(String orderId){
         String key = AppConstants.REDIS_ORDER_KEY_PREFIX + orderId;
          return  redisTemplate.opsForValue().get(key);
@@ -136,23 +143,40 @@ public class OrderUtils {
 //        kafkaProducer.send(new ProducerRecord<String, String>(AppConstants.TOPIC, null, key, Data) );
     }
 
+    @Cacheable(value = AppConstants.CACHE_PREFIX_USER, key = "#userId", unless = "#result == null")
     @Transactional(readOnly = true)
-    public List<OrderEntity> getAllOrdersListByUserIDFromDB(Long userId) {
+    public List<OrderDTO> getAllOrdersListByUserIDFromDB(Long userId) {
         if(!orderRepository.existsByUserId(userId)){
             throw new DataNotFoundException("Order Not Found In DB for UserID:"+ userId);
         }
         log.info("Orders with  found for UserID: {}",userId);
-        return  orderRepository.findByUserId(userId);
+        List<OrderEntity> orderEntity =   orderRepository.findByUserId(userId);
+        List<OrderDTO> orderDTOList = OrderMapper.entityToDTOListWithItems(orderEntity);
+        return new ArrayList<>(orderDTOList);
     }
 
-//    @Cacheable(value = "", key = AppConstants.REDIS_ORDER_KEY_PREFIX+"#a0")
+    @Cacheable(value = AppConstants.CACHE_PREFIX_ORDER, key = "#orderId", unless = "#result == null")
     @Transactional(readOnly = true)
-    public OrderEntity getAllOrdersListByIDFromDB(Long orderId) {
+    public OrderDTO getAllOrderById(Long orderId) {
         if(!orderRepository.existsById(orderId)){
             throw new DataNotFoundException("Order Not Found In DB for OrderID:"+ orderId);
         }
         log.info("Orders with  found for OrderID: {}",orderId);
-        return  orderRepository.findById(orderId).get();
+        return OrderMapper.mapEntityToDTOWithItems(orderRepository.findById(orderId).get(), objectMapper);
+    }
+
+    @Transactional(readOnly = true)
+    public OrderEntity getOrderByIdFromDB(Long orderId) {
+        if(!orderRepository.existsById(orderId)){
+            throw new DataNotFoundException("Order Not Found In DB for OrderID:"+ orderId);
+        }
+        log.info("Orders with  found for OrderID: {}",orderId);
+        return orderRepository.findById(orderId).get();
+    }
+
+    @Transactional
+    public void saveOrderInDB(OrderEntity order){
+        orderRepository.save(order);
     }
 
     @Transactional
@@ -160,8 +184,8 @@ public class OrderUtils {
         OrderEntity order = orderRepository.findByIdAndUserId(orderStatusRec.orderID(), orderStatusRec.userID())
                 .orElseThrow(()-> new OrderException("Order Not Exists By ID: {} for UserID: {}", orderStatusRec.orderID(), orderStatusRec.userID()));
 
-        log.info("Changing Status from: {} to: {} of Order ID: {}",order.getOrderStatus(), orderStatusRec.orderStatus(), order.getId());
-        order.setOrderStatus(OrderStatus.valueOf(orderStatusRec.orderStatus()));
+        log.info("Changing Status from: {} to: {} of Order ID: {}",order.getStatus(), orderStatusRec.orderStatus(), order.getId());
+        order.setStatus(Status.valueOf(orderStatusRec.orderStatus()));
         return orderRepository.save(order);
     }
 
@@ -202,7 +226,7 @@ public class OrderUtils {
         }
     }
 
-    public OrderEntity generateOrderEntityWithAddress(OrderAddressDTO orderAddress, List<OrderItemDTO> orderItemDTOList) {
+    public OrderEntity generateOrderEntityWithAddress(CheckoutDetailsDTO orderAddress, List<OrderItemDTO> orderItemDTOList) {
         OrderEntity order = this.generateOrderEntity(orderItemDTOList);
         try {
             // set Order address

@@ -5,10 +5,13 @@ public final class KafkaConstants {
 
     public static final String USER_KEY_PREFIX = "PFX_USR_";
     public static final String NOTIFICATION_KEY_PREFIX = "PFX_NTF_";
+    public static final String ORDER_KEY_PREFIX = "PFX_ORD_";
 
     //-----  KAFKA GROUP ID
     public static final String USERS_GROUP_ID = "user-service-group";
     public static final String NOTIFICATION_GROUP_ID = "notification-service-group";
+    public static final String ORDER_GROUP_ID = "order-service-group";
+    public static final String PAYMENT_GROUP_ID = "payment-service-group";
 
     //-----    EVENT TYPE -- HANDLED OR GENERATED EVENTS
     public static final String ET_VERIFY_EMAIL = "emailVerification";
@@ -18,8 +21,11 @@ public final class KafkaConstants {
     public static final String ET_SHARE_USER_DETAILS = "shareUserDetails";
     public static final String ET_REQUEST_USER_DETAILS = "requestUserDetails";
     public static final String ET_ORDER_CREATED = "orderCreated";
-    public static final String ET_ORDER_CONFIRMERD = "orderConfirmed";
+    public static final String ET_ORDER_CONFIRMED = "orderConfirmed";
     public static final String ET_ORDER_STATUS_UPDATED = "orderStatusUpdated";
+    public static final String ET_NEW_PAYMENT_REQ = "newPaymentRequest";
+    public static final String ET_PAYMENT_RES = "newPaymentResponse";
+    public static final String ET_PAYMENT_STATUS_UPDATE = "orderPaymentStatusUpdate";
 
     //-----    SYSTEM NAMES -- CAN BE TARGET OR SOURCE
     public static final String SYSTEM_NOTIFICATION = "notification-service";

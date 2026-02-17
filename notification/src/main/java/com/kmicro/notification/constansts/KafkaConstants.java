@@ -21,6 +21,8 @@ public final class KafkaConstants {
     public static final String ET_ORDER_CREATED = "orderCreated";
     public static final String ET_ORDER_CONFIRMERD = "orderConfirmed";
     public static final String ET_ORDER_STATUS_UPDATED = "orderStatusUpdated";
+    public static final String ET_PAYMENT_STATUS_UPDATE = "orderPaymentStatusUpdate";
+
 
     //-----    SYSTEM NAMES -- CAN BE TARGET OR SOURCE
     public static final String SYSTEM_NOTIFICATION = "notification-service";

@@ -1,4 +1,4 @@
-package com.kmicro.notification.kafka.schemas;
+package com.kmicro.order.kafka.schemas;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
@@ -53,7 +53,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
                 "}\n" +
                 "//--- Order Confirm -----\n" +
                 "{\n" +
-                "  \"sendto\": \"dhruvworkmail07@gmail.com\",\n" +
+                "  \"sendto\": \"TEMPA-2\",\n" +
                 "  \"subject\": \"Order Status Update\",\n" +
                 "  \"body\": {\n" +
                 "    \"title\": \"Order Status Update\",\n" +

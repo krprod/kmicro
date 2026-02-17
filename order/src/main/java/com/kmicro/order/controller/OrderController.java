@@ -1,9 +1,8 @@
 package com.kmicro.order.controller;
 
 import com.kmicro.order.dtos.ChangeOrderStatusRec;
-import com.kmicro.order.dtos.OrderAddressDTO;
+import com.kmicro.order.dtos.CheckoutDetailsDTO;
 import com.kmicro.order.dtos.OrderDTO;
-import com.kmicro.order.dtos.ResponseDTO;
 import com.kmicro.order.service.OrderService;
 import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,12 +29,23 @@ public class OrderController {
             @ApiResponse(responseCode = "400", description = "Failed Global Handler")
     })
     @PostMapping("/checkout/{userId}")
-    public ResponseEntity<String> checkOut(
-            @RequestBody(required = false) OrderAddressDTO orderAddress,
+    public ResponseEntity<OrderDTO> checkOut(
+            @RequestBody(required = false) CheckoutDetailsDTO orderAddress,
             @PathVariable(value = "userId") String userId) {
 //        orderService.proceedCheckOut(userId);
-        orderService.proceedCheckoutWithAddress(userId, orderAddress);
-        return ResponseEntity.ok("success");
+        OrderDTO orderDTO = orderService.proceedCheckoutWithAddress(userId, orderAddress);
+        return ResponseEntity.status(200).body(orderDTO);
+    }
+
+    @Operation(summary = "Process Checkout and Proceed For Payment")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Order Created Successful, Waiting For Payment"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @PostMapping("/checkout/retry/{orderId}")
+    public ResponseEntity<OrderDTO> checkoutRetry(@PathVariable(value = "orderId", required = true) Long orderId) {
+        OrderDTO orderDTO = orderService.proceedCheckoutRetry(orderId);
+        return ResponseEntity.status(200).body(orderDTO);
     }
 
     @Operation(summary = "Get All Orders of the User by User ID")
@@ -74,9 +84,9 @@ public class OrderController {
             @ApiResponse(responseCode = "400", description = "Failed Global Handler")
     })
     @PutMapping("/update-status")
-    public ResponseEntity<ResponseDTO> changeOrderStatus(@RequestBody ChangeOrderStatusRec orderStatusRec){
-        ResponseDTO responseDTO  = orderService.changeOrderStatus(orderStatusRec);
-        return ResponseEntity.ok(responseDTO);
+    public ResponseEntity<OrderDTO> changeOrderStatus(@RequestBody ChangeOrderStatusRec orderStatusRec){
+        OrderDTO responseDTO  = orderService.changeOrderStatus(orderStatusRec);
+        return ResponseEntity.status(200).body(responseDTO);
     }
 
     @Hidden

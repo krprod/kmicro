@@ -4,36 +4,17 @@ import com.kmicro.payment.dtos.OrderRequest;
 import com.kmicro.payment.dtos.OrderResponse;
 import com.kmicro.payment.utils.PaymentUtil;
 import com.razorpay.*;
-import com.zaxxer.hikari.pool.HikariProxyCallableStatement;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.codec.binary.Hex;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import javax.crypto.Mac;
-import javax.crypto.spec.SecretKeySpec;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.StandardCharsets;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.sql.SQLException;
-import java.time.Instant;
-import java.time.LocalDate;
-import java.time.LocalDateTime;
-import java.time.ZoneId;
-import java.util.Base64;
-import java.util.HashMap;
-import java.util.Map;
-
-import static com.razorpay.Utils.verifySignature;
 
 @Slf4j
 @Service
 public class PaymentService {
 
-    private  static  final  String API_KEY = "rzp_test_fiaOechiVIrbmK";
-    private  static  final  String SECRET_KEY = "DrdgBVbmgBgtYjSVAuOuphPd";
+    private  static  final  String API_KEY = "";
+    private  static  final  String SECRET_KEY = "";
 
     @Autowired
     PaymentEventService paymentEventService;

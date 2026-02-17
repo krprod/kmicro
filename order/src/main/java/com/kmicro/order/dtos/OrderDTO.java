@@ -48,7 +48,7 @@ public class OrderDTO  implements Serializable {
     private  Double shippingFee;
 
     @JsonProperty("shipping_address")
-    private OrderAddressDTO shippingAddress;
+    private CheckoutDetailsDTO shippingAddress;
 
     @JsonProperty( "tracking_number")
     private  String trackingNumber;
