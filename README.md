@@ -1,6 +1,56 @@
-# Microservice Ecommerce Project
-* run any service by cmd: **mvn spring-boot:run**
+# 📦 KMicro – Microservices Ecommerce Platform
+![GitHub Repo Size](https://img.shields.io/github/repo-size/krprod/kmicro)  
+![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/krprod/kmicro/maven.yml?branch=main)  
+![License](https://img.shields.io/github/license/krprod/kmicro)
+A **Spring Boot based microservices ecommerce backend** — architected to demonstrate a production-ready, scalable microservices ecosystem with API documentation, message-driven flows (Kafka), Redis caching, and more.
 
+---
+
+## 🚀 Overview
+
+This project contains multiple interconnected microservices that together form an ecommerce backend:
+
+| Service | Purpose | Port | API Docs |
+|---------|---------|------|----------|
+| **Product Service** | Handles product & category data | `8080` | `/swagger-ui/`, `/springwolf/asyncapi-ui.html`|
+| **Order Service** | Manages orders & carts | `8091` | `/swagger-ui/`, `/springwolf/asyncapi-ui.html` |
+| **User Service** | Authentication & users | `8085` | `/swagger-ui/`, `/springwolf/asyncapi-ui.html` |
+| **Payment Service** | Payment processing | `8095` | `/swagger-ui/`, `/springwolf/asyncapi-ui.html` |
+| **Notification Service** | Sends notifications | `8096` | `/swagger-ui/`, `/springwolf/asyncapi-ui.html` |
+
+Each service runs independently using Spring Boot and provides Swagger UI for API exploration.
+
+---
+
+## 📦 Architecture
+
+This system integrates:
+- **Spring Boot** & **Spring MVC**
+- **Spring Data JPA**
+- **Swagger/OpenAPI Docs** for rest enpoint documentation
+- **SpringWolf** for events documentation
+- **Apache Kafka** for asynchronous communication
+- **Redis** for caching
+- **LocalStack** for AWS service emulation
+- **PostgreSQL** as the primary database
+
+## 📢 Coming Soon
+  - **Docker** for containerization
+  - **Kubernetes/HELM** for deployment
+  - **React/Redux** for UI
+  - **GitOps** for CI/CD workflow
+
+---
+
+## 📌 Setup & Run
+
+### ⬇️ Clone the repository
+```bash
+git clone https://github.com/krprod/kmicro.git
+cd kmicro
+mvn spring-boot:run // run any service
+```
+---
 # Services
 __Product Service__
 - URL: http://localhost:8080/
