@@ -5,6 +5,7 @@ import lombok.*;
 
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor
 public class CategoryDTO {
+
     private long id;
 
     @NonNull

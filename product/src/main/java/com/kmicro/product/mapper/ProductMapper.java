@@ -37,10 +37,14 @@ public class ProductMapper {
             productEntity.setId(productDTO.getId());
         }
         productEntity.setName(productDTO.getName());
-        productEntity.setCategoryID(productDTO.getCategoryID());
+        productEntity.setCategory(productDTO.getCategory());
         productEntity.setPrice(productDTO.getPrice());
         productEntity.setStockQuantity(productDTO.getQuantity());
         productEntity.setImage(productDTO.getImage());
+        productEntity.setRating(productDTO.getRating());
+        productEntity.setDescription(productDTO.getDescription());
+        productEntity.setReviewCount(productDTO.getReviewCount());
+        productEntity.setInStock(productDTO.getInStock());
         return productEntity;
     }
 
@@ -50,10 +54,14 @@ public class ProductMapper {
 //            productEntity.setId(productDTO.getId());
 //        }
         productEntity.setName(productDTO.getName());
-        productEntity.setCategoryID(productDTO.getCategoryID());
+        productEntity.setCategory(productDTO.getCategory());
         productEntity.setPrice(productDTO.getPrice());
         productEntity.setStockQuantity(productDTO.getQuantity());
         productEntity.setImage(productDTO.getImage());
+        productEntity.setRating(productDTO.getRating());
+        productEntity.setDescription(productDTO.getDescription());
+        productEntity.setReviewCount(productDTO.getReviewCount());
+        productEntity.setInStock(productDTO.getInStock());
         return productEntity;
     }
 
@@ -61,10 +69,14 @@ public class ProductMapper {
         ProductDTO productDTO = new ProductDTO();
         productDTO.setId(product.getId());
         productDTO.setName(product.getName());
-        productDTO.setCategoryID(product.getCategoryID());
+        productDTO.setCategory(product.getCategory());
         productDTO.setPrice(product.getPrice());
         productDTO.setQuantity(product.getStockQuantity());
         productDTO.setImage(product.getImage());
+        productDTO.setDescription(product.getDescription());
+        productDTO.setRating(product.getRating());
+        productDTO.setReviewCount(product.getReviewCount());
+        productDTO.setInStock(product.getInStock());
         return productDTO;
     }
 
@@ -72,9 +84,13 @@ public class ProductMapper {
     public static void updateEntityFromDto(ProductDTO dto, ProductEntity entity) {
         if (dto == null || entity == null) return;
         entity.setName(dto.getName());
-        entity.setCategoryID(dto.getCategoryID());
+        entity.setCategory(dto.getCategory());
         entity.setPrice(dto.getPrice());
         entity.setStockQuantity(dto.getQuantity());
         entity.setImage(dto.getImage());
+        entity.setDescription(dto.getDescription());
+        entity.setReviewCount(dto.getReviewCount());
+        entity.setInStock(dto.getInStock());
+        entity.setRating(dto.getRating());
     }
 }// endClass

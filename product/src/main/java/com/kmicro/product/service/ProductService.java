@@ -69,6 +69,11 @@ public class ProductService {
         log.info("Products added successful");
         List<ProductDTO> dtos = ProductMapper.mapEntityToDtoList(savedEntityList);
         cacheUtils.updateProductListToCache(dtos);
+        try {
+            Thread.sleep(3000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         return dtos;
     }
 
@@ -160,7 +165,7 @@ public class ProductService {
     public void deleteProduct(Long id) {
         // check carts cache before delete
         // only admin can final delete
-//        productRepository.deleteById(id);
+        productRepository.deleteById(id);
     }
 
     public ProductDTO getProductById(Long id) {

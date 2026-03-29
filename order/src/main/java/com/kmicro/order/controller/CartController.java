@@ -42,6 +42,22 @@ public class CartController {
         return ResponseEntity.noContent().build();
     }
 
+    @Operation(summary = "Bulk Add Cart Items")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Add-Update Cart Succeed"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @PutMapping("/bulk-add-update")
+    public ResponseEntity<Void> bulkAddCart(@RequestBody List<CartDTO> cartDTO){
+        cartService.bulkAddCart(cartDTO);
+        try {
+            Thread.sleep(2000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        return ResponseEntity.noContent().build();
+    }
+
     @Operation(summary = "Remove Cart Item")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Cart Item Removed Successfully"),
