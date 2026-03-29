@@ -1,4 +1,4 @@
-INSERT INTO product_schema.products (categoryid, url, name, price, stock_quantity)
+/*INSERT INTO product_schema.products (categoryid, url, name, price, stock_quantity)
 VALUES
     (12, 'https://example.com/p1', 'Product 1', 10, 100),
     (34, 'https://example.com/p2', 'Product 2', 15, 50),
@@ -59,10 +59,10 @@ VALUES
     (65, 'https://example.com/p57', 'Product 57', 290, 550),
     (76, 'https://example.com/p58', 'Product 58', 295, 560),
     (87, 'https://example.com/p59', 'Product 59', 300, 570),
-    (98, 'https://example.com/p60', 'Product 60', 305, 580);
+    (98, 'https://example.com/p60', 'Product 60', 305, 580);*/
 
 
-INSERT INTO product_schema.categories (name, slug, is_active)
+/*INSERT INTO product_schema.categories (name, slug, is_active)
 VALUES
     ('Electronics', 'electronics', TRUE),
     ('Fashion', 'fashion', TRUE),
@@ -78,4 +78,4 @@ VALUES
     ('Pet Supplies', 'pet-supplies', TRUE),
     ('Tools & DIY', 'tools-diy', TRUE),
     ('Baby Products', 'baby-products', TRUE),
-    ('Jewelry & Accessories', 'jewelry-accessories', TRUE);
+    ('Jewelry & Accessories', 'jewelry-accessories', TRUE);*/

@@ -31,12 +31,16 @@ public class CartService {
     }
 
     public void addUpdateCart(CartDTO cartDTO) {
-        redisTemplate.opsForHash().put(
-                        AppConstants.REDIS_CART_KEY_PREFIX + cartDTO.getUserId(),
-                        cartDTO.getProductId().toString(),
-                        cartDTO);
+        this.saveToRedis(cartDTO);
         log.info("Cart add-update request succeed with data: {}", cartDTO.toString());
 //        log.debug("Cart add-update request succeed with data: {}", cartDTO.toString());
+    }
+
+    public void saveToRedis(CartDTO cartDTO){
+        redisTemplate.opsForHash().put(
+                AppConstants.REDIS_CART_KEY_PREFIX + cartDTO.getUserId(),
+                cartDTO.getProductId().toString(),
+                cartDTO);
     }
 
     public void removeItemFromCart(CartDTO cartDTO) {
@@ -58,4 +62,8 @@ public class CartService {
         log.info("deleting cart ID: {}",AppConstants.REDIS_CART_KEY_PREFIX + userID);
     }
 
+    public void bulkAddCart(List<CartDTO> cartDTO) {
+        cartDTO.forEach(this::saveToRedis);
+        log.info("Bulk add-update request succeed with data");
+    }
 }//EC

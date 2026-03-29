@@ -10,7 +10,7 @@ import java.util.Set;
 
 @Repository
 public interface ProductRepository extends JpaRepository<ProductEntity, Long>, JpaSpecificationExecutor<ProductEntity> {
-    List<ProductEntity> findByCategoryID(Long categoryID);
+//    List<ProductEntity> findByCategoryID(Long categoryID);
 
     List<ProductEntity> findByIdIn(Set<Long> idList);
 }
