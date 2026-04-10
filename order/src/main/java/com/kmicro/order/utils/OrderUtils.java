@@ -65,7 +65,8 @@ public class OrderUtils {
             orderEntity.setSubtotal(totalAmount);
             orderEntity.setUserId(orderItemDTOList.getFirst().getUserId());
             orderEntity.setStatus(Status.PENDING);
-            orderEntity.setPaymentMethod(PaymentMethod.ONLINE);
+//            orderEntity.setPaymentMethod(PaymentMethod.ONLINE);
+            orderEntity.setPaymentMethod(PaymentMethod.ONLINE.name());
             orderEntity.setTransactionId(AppConstants.TEMP_TRANSACTION_ID);
             orderEntity.setTrackingNumber(AppConstants.TEMP_TRACKING_ID);
             orderEntity.setPaymentStatus(Status.PAYMENT_PENDING.name());
@@ -231,6 +232,7 @@ public class OrderUtils {
         try {
             // set Order address
             order.setShippingAddress(objectMapper.writeValueAsString(orderAddress));
+            order.setPaymentMethod(orderAddress.getPaymentMode());
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
         }

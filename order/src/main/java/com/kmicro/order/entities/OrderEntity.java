@@ -1,7 +1,6 @@
 package com.kmicro.order.entities;
 
 import com.kmicro.order.constants.Status;
-import com.kmicro.order.constants.PaymentMethod;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -39,9 +38,9 @@ public class OrderEntity extends BaseEntity {
     @Column(name = "total_amount")
     private Double totalAmount;
 
-    @Enumerated(EnumType.STRING)
+//    @Enumerated(EnumType.STRING)
     @Column(name = "payment_method")
-    private PaymentMethod paymentMethod;
+    private String paymentMethod;
 
     @Column(name = "transaction_id")
     private  String transactionId;

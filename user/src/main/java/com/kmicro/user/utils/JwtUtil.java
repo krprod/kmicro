@@ -1,6 +1,7 @@
 package com.kmicro.user.utils;
 
 import com.kmicro.user.constants.AppContants;
+import com.kmicro.user.exception.JWTFailureException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
@@ -15,7 +16,10 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.security.Key;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -80,19 +84,24 @@ public class JwtUtil {
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             log.info("Invalid JWT signature.");
-            log.trace("Invalid JWT signature trace: {}", e);
+            log.info("Invalid JWT signature trace: {}", e);
+            throw new JWTFailureException("Invalid JWT signature.");
+//            log.trace("Invalid JWT signature trace: {}", e);
         } catch (ExpiredJwtException e) {
             log.info("Expired JWT token.");
-            log.trace("Expired JWT token trace: {}", e);
-            throw e;
+            log.info("Expired JWT token trace: {}", e);
+//            log.trace("Expired JWT token trace: {}", e);
+            throw new JWTFailureException("Expired JWT token.");
         } catch (UnsupportedJwtException e) {
             log.info("Unsupported JWT token.");
             log.trace("Unsupported JWT token trace: {}", e);
+            throw new JWTFailureException("Unsupported JWT token.");
         } catch (IllegalArgumentException e) {
             log.info("JWT token compact of handler are invalid.");
             log.trace("JWT token compact of handler are invalid trace: {}", e);
+            throw new JWTFailureException("JWT token compact of handler are invalid.");
         }
-        return false;
+//        return false;
     }
 
     public User extractUserFromToken(String token){

@@ -79,14 +79,14 @@ public class ProjectSecurityConfig {
                 }))
                 .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
                         .ignoringRequestMatchers( "/api/auth/register","/api/auth/generate-csrf"
-                                ,"/swagger-ui/**","/v3/api-docs/**","/api/users/**","/api/auth/verify","/api/auth/resend-verification/**","/springwolf/**")
+                                ,"/swagger-ui/**","/v3/api-docs/**","/api/users/**","/api/auth/verify","/api/auth/resend-verification/**","/api/auth/resend-verify-user","/springwolf/**")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints for authentication and registration
                         .requestMatchers("/api/users/**",
                                 "/api/auth/generate-csrf","/api/auth/register","/api/auth/verify","/api/auth/resend-verification/**",
-                                "/api/auth/login","/swagger-ui/**","/v3/api-docs/**","/springwolf/**").permitAll()
+                                "/api/auth/login","/api/auth/resend-verify-user","/swagger-ui/**","/v3/api-docs/**","/springwolf/**").permitAll()
 //                        .requestMatchers("/api/auth/login").authenticated()
                         // Require ADMIN role for specific endpoints
                         .requestMatchers("/api/admin/**").hasAuthority("ADMIN")
@@ -100,7 +100,10 @@ public class ProjectSecurityConfig {
                 // Add the custom JWT filter before Spring's default filter
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
-        http.exceptionHandling(ehc -> ehc.accessDeniedHandler(new CustomAccessDeniedHandler()));
+        http.exceptionHandling(ehc -> ehc
+                .accessDeniedHandler(new CustomAccessDeniedHandler())
+                .authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint())
+        );
 
         return http.build();
     }

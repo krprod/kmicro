@@ -37,7 +37,7 @@ public class AddressController {
             @ApiResponse(responseCode = "204", description = "Successful"),
             @ApiResponse(responseCode = "400", description = "Failed GlobalHandler")
     })
-    @DeleteMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<Void> deleteAddress(@PathVariable(name = "id") @Min(1) Long id, @RequestBody AddressDTO addressDTO){
         addressService.deleteAddress(id, addressDTO);
         return ResponseEntity.noContent().build();

@@ -5,5 +5,5 @@ package com.kmicro.user.dtos;
 //    final String jwt;
 //}
 
-public record LoginResponse(String status, String token, String message, String useremail) {
+public record LoginResponse(String status, String token, String message, UserDTO user) {
 }

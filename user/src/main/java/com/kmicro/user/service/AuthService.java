@@ -9,6 +9,7 @@ import com.kmicro.user.kafka.producers.ExternalEventProducers;
 import com.kmicro.user.mapper.UserMapper;
 import com.kmicro.user.utils.UserAuthUtil;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CachePut;
@@ -30,23 +31,33 @@ public class AuthService {
     private final VerificationService verificationService;
     private final ExternalEventProducers externalEventProducers;
 
-    public LoginResponse processLogin(LoginRequest loginRequest){
-
+    private  Authentication getAuthentication(LoginRequest loginRequest){
         Authentication authRequest = UsernamePasswordAuthenticationToken
                 .unauthenticated(loginRequest.email(), loginRequest.password());
 
-        Authentication authenticationResponse = this.authenticationManager.authenticate(authRequest);
+        return this.authenticationManager.authenticate(authRequest);
+    }
+
+    public LoginResponse processLogin(LoginRequest loginRequest){
+
+ /*       Authentication authRequest = UsernamePasswordAuthenticationToken
+                .unauthenticated(loginRequest.email(), loginRequest.password());
+
+        Authentication authenticationResponse = this.authenticationManager.authenticate(authRequest);*/
+        Authentication authenticationResponse = this.getAuthentication(loginRequest);
+        UserDTO userDTO = null;
 
         if(null != authenticationResponse && authenticationResponse.isAuthenticated()){
 
             final String  jwt = userAuthUtil.generateToken(authenticationResponse);
-            userService.updateFieldsOnLogin(loginRequest.email());
+
+            userDTO = userService.updateFieldsOnLogin(loginRequest.email());
             log.info("Login successful for user: {}", loginRequest.email());
-            return new LoginResponse(HttpStatus.OK.getReasonPhrase(), jwt,"Login Success", loginRequest.email());
+            return new LoginResponse(HttpStatus.OK.getReasonPhrase(), jwt,"Login Success", userDTO);
 
         }
         log.info("Login failed for user: {}", loginRequest.email());
-        return new LoginResponse(HttpStatus.BAD_REQUEST.getReasonPhrase(), "", "Login Failed", loginRequest.email());
+        return new LoginResponse(HttpStatus.BAD_REQUEST.getReasonPhrase(), "", "Login Failed", userDTO);
     }
 
     public void removeAuthToken(HttpServletRequest request) {
@@ -88,5 +99,10 @@ public class AuthService {
         }else {
             throw  new AlreadyExistException("User Already Verified.");
         }
+    }
+
+    public UserDTO resendVerificationMailByUser(@Valid LoginRequest loginRequest) {
+            UserEntity userEntity = userService.getUserByEmail(loginRequest.email());
+            return UserMapper.EntityToDTO(userEntity);
     }
 } //EC
