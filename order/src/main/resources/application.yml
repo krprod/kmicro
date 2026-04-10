@@ -1,46 +1,107 @@
 server:
       port: 8091
 spring:
+#      sql:
+#            init:
+#                  mode: always
       application:
-            name: order
+            name: order-cart-service
       profiles:
             active: "prod"
       datasource:
-            url: jdbc:postgresql://localhost:5432/springmicro
+            url: jdbc:postgresql://localhost:5432/springmicro?currentSchema=order_schema
             username: bloguser
             password: bloguser
+            driver-class-name: org.postgresql.Driver
+            hikari:
+                  pool-name: orderServiceHikariPool
+                  maximum-pool-size: 10
+                  minimum-idle: 5
+                  idle-timeout: 300000 # 5 minutes
+                  connection-timeout: 20000 # 20 seconds
+                  max-lifetime: 1200000 # 20 minutes
+                  auto-commit: true
+            flyway:
+                  enabled: true
+                  schemas: order_schema
+                  baseline-on-migrate: true # Crucial for existing databases
+                  out-of-order: false        # Strict linear progression in prod
+                  lock-retry-count: 50 # Retries before failing
+                  locations:
+                        - classpath:db/migration
+#                  table: order_schema_history
+#      flyway:
+#            enabled: true
+#            # If the history table is missing, create it and mark current state as version 1
+#            baseline-on-migrate: true
+#            # The version to assign to the existing database
+#            baseline-version: 1
+#            # The name of the baseline marker
+#            baseline-description: "Existing Database State"
+#            locations: classpath:db/migration
       jpa:
+#            show-sql: true
             hibernate:
-                  ddl-auto: create
-            show-sql: true
+                  ddl-auto: validate
+            properties:
+                  hibernate:
+                        default_schema: order_schema
+                        dailect: org.hibernate.dialect.PostgreSQLDialect
+                        naming:
+                              physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+
+                        #This helps format the SQL logs to be readable
+#                        format_sql: true
       kafka:
             bootstrap-servers: localhost:9092
-            consumer:
-                  properties:
-                        schema.registry.url: http://localhost:8082
-                        specific.avro.reader: true
-                  group-id: order-group
-                  auto-offset-reset: earliest
-                  key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-                  value-deserializer: io.confluent.kafka.serializers.KafkaAvroDeserializer
-            producer:
-                  properties:
-                        schema.registry.url: http://localhost:8082
-                  key-serializer: org.apache.kafka.common.serialization.StringSerializer
-                  value-serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+            listener:
+                  # If true, the container starts when the context is refreshed.
+                  # If the broker is down, it will log errors but NOT stop the app from starting.
+                  missing-topics-fatal: false
+#            consumer:
+#                  group-id: order-group
+#                  auto-offset-reset: earliest
+#                  key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#                  value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+#            producer:
+#                  key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#                  value-serializer: org.apache.kafka.common.serialization.StringSerializer
+            properties:
+                  enable.idempotence: true
+                  compression.type: snappy
+                  metadata.max.age.ms: 3000
+            retry:
+                        topic:
+                              enabled: true
+                              attempts: 3
+                              delay: 5000 # 5 seconds between retries
+      redis:
+            host: localhost
+            port: 6379
 
-#spring:
-#                        json:
-#                              trusted:
-#                                    packages: "*"
-#      redis:
-#            host: localhost # Or your Redis host
-#            port: 6379
-logging:
-      level:
-            org:
-                  springframework:
-                        kafka: DEBUG
+springwolf:
+      docket:
+            base-package: com.kmicro.order
+            servers:
+                  kafka-server:
+                        url: ${KAFKA_BOOTSTRAP_SERVERS}
+                        protocol: KAFKA
+                        host: localhost:9092
+            info:
+                  title: Order and Cart Service Kafka Doc
+                  version: 1.0.0
+                  description: AsyncAPI documentation for the Order-Cart Microservice
+
+#logging:
+#      level:
+#            org:
+#                  springframework:
+#                        cache: TRACE
+                     #   kafka: DEBUG
+#                  hibernate:
+#                        orm:
+#                              jdbc:
+#                                    bind: TRACE
 
 management:
       endpoints:

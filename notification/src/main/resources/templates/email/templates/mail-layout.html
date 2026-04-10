@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <style>
+        /* All your Jira-style CSS goes here once */
+        .content-cell { padding: 40px; font-family: sans-serif; }
+        .footer { font-size: 12px; color: #505f79; text-align: center; }
+    </style>
+</head>
+<body style="margin:0; background:#ffffff;">
+<table width="100%" border="0" cellspacing="0" cellpadding="0">
+    <tr>
+        <td align="center" style="padding: 16px;">
+            <img th:src="${logoUrl}" height="64" alt="Company Logo">
+        </td>
+    </tr>
+
+    <tr>
+        <td align="left">
+<!--            <div th:replace="${content}">-->
+            <div th:replace="~{__${content}__}">
+            </div>
+        </td>
+    </tr>
+
+    <tr>
+        <td class="footer" style="padding: 30px;">
+            <p th:text="#{email.footer.sentby}">Sent by E-Commerce Platform</p>
+            <a th:href="${unsubscribeUrl}" th:if="${unsubscribeUrl}">Unsubscribe</a>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

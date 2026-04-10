@@ -4,6 +4,8 @@ import com.kmicro.product.dtos.CategoryDTO;
 import com.kmicro.product.entities.CategoryEntity;
 import org.modelmapper.ModelMapper;
 
+import java.util.List;
+
 public class CategoryMapper {
 
     public static CategoryEntity mapDtoToEntity(CategoryDTO categoryDTO){
@@ -17,5 +19,7 @@ public class CategoryMapper {
     }
 
 
-
+    public static List<CategoryDTO> mapEntityListToDTO(List<CategoryEntity> categoryEntityList) {
+        return categoryEntityList.stream().map(CategoryMapper::mapEntityToDTO).toList();
+    }
 }//end class

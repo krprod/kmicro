@@ -1,0 +1,1 @@
+CREATE INDEX IF NOT EXISTS idx_pending_outbox ON order_schema.outbox_events (created_at) WHERE status = 'PENDING';

@@ -1,0 +1,2 @@
+-- Creates Partial Index
+-- CREATE INDEX IF NOT EXISTS idx_pending_outbox ON outbox_events (createdAt) WHERE status = 'PENDING';

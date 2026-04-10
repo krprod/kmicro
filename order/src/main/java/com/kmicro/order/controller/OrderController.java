@@ -1,9 +1,14 @@
 package com.kmicro.order.controller;
 
+import com.kmicro.order.dtos.ChangeOrderStatusRec;
+import com.kmicro.order.dtos.CheckoutDetailsDTO;
 import com.kmicro.order.dtos.OrderDTO;
-import com.kmicro.order.dtos.OrderItemDTO;
 import com.kmicro.order.service.OrderService;
-import lombok.Getter;
+import io.swagger.v3.oas.annotations.Hidden;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,29 +16,92 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/orders")
+@Tag(name = "Order Controller", description = "Operations for Order lifecycle")
 public class OrderController {
 
     @Autowired
     OrderService orderService;
 
+    @Operation(summary = "Process Checkout and Proceed For Payment")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Order Created Successful, Waiting For Payment"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
     @PostMapping("/checkout/{userId}")
-    public ResponseEntity<String>   checkOut(@PathVariable(value = "userId") String userId){
-        orderService.proceedCheckOut(userId);
-        return ResponseEntity.ok("success");
+    public ResponseEntity<OrderDTO> checkOut(
+            @RequestBody(required = false) CheckoutDetailsDTO orderAddress,
+            @PathVariable(value = "userId") String userId) {
+//        orderService.proceedCheckOut(userId);
+        OrderDTO orderDTO = orderService.proceedCheckoutWithAddress(userId, orderAddress);
+        return ResponseEntity.status(200).body(orderDTO);
     }
 
-    @GetMapping("/orders/{userId}")
-    public ResponseEntity<List<OrderDTO>> getOrdersListByUserID(@PathVariable(value = "userId") Long userId) {
-        List<OrderDTO> orderDTOList = orderService.getOrdersListByUserID(userId);
-        return null != orderDTOList ? ResponseEntity.ok(orderDTOList) : ResponseEntity.status(404).body(null);
+    @Operation(summary = "Process Checkout and Proceed For Payment")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Order Created Successful, Waiting For Payment"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @PostMapping("/checkout/retry/{orderId}")
+    public ResponseEntity<OrderDTO> checkoutRetry(@PathVariable(value = "orderId", required = true) Long orderId) {
+        OrderDTO orderDTO = orderService.proceedCheckoutRetry(orderId);
+        return ResponseEntity.status(200).body(orderDTO);
     }
 
-    @GetMapping("/order/{orderID}")
-    public ResponseEntity<OrderDTO> getOrderDetailsByOrderID(@PathVariable(value = "orderID") Long orderID) {
-       OrderDTO orderDTO = orderService.getOrderDetailsByOrderID(orderID);
-        return  null != orderDTO ? ResponseEntity.ok(orderDTO) :   ResponseEntity.status(404).body(null);
+    @Operation(summary = "Get All Orders of the User by User ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "List of  Order Retrieved Successfully"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<OrderDTO>> getOrdersListByUserID(@RequestParam(required = false) String withItems, @PathVariable(value = "userId") Long userId) {
+        boolean flag = false;
+        if(withItems!=null && withItems.equalsIgnoreCase("true")){
+            flag = true;
+        }
+        List<OrderDTO> orderDTOList = orderService.getAllOrdersListByUserID(userId, flag);
+        return ResponseEntity.status(200).body(orderDTOList);
     }
+
+    @Operation(summary = "Get  Orders by Order ID from Redis/Cache")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Single Order Retrieved Successfully"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @GetMapping("/{orderID}")
+    public ResponseEntity<OrderDTO> getOrderDetailsByOrderID(@RequestParam(required = false) String withItems, @PathVariable(value = "orderID") Long orderID) {
+        boolean flag = false;
+        if(withItems!=null  && withItems.equalsIgnoreCase("true")){
+            flag = true;
+        }
+       OrderDTO orderDTO = orderService.getOrderDetailsByOrderID(orderID,flag);
+        return  ResponseEntity.ok(orderDTO);
+    }
+
+    @Operation(summary = "Update Order Status")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Status Changed Successfully"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @PutMapping("/update-status")
+    public ResponseEntity<OrderDTO> changeOrderStatus(@RequestBody ChangeOrderStatusRec orderStatusRec){
+        OrderDTO responseDTO  = orderService.changeOrderStatus(orderStatusRec);
+        return ResponseEntity.status(200).body(responseDTO);
+    }
+
+    @Hidden
+    @Operation(summary = "Get  Orders  by Order ID From Redis/Cache")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Single Order Retrieved Successfully"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @GetMapping("/cache/{orderID}")
+    public ResponseEntity<OrderDTO> getOrderFromCache(@PathVariable(value = "orderID") Long orderID) {
+        OrderDTO  cachedOrder =  orderService.getOrderFromCache(orderID);
+        return  ResponseEntity.ok(cachedOrder);
+    }
+
+
 
     // remove full order
 

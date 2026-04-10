@@ -1,6 +1,6 @@
 package com.kmicro.order.mapper;
 
-import com.kmicro.order.dtos.OrderDTO;
+import com.kmicro.order.dtos.CartDTO;
 import com.kmicro.order.dtos.OrderItemDTO;
 import com.kmicro.order.entities.OrderEntity;
 import com.kmicro.order.entities.OrderItemEntity;
@@ -20,6 +20,8 @@ public class OrderItemMapper {
         orderItemEntity.setProductId(orderItemDTO.getProductId());
         orderItemEntity.setQuantity(orderItemDTO.getQuantity());
         orderItemEntity.setPrice(orderItemDTO.getPrice());
+        orderItemEntity.setItemImg(orderItemDTO.getItemImg());
+        orderItemEntity.setItemName(orderItemDTO.getItemName());
         orderItemEntity.setOrder(orderEntity);
         return orderItemEntity;
     }
@@ -31,13 +33,31 @@ public class OrderItemMapper {
                 .toList();
         return orderItemDTOList;
     }
+
     private static OrderItemDTO mapEntityToDTO(OrderItemEntity orderItemEntity) {
         OrderItemDTO orderItemDTO = new OrderItemDTO();
         orderItemDTO.setId(orderItemEntity.getId());
         orderItemDTO.setProductId(orderItemEntity.getProductId());
         orderItemDTO.setQuantity(orderItemEntity.getQuantity());
         orderItemDTO.setPrice(orderItemEntity.getPrice());
+        orderItemDTO.setItemImg(orderItemEntity.getItemImg());
+        orderItemDTO.setItemName(orderItemEntity.getItemName());
         return orderItemDTO;
+    }
+
+    private static OrderItemDTO mapCartDtoToOrderItem(CartDTO cartDTO){
+        OrderItemDTO orderItemDTO = new OrderItemDTO();
+        orderItemDTO.setProductId(cartDTO.getProductId());
+        orderItemDTO.setQuantity(cartDTO.getQuantity());
+        orderItemDTO.setPrice(cartDTO.getPrice());
+        orderItemDTO.setUserId(cartDTO.getUserId());
+        orderItemDTO.setItemImg(cartDTO.getImg());
+        orderItemDTO.setItemName(cartDTO.getProductName());
+        return orderItemDTO;
+    }
+
+    public static List<OrderItemDTO> mapCartDtoToOrderItemList(List<CartDTO> cartDTO){
+        return  cartDTO.stream().map(OrderItemMapper::mapCartDtoToOrderItem).toList();
     }
 
 }//EC

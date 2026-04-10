@@ -1,6 +1,5 @@
 package com.kmicro.order.entities;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -16,7 +15,9 @@ import lombok.Setter;
 public class OrderItemEntity {
 
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+//    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_schema.order_item_seq")
+    @SequenceGenerator(name = "order_schema.order_item_seq", allocationSize = 50)
     private Long id;
 
  /*   @ManyToOne
@@ -35,6 +36,11 @@ public class OrderItemEntity {
 
     private Integer quantity;
 
+    @Column(name = "item_img")
+    private String itemImg;
+
+    @Column(name = "item_name")
+    private String itemName;
     /*    @Column(name = "user_id")
     private  Long userId;*/
 

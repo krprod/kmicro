@@ -5,7 +5,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 
 public class Logs {
 
-
     private String name;
     private String level;
 

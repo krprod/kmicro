@@ -1,0 +1,7 @@
+package com.kmicro.user.exception;
+
+public class NotExistException extends RuntimeException{
+    public NotExistException(String msg){
+        super(msg);
+    }
+}

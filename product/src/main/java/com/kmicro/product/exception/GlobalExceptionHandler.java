@@ -2,13 +2,13 @@ package com.kmicro.product.exception;
 
 
 import com.kmicro.product.dtos.ErrorResponseDTO;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @ControllerAdvice
 public class GlobalExceptionHandler  extends ResponseEntityExceptionHandler {
 
@@ -34,7 +35,8 @@ public class GlobalExceptionHandler  extends ResponseEntityExceptionHandler {
             String validationMsg = error.getDefaultMessage();
             validationErrors.put(fieldName, validationMsg);
         });
-        return new ResponseEntity<>(validationErrors, HttpStatus.BAD_REQUEST);
+        log.error("Validation Errror Request at {}: {}", request.getDescription(false), validationErrors);
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationErrors);
     }
 
     @ExceptionHandler(Exception.class)
@@ -45,6 +47,31 @@ public class GlobalExceptionHandler  extends ResponseEntityExceptionHandler {
                 exception.getMessage(),
                 LocalDateTime.now()
         );
-        return new ResponseEntity<>(errorResponseDTO, HttpStatus.INTERNAL_SERVER_ERROR);
+        log.error("Server Errror Request at {}: {}", webRequest.getDescription(false), exception.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponseDTO);
+    }
+
+    @ExceptionHandler(AlreadyExistException.class)
+    public ResponseEntity<ErrorResponseDTO> handleConflict(AlreadyExistException ex, WebRequest webRequest) {
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+                webRequest.getDescription(false),
+                HttpStatus.CONFLICT,
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        log.error("AlreadyExistException Request at {}: {}", webRequest.getDescription(false), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(errorResponseDTO);
+    }
+
+    @ExceptionHandler(DataNotExistException.class)
+    public ResponseEntity<ErrorResponseDTO> handleNotFound(DataNotExistException ex, WebRequest webRequest) {
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+                webRequest.getDescription(false),
+                HttpStatus.NOT_FOUND,
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        log.error("DataNotExistException Request at {}: {}", webRequest.getDescription(false), ex.getMessage());
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(errorResponseDTO);
     }
 }

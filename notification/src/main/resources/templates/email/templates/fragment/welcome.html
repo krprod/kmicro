@@ -1,0 +1,14 @@
+<div th:fragment="email-body" xmlns:th="http://www.thymeleaf.org">
+    <h1 style="font-size:24px;font-weight:500;color:#172b4d;margin-top:40px;">Welcome to the family!</h1>
+    <p th:text="${'Hi ' + userName + ','}">Hi Krishna,</p>
+    <p th:text="${msgLine1}">We're thrilled to have you here. To get you started, use the code below for 10% off your first order.</p>
+
+    <div style="margin-top: 25px; text-align: center;">
+        <span style="border: 2px dashed #0052cc; padding: 10px 20px; font-weight: bold; color: #0052cc;" th:text="${discountCode}">WELCOME10</span>
+    </div>
+
+    <div style="margin-top: 30px; text-align: center;">
+        <a th:href="${siteUrl}" style="background-color: #0052cc; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 3px; display: inline-block;">
+            Start Shopping</a>
+    </div>
+</div>

@@ -1,0 +1,23 @@
+package com.kmicro.notification.constansts;
+
+public enum Status {
+
+    PENDING("PENDING"),
+    PROCESSING("PROCESSING"),
+    READY("READY"),
+    SENT("SENT"),
+    PAYMENT_FAILED("PAYMENT_FAILED"),
+    PAYMENT_PENDING("PAYMENT_PENDING"),
+    PAYMENT_SUCCESS("PAYMENT_SUCCESS"),
+    WAITING_ON_USER_SERVICE("WAITING_ON_USER_SERVICE"),
+    REQUEST_USER_SERVICE("REQUEST_USER_SERVICE"),
+    WAITING_ON_PAYMENT_SERVICE("WAITING_ON_PAYMENT_SERVICE"),
+    PERMANENT_FAILURE("PERMANENT_FAILURE"),
+    DELIVERED("DELIVERED"),
+    FAILED("FAILED");
+
+    private String name;
+    private Status(String name) {
+        this.name = name;
+    }
+}
