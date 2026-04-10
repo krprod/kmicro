@@ -36,9 +36,13 @@ public class AuthController {
     public ResponseEntity<LoginResponse> createAuthenticationToken(@Valid @RequestBody LoginRequest loginRequest) {
 
         LoginResponse response = authService.processLogin(loginRequest);
-
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         if(!response.token().isEmpty() && response.status().equalsIgnoreCase("ok")){
-            ResponseEntity.status(HttpStatus.OK).header(AppContants.JWT_HEADER,response.token()).body(response);
+            return ResponseEntity.status(HttpStatus.OK).header(AppContants.JWT_HEADER,response.token()).body(response);
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(response);
@@ -110,6 +114,19 @@ public class AuthController {
         authService.resendVerificationMail(userID);
         return ResponseEntity.noContent().build();
     }
+
+    @Operation(summary = "Resend Verification By Validating User data")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Data Fetched Successful"),
+            @ApiResponse(responseCode = "409", description = "Global Error Handles")
+    })
+    @PostMapping("/resend-verify-user")
+    public ResponseEntity<UserDTO> resendVerificationMailByUser(@Valid @RequestBody LoginRequest loginRequest) {
+        UserDTO userDTO = authService.resendVerificationMailByUser(loginRequest);
+        return ResponseEntity.ok(userDTO);
+    }
+
+
 
 //    @Operation(summary = "Delete, Lock and Invalidate JWT of current JWT Request Token Holder")
 //    @ApiResponses(value = {

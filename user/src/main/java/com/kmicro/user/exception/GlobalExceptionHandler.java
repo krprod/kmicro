@@ -174,4 +174,17 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         return  ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponseDTO);
     }
 
+    @ExceptionHandler(JWTFailureException.class)
+    public ResponseEntity<ErrorResponseDTO> handleAuthenticationServiceJwtError(JWTFailureException ex, WebRequest webReq){
+
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+                webReq.getDescription(false),
+                HttpStatus.UNAUTHORIZED,
+                ex.getMessage(),
+                LocalDateTime.now()
+        );
+        log.error("JWTFailureException Request at {}: {}", webReq.getDescription(false), ex.getMessage());
+        return  ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(errorResponseDTO);
+    }
+
 }//EC

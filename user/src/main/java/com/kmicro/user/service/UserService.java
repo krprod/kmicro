@@ -120,7 +120,7 @@ public class UserService{
         user.setLoggedIn(true);
         user.setLastloginTime(Instant.now());
 
-        return UserMapper.EntityWithAddressToDTOWithAddress(usersRepository.save(user));
+        return UserMapper.EntityToDTO(usersRepository.save(user));
         // 2. Clear the cache to ensure future SELECTs get fresh data from DB
 //        entityManager.clear();
 

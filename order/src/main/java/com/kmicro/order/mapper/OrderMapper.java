@@ -54,7 +54,7 @@ public class OrderMapper {
         orderDTO.setOrderStatus(orderEntity.getStatus().name());
         orderDTO.setSubtotal(orderEntity.getSubtotal());
         orderDTO.setTotalAmount(orderEntity.getTotalAmount());
-        orderDTO.setPaymentMethod(orderEntity.getPaymentMethod().name());
+        orderDTO.setPaymentMethod(orderEntity.getPaymentMethod());
         orderDTO.setPaymentStatus(orderEntity.getPaymentStatus());
         orderDTO.setTransactionId(orderEntity.getTransactionId());
         orderDTO.setShippingFee(orderEntity.getShippingFee());
@@ -80,7 +80,7 @@ public class OrderMapper {
         orderDTO.setOrderStatus(orderEntity.getStatus().name());
         orderDTO.setSubtotal(orderEntity.getSubtotal());
         orderDTO.setTotalAmount(orderEntity.getTotalAmount());
-        orderDTO.setPaymentMethod(orderEntity.getPaymentMethod().name());
+        orderDTO.setPaymentMethod(orderEntity.getPaymentMethod());
         orderDTO.setTransactionId(orderEntity.getTransactionId());
         orderDTO.setPaymentStatus(orderEntity.getPaymentStatus());
         orderDTO.setShippingFee(orderEntity.getShippingFee());

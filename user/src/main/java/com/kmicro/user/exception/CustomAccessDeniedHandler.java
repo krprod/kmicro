@@ -3,6 +3,7 @@ package com.kmicro.user.exception;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.web.access.AccessDeniedHandler;
@@ -10,6 +11,7 @@ import org.springframework.security.web.access.AccessDeniedHandler;
 import java.io.IOException;
 import java.time.LocalDateTime;
 
+@Slf4j
 public class CustomAccessDeniedHandler implements AccessDeniedHandler {
     @Override
     public void handle(HttpServletRequest request, HttpServletResponse response,
@@ -24,9 +26,10 @@ public class CustomAccessDeniedHandler implements AccessDeniedHandler {
         response.setContentType("application/json;charset=UTF-8");
         // Construct the JSON response
         String jsonResponse =
-                String.format("{\"timestamp\": \"%s\", \"status\": %d, \"error\": \"%s\", \"message\": \"%s\", \"path\": \"%s\"}",
-                        currentTimeStamp, HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.getReasonPhrase(),
-                        message, path);
+                String.format("{\"errorTime\": \"%s\", \"errorCode\": %d, \"errorMessage\": \"%s\", \"apiPath\": \"%s\"}",
+                        currentTimeStamp, HttpStatus.FORBIDDEN.value(), message, path);
+        log.error("Actual Msg1: {}",message);
+        log.error("AccessDeniedException1:",accessDeniedException);
         response.getWriter().write(jsonResponse);
     }
 }
