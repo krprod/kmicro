@@ -2,6 +2,7 @@ package com.kmicro.notification.controller;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import com.kmicro.notification.annotation.RequiresRole;
 import com.kmicro.notification.dtos.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/notification-service/logs")
+@RequiresRole(value = { "ROLE_ADMIN"})
 public class LogController {
 
 //    @Hidden

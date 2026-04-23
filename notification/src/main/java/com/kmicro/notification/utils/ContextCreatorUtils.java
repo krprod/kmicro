@@ -32,7 +32,7 @@ public class ContextCreatorUtils {
         context.setVariable("companyName", "The Kmicro Team");
         context.setVariable("websiteName", "Kmicro.com");
         context.setVariable("socialMediaLinks", "<a href=\"#\">Facebook</a> | <a href=\"#\">Twitter</a>"); // Example
-        log.info("Context Initialized Successfully");
+        log.debug("Context Initialized Successfully");
         return context;
     }
 
@@ -60,7 +60,7 @@ public class ContextCreatorUtils {
                 cxt.setVariable(String.valueOf(key), value);
             });
         }
-        log.info("Generated Context Using Map");
+        log.debug("Generated Context Using Map");
     }
 
     public Context getNewContextForMap(Map<?, ?> data){

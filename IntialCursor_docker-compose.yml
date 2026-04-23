@@ -1,0 +1,248 @@
+services:
+  postgres:
+    image: postgres:16
+    container_name: springmicro-postgres
+    environment:
+      POSTGRES_DB: springmicro
+      POSTGRES_USER: bloguser
+      POSTGRES_PASSWORD: bloguser
+    ports:
+      - "${POSTGRES_PORT:-55432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bloguser -d springmicro"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  redis:
+    image: redis:7-alpine
+    container_name: springmicro-redis
+    ports:
+      - "${REDIS_PORT:-56379}:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  kafka:
+    image: bitnami/kafka:latest
+    container_name: springmicro-kafka
+    ports:
+      - "${KAFKA_EXTERNAL_PORT:-59092}:9092"
+      - "${KAFKA_INTERNAL_PORT:-29092}:29092"
+    environment:
+      KAFKA_ENABLE_KRAFT: "yes"
+      KAFKA_CFG_PROCESS_ROLES: broker,controller
+      KAFKA_CFG_NODE_ID: 1
+      KAFKA_CFG_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_CFG_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CFG_LISTENERS: PLAINTEXT://:29092,CONTROLLER://:9093,EXTERNAL://:9092
+      KAFKA_CFG_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,EXTERNAL://${KAFKA_EXTERNAL_HOST:-localhost}:${KAFKA_EXTERNAL_PORT:-59092}
+      KAFKA_CFG_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_CFG_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CFG_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CFG_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_CFG_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_CFG_AUTO_CREATE_TOPICS_ENABLE: "true"
+      ALLOW_PLAINTEXT_LISTENER: "yes"
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/bitnami/kafka/bin/kafka-topics.sh --bootstrap-server localhost:9092 --list >/dev/null 2>&1"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+    restart: unless-stopped
+
+  commons-builder:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: springmicro-commons-builder
+    working_dir: /workspace
+    command: mvn -f commons/pom.xml -DskipTests install
+    volumes:
+      - ./:/workspace
+      - maven_repo:/root/.m2
+    restart: "no"
+
+  product-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: springmicro-product
+    working_dir: /workspace/product
+    command: mvn -DskipTests spring-boot:run
+    volumes:
+      - ./:/workspace
+      - maven_repo:/root/.m2
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=product_schema
+      SPRING_DATASOURCE_USERNAME: bloguser
+      SPRING_DATASOURCE_PASSWORD: bloguser
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    ports:
+      - "${PRODUCT_PORT:-8080}:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      commons-builder:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  cart-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: springmicro-cart
+    working_dir: /workspace/cart
+    command: mvn -DskipTests spring-boot:run
+    volumes:
+      - ./:/workspace
+      - maven_repo:/root/.m2
+    environment:
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    ports:
+      - "${CART_PORT:-8090}:8090"
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      commons-builder:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  order-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: springmicro-order
+    working_dir: /workspace/order
+    command: mvn -DskipTests spring-boot:run
+    volumes:
+      - ./:/workspace
+      - maven_repo:/root/.m2
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=order_schema
+      SPRING_DATASOURCE_USERNAME: bloguser
+      SPRING_DATASOURCE_PASSWORD: bloguser
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    ports:
+      - "${ORDER_PORT:-8091}:8091"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      commons-builder:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  user-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: springmicro-user
+    working_dir: /workspace/user
+    command: mvn -DskipTests spring-boot:run
+    volumes:
+      - ./:/workspace
+      - maven_repo:/root/.m2
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=user_schema
+      SPRING_DATASOURCE_USERNAME: bloguser
+      SPRING_DATASOURCE_PASSWORD: bloguser
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    ports:
+      - "${USER_PORT:-8085}:8085"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      commons-builder:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  payment-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: springmicro-payment
+    working_dir: /workspace/payment
+    command: mvn -DskipTests spring-boot:run
+    volumes:
+      - ./:/workspace
+      - maven_repo:/root/.m2
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=payment_schema
+      SPRING_DATASOURCE_USERNAME: bloguser
+      SPRING_DATASOURCE_PASSWORD: bloguser
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    ports:
+      - "${PAYMENT_PORT:-8095}:8095"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      commons-builder:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+  notification-service:
+    image: maven:3.9.9-eclipse-temurin-21
+    container_name: springmicro-notification
+    working_dir: /workspace/notification
+    command: mvn -DskipTests spring-boot:run
+    volumes:
+      - ./:/workspace
+      - maven_repo:/root/.m2
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=notification_schema
+      SPRING_DATASOURCE_USERNAME: bloguser
+      SPRING_DATASOURCE_PASSWORD: bloguser
+      SPRING_DATA_REDIS_HOST: redis
+      SPRING_DATA_REDIS_PORT: 6379
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SMTP_SERVER: ""
+      SMTP_PORT: 587
+      SMTP_LOGIN: ""
+      SMTP_KEY: ""
+    ports:
+      - "${NOTIFICATION_PORT:-8096}:8096"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      commons-builder:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  postgres_data:
+  redis_data:
+  maven_repo:

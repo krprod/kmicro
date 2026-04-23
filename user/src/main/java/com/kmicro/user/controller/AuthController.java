@@ -115,7 +115,7 @@ public class AuthController {
         return ResponseEntity.noContent().build();
     }
 
-    @Operation(summary = "Resend Verification By Validating User data")
+    @Operation(summary = "Returns Validated User data")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "204", description = "Data Fetched Successful"),
             @ApiResponse(responseCode = "409", description = "Global Error Handles")

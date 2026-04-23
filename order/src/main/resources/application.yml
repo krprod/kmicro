@@ -79,20 +79,9 @@ spring:
             host: localhost
             port: 6379
 
-springwolf:
-      docket:
-            base-package: com.kmicro.order
-            servers:
-                  kafka-server:
-                        url: ${KAFKA_BOOTSTRAP_SERVERS}
-                        protocol: KAFKA
-                        host: localhost:9092
-            info:
-                  title: Order and Cart Service Kafka Doc
-                  version: 1.0.0
-                  description: AsyncAPI documentation for the Order-Cart Microservice
-
-#logging:
+logging:
+      pattern:
+            level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
 #      level:
 #            org:
 #                  springframework:
@@ -107,7 +96,49 @@ management:
       endpoints:
             web:
                   exposure:
-                        include: health
+                        include: "*"
       health:
+            readiness-state:
+                  enabled: true
+            liveness-state:
+                  enabled: true
             jdbc:
                   enabled: true
+      endpoint:
+            shutdown:
+                  access: unrestricted
+            health:
+                  probes:
+                        enabled: true
+      info:
+            env:
+                  enabled: true
+      metrics:
+            tags:
+                  application: ${spring.application.name}
+
+springwolf:
+      docket:
+            base-package: com.kmicro.order
+            servers:
+                  kafka-server:
+                        url: ${KAFKA_BOOTSTRAP_SERVERS}
+                        protocol: KAFKA
+                        host: localhost:9092
+            info:
+                  title: Order and Cart Service Kafka Doc
+                  version: 1.0.0
+                  description: AsyncAPI documentation for the Order-Cart Microservice
+      ui:
+            path: /springwolf/asyncapi-ui.html
+      scanner:
+            async-api-json:
+                  path: /springwolf/docs
+
+springdoc:
+      api-docs:
+            path: /v3/api-docs
+      swagger-ui:
+            path: /swagger-ui/index.html
+      server:
+            url: http://localhost:9096/order-service

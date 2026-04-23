@@ -62,14 +62,9 @@ public class OrderMapper {
 //        orderDTO.setOrderItems(OrderItemMapper.mapEntityListToDTOList(orderEntity.getOrderItems()));
         return orderDTO;
     }
-    public static  OrderDTO mapEntityToDTOWithoutItems(OrderEntity orderEntity, ObjectMapper mapper) {
-        var orderdto = OrderMapper.mapEntityToDTOWithoutItems(orderEntity);
-        try {
-            orderdto.setShippingAddress(mapper.readValue(orderEntity.getShippingAddress(), CheckoutDetailsDTO.class));
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException(e);
-        }
-        return orderdto;
+
+    public static OrderDTO mapEntityToDTOWithoutItems(OrderEntity orderEntity, ObjectMapper mapper) {
+        return null;
     }
 
     public static  OrderDTO mapEntityToDTOWithItems(OrderEntity orderEntity) {
@@ -193,5 +188,11 @@ public class OrderMapper {
 
         dynamicEventCreator.add("body",body);
         return dynamicEventCreator.getPayload();
+    }
+
+    public static List<OrderDTO> entityToDTOListWithItemsAndAddress(List<OrderEntity> orderEntity, ObjectMapper objectMapper) {
+        return orderEntity.stream()
+                .map(order -> OrderMapper.mapEntityToDTOWithItems(order, objectMapper))
+                .collect(Collectors.toList());
     }
 }

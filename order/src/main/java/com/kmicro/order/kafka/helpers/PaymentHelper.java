@@ -19,7 +19,7 @@ public class PaymentHelper {
     }
 
     public  String getTransactionID(){
-        return "pay_" + this.paymentID(14);
+        return "pay_" + this.paymentID(18);
     }
 
     private  String paymentID(Integer length){

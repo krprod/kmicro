@@ -1,5 +1,6 @@
 package com.kmicro.order.controller;
 
+import com.kmicro.order.annotation.RequiresRole;
 import com.kmicro.order.dtos.CartDTO;
 import com.kmicro.order.service.CartService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/carts")
+@RequiresRole(value = {"ROLE_USER", "ROLE_ADMIN"})
 @Tag(name = "Cart Controller", description = "Operations for cart lifecycle")
 public class CartController {
 
@@ -50,11 +52,6 @@ public class CartController {
     @PutMapping("/bulk-add-update")
     public ResponseEntity<Void> bulkAddCart(@RequestBody List<CartDTO> cartDTO){
         cartService.bulkAddCart(cartDTO);
-        try {
-            Thread.sleep(2000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
         return ResponseEntity.noContent().build();
     }
 

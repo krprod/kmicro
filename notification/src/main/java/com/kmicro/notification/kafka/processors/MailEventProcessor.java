@@ -78,6 +78,6 @@ public class MailEventProcessor {
 
         private void flushEntity(NotificationsEntity entity){
                 DBOps.saveDataInDB(entity);
-                log.info("Entity Flushed Successful");
+                log.info("MailEventProcessor Flushed Successful");
         }
 }

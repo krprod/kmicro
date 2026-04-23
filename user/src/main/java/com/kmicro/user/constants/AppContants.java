@@ -16,10 +16,12 @@ public final class AppContants {
     public static final Long RESEND_COOLDOWN_MINUTES = 5L;
 
     public static final String REDIS_VERIFY_KEY_PREFIX = "verify:";
-    public static final String VERIFICATION_LINK_URI = "http://localhost:8085/api/auth/verify?token=";
+    public static final String VERIFICATION_LINK_URI = System.getenv("VERIFICATION_LINK_URI");
+//    public static final String VERIFICATION_LINK_URI = "http://localhost:8085/api/auth/verify?token=";
 
     public static final String SERVICE_REDIS_KEY_PREFIX = "USR";
     public static final String CACHE_ADDRESS_KEY_PX = "address";
+    public static final String CACHE_ADMIN_KEY_PX = "admin";
     public static final String CACHE_USER_KEY_PX = "user";
 
 

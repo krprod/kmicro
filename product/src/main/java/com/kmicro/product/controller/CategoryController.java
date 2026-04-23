@@ -1,5 +1,6 @@
 package com.kmicro.product.controller;
 
+import com.kmicro.product.annotation.RequiresRole;
 import com.kmicro.product.dtos.CategoryDTO;
 import com.kmicro.product.service.CategoryService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -14,6 +15,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/category")
+@RequiresRole("ROLE_ADMIN")
 @Tag(name = "Category Controller", description = "Operations for category lifecycle")
 public class CategoryController {
 

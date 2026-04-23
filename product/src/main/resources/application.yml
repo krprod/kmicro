@@ -48,17 +48,47 @@ logging:
       level:
             org:
             springframework.orm.jpa: DEBUG
-            hibernate:
-                  resource.transaction: DEBUG
-                  SQL: DEBUG
-                  orm.jdbc.bind: TRACE
+#            hibernate:
+#                  resource.transaction: DEBUG
+#                  SQL: DEBUG
+#                  orm.jdbc.bind: TRACE
             cache:  TRACE
+      pattern:
+            level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
 
 management:
       endpoints:
             web:
                   exposure:
-                        include: health
+                        include: "*"
       health:
+            readiness-state:
+                  enabled: true
+            liveness-state:
+                  enabled: true
             jdbc:
                   enabled: true
+      endpoint:
+            shutdown:
+                  access: unrestricted
+            health:
+                  probes:
+                        enabled: true
+      info:
+            env:
+                  enabled: true
+      metrics:
+            tags:
+                  application: ${spring.application.name}
+
+springdoc:
+      api-docs:
+            path: /v3/api-docs
+      swagger-ui:
+            path: /swagger-ui/index.html
+      server:
+            # This ensures "Try it out" sends requests to the Gateway port 9096
+            url: http://localhost:9096/product-service
+#springdoc:
+#      server:
+#            url: http://localhost:9096/product-service

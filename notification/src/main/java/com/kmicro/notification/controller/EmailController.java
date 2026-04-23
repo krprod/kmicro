@@ -1,6 +1,7 @@
 package com.kmicro.notification.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.kmicro.notification.annotation.RequiresRole;
 import com.kmicro.notification.dtos.KafkaEventRec;
 import com.kmicro.notification.dtos.MailRequestRec;
 import com.kmicro.notification.dtos.RequestedJsonRecord;
@@ -26,6 +27,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/emails")
 @Validated
 @Tag(name = "Email Controller", description = "Operations for Email Notification")
+@RequiresRole(value = {"ROLE_ADMIN"})
 public class EmailController {
 
     @Autowired

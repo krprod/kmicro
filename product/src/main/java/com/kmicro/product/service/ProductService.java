@@ -120,7 +120,7 @@ public class ProductService {
 //            @CacheEvict(value = AppConstants.CACHE_PREFIX_PRODUCT_LIST, key = " 'all' "),
 //    })
     @Transactional
-    public BulkUpdateResponseRecord bulkUpdateProduct(List<ProductDTO> productList) {
+    public BulkResponseRecord bulkUpdateProduct(List<ProductDTO> productList) {
         List<Long> successIds = new ArrayList<>();
         List<BulkErrorResponseRecord> errors = new ArrayList<>();
         List<ProductEntity> entitiesToSave = new ArrayList<>();
@@ -159,13 +159,20 @@ public class ProductService {
             log.info("Product Fail-Safe -- Product Updated Successful");
         }
 
-        return new BulkUpdateResponseRecord(successIds, errors);
+        return new BulkResponseRecord(successIds, errors);
     }
 
     public void deleteProduct(Long id) {
         // check carts cache before delete
         // only admin can final delete
-        productRepository.deleteById(id);
+        productRepository
+                .findById(id)
+                .ifPresent(entity -> {
+                    entity.setIsActive(false);
+                    productRepository.save(entity);
+                    cacheUtils.updateProductListToCache(ProductMapper.mapEntityToDtoList(List.of(entity)));
+        });
+//        productRepository.deleteById(id);
     }
 
     public ProductDTO getProductById(Long id) {
@@ -212,7 +219,9 @@ public class ProductService {
 
         Page<ProductEntity>paginatedResult =  productRepository.findAll(searchAndFilterSpec, restrictedPageable);
         log.info("Paginated Result ready....");
-        List<ProductDTO> dtos = paginatedResult.stream().map(ProductMapper::EntityToDTO).toList();
+        List<ProductDTO> dtos = paginatedResult.stream()
+                                                                                            .filter(ProductEntity::getIsActive)
+                                                                                            .map(ProductMapper::EntityToDTO).toList();
 
        return PaginationUtils.toPagedResponse(paginatedResult, dtos);
     }
@@ -224,7 +233,7 @@ public class ProductService {
 
 
     @Transactional
-    public BulkUpdateResponseRecord changeQtyBoughtProduct(List<BoughtProductRecord> productRecords) {
+    public BulkResponseRecord changeQtyBoughtProduct(List<BoughtProductRecord> productRecords) {
         List<Long> successIds = new ArrayList<>();
         List<BulkErrorResponseRecord> errors = new ArrayList<>();
         List<ProductEntity> entitiesToSave = new ArrayList<>();
@@ -265,11 +274,11 @@ public class ProductService {
             cacheUtils.updateProductListToCache(ProductMapper.mapEntityToDtoList(savedEntityList));
         }
 
-        return new BulkUpdateResponseRecord(successIds, errors);
+        return new BulkResponseRecord(successIds, errors);
     }
 
     @Transactional
-    public BulkUpdateResponseRecord changeQtyBoughtProductOptimized(List<BoughtProductRecord> productRecords){
+    public BulkResponseRecord changeQtyBoughtProductOptimized(List<BoughtProductRecord> productRecords){
         List<Long> successIds = new ArrayList<>();
         List<BulkErrorResponseRecord> errors = new ArrayList<>();
         List<ProductEntity> entitiesToSave = new ArrayList<>();
@@ -311,10 +320,12 @@ public class ProductService {
             var savedEntityList = productRepository.saveAll(entitiesToSave);
             cacheUtils.updateProductListToCache(ProductMapper.mapEntityToDtoList(savedEntityList));
         }
-        return new BulkUpdateResponseRecord(successIds, errors);
+        return new BulkResponseRecord(successIds, errors);
     }
 
-
+    /*
+    *   Check Single Product Availability
+    * */
     public ProductDTO checkProductAvailability(@Valid BoughtProductRecord productRecord) {
         ProductDTO product = getProductById(productRecord.id());
         if(product.getQuantity() > productRecord.qty() && product.getQuantity() - productRecord.qty() > 1){
@@ -322,5 +333,46 @@ public class ProductService {
         }
         log.info("Product is not in sufficient quantity: {}",product.getQuantity());
         throw new DataNotExistException("Product is not in sufficient quantity: {}",product.getQuantity());
+    }
+
+    /*
+     *   Check Multiple Product Availability At Once
+     * */
+    public BulkResponseRecord checkProductAvailability(@Valid List<BoughtProductRecord> productList) {
+        List<Long> successIds = new ArrayList<>();
+        List<BulkErrorResponseRecord> errors = new ArrayList<>();
+
+        //-- Query for Unique IDs
+        Set<Long> productRecIdSet = productList.stream().map(BoughtProductRecord::id).collect(Collectors.toSet());
+
+        Map<Long, Integer> productIdAndEntityMap = productRepository.findByIdIn(productRecIdSet)
+                .stream().collect(Collectors.toMap(ProductEntity::getId, ProductEntity::getStockQuantity));
+
+        for (BoughtProductRecord record : productList) {
+            Integer productQuantity = productIdAndEntityMap.get(record.id());
+
+            if (productQuantity == null) {
+                errors.add(new BulkErrorResponseRecord(record.id(), "Product ID: " + record.id() +" not found in database"));
+                log.error("Product ID: {} not found in database", record.id());
+                continue;
+            }
+            try{
+                // 2. check if qty > existingQty and existingQty-qty < 1
+                if(productQuantity > record.qty() && productQuantity - record.qty() > 1){
+                    // 3. change existingQty
+                    successIds.add(record.id());
+                    log.info("Product ID: {} Quantity left: {}",record.id(), productQuantity);
+                }else {
+                    errors.add(new BulkErrorResponseRecord(record.id(),"Product ID: " + record.id() +" is not in sufficient quantity"));
+                    log.info("Product is not in sufficient quantity: {}",productQuantity);
+                }
+
+            } catch (Exception ex) {
+                errors.add(new BulkErrorResponseRecord(record.id(),"Internal error: " + ex.getMessage()));
+                log.error("Exception Occured in BoughtProduct:", ex);
+//                log.debug(ex.printStackTrace());
+            }
+        }
+        return new BulkResponseRecord(successIds, errors);
     }
 }// endClass
