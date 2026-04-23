@@ -178,12 +178,12 @@ public class UsersEventProcessor {
 
     private void flushEntities(NotificationsEntity notification, UserDataEntity userData){
         DBOps.saveDataInDB(notification, userData);
-        log.info("Entities Flushed Successful");
+        log.info("UsersEventProcessor Flushed Successful");
     }
 
     private void flushEntities(NotificationsEntity notification, UserDataEntity userData, UserAddressEntity userAddressEntity){
         DBOps.saveDataInDB(notification, userData, userAddressEntity);
-        log.info("Entities Flushed Successful");
+        log.info("UsersEventProcessor Flushed Successful with UserAddressEntity");
     }
 
 }//EC

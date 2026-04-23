@@ -5,6 +5,7 @@ import ch.qos.logback.classic.LoggerContext;
 import com.kmicro.user.dtos.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.ArrayList;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/user-service/logs")
+@PreAuthorize("hasRole('ROLE_ADMIN')")
 public class LogController {
 
 //    @Hidden
@@ -23,7 +25,7 @@ public class LogController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Logger>> getloglist(){
+    public ResponseEntity<List<Logger>> getLogList(){
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
         List<Logger> loggers = new ArrayList<>();
         for (ch.qos.logback.classic.Logger logger : context.getLoggerList()) {

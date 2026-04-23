@@ -1,6 +1,5 @@
 package com.kmicro.product.dtos;
 
-import jakarta.persistence.Column;
 import lombok.*;
 
 @Getter @Setter @AllArgsConstructor @NoArgsConstructor
@@ -19,13 +18,16 @@ public class ProductDTO {
     @NonNull
     private String  category;
 
-    @Column(name = "in_stock")
+//    @Column(name = "in_stock")
     private Boolean inStock;
 
     private Double rating;
 
-    @Column(name = "review_count")
+//    @Column(name = "review_count")
     private Integer reviewCount;
 
     private String image;
+
+//    @Column(name = "is_active")
+    private Boolean isActive;
 }

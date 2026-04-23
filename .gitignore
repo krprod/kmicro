@@ -1,3 +1,8 @@
 /volume
 1docker-compose.yml
+x.pdf
 .idea
+/deployment/playground/.env.ec2
+/deployment/playground/.env.local
+/deployment/ObservabilityAndMonitoring/Observers/.env.local
+/deployment/ObservabilityAndMonitoring/Observers/.data

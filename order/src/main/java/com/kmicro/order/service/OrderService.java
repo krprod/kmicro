@@ -3,11 +3,9 @@ package com.kmicro.order.service;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.kmicro.order.constants.AppConstants;
 import com.kmicro.order.constants.KafkaConstants;
+import com.kmicro.order.constants.PaymentMethod;
 import com.kmicro.order.constants.Status;
-import com.kmicro.order.dtos.ChangeOrderStatusRec;
-import com.kmicro.order.dtos.CheckoutDetailsDTO;
-import com.kmicro.order.dtos.OrderDTO;
-import com.kmicro.order.dtos.OrderItemDTO;
+import com.kmicro.order.dtos.*;
 import com.kmicro.order.entities.OrderEntity;
 import com.kmicro.order.kafka.producers.ExternalEventProducer;
 import com.kmicro.order.kafka.producers.InternalEventProducer;
@@ -25,8 +23,10 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.kmicro.order.constants.AppConstants.ASIA_ZONE_ID;
 
@@ -120,8 +120,7 @@ public class OrderService {
             return orderDTO;
         } catch (Exception e) {
             log.error("Exception Occured at proceedCheckOut: {}",e.getMessage());
-            log.debug("detailedMessage: {}",e.getStackTrace());
-            e.printStackTrace();
+            log.debug("Exception: ",e);
             throw new RuntimeException("Something Went Wrong!");
         }
     }
@@ -148,8 +147,57 @@ public class OrderService {
         log.info("Order Found In Redis for Key: {}",AppConstants.REDIS_ORDER_KEY_PREFIX + orderID.toString());
         return cachedOrder;
     }
+
     public void removeItemFromOrder(Long orderItemID) {
         orderItemRepository.deleteById(orderItemID);
+    }
+
+    public List<OrderDTO> getAllOrders() {
+        return orderRepository.findAll()
+                .stream()
+                .map(order -> OrderMapper.mapEntityToDTOWithItems(order, objectMapper))
+                .collect(Collectors.toList());
+    }
+
+    @CacheEvict(value = AppConstants.CACHE_PREFIX_USER, key = "#editOrderRec.userID()")
+    public void editOrder(Long orderID, EditOrderRec editOrderRec) {
+       OrderEntity orderEntity = orderRepository.findByIdAndUserId(orderID,editOrderRec.userID())
+                    .orElseThrow(() -> new RuntimeException("Order Not Found"));
+                    orderEntity.setTrackingNumber(editOrderRec.trackingNumber());
+                    orderEntity.setPaymentStatus(editOrderRec.paymentStatus());
+                    orderEntity.setTotalAmount(editOrderRec.totalAmount());
+                    orderEntity.setStatus(Status.valueOf(editOrderRec.orderStatus().toUpperCase()));
+                    orderRepository.save(orderEntity);
+//        return orderRepository.findById(orderID).map(OrderMapper::mapEntityToDTOWithItems).orElseThrow(() -> new RuntimeException("Order Not Found"));
+    }
+
+    public void addOrder(EditOrderRec editOrderRec) {
+        OrderEntity newOrder = new OrderEntity();
+        newOrder.setShippingFee(100.00);
+        newOrder.setUserId(editOrderRec.userID());
+        newOrder.setTrackingNumber(editOrderRec.trackingNumber());
+        newOrder.setPaymentStatus(editOrderRec.paymentStatus());
+        newOrder.setTotalAmount(editOrderRec.totalAmount() + 100.00);
+        newOrder.setSubtotal(editOrderRec.totalAmount());
+        newOrder.setStatus(Status.valueOf(editOrderRec.orderStatus().toUpperCase()));
+        newOrder.setPaymentMethod(PaymentMethod.PAYPAL.name());
+        newOrder.setTransactionId("pay_randmonPaymentID");
+        newOrder.setShippingAddress(
+                "{\n" +
+                        "  \"name\": \"Admin is King\",\n" +
+                        "  \"email\": \"adminKing@gmail.com\",\n" +
+                        "  \"contact\": \"42512658949\",\n" +
+                        "  \"paymentMode\": \"paypal\",\n" +
+                        "  \"city\": \"Brookline\",\n" +
+                        "  \"state\": \"Nevada\",\n" +
+                        "  \"country\": \"Latvia\",\n" +
+                        "  \"address_id\": 0,\n" +
+                        "  \"shipping_address\": \"36723 S Water Street\",\n" +
+                        "  \"zip_code\": \"526011778\"\n" +
+                        "}"
+        );
+        newOrder.setInitialTimeStamp(Instant.now());
+        orderRepository.save(newOrder);
     }
 
 

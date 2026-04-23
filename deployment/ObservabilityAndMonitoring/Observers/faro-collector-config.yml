@@ -1,0 +1,70 @@
+# faro-collector-config.yaml
+server:
+      http_listen_port: 12345
+      http_listen_address: 0.0.0.0
+
+      # Enable CORS for browser requests
+      cors:
+            allowed_origins:
+                  - "https://app.example.com"
+                  - "https://www.example.com"
+            allowed_methods:
+                  - POST
+                  - GET
+                  - OPTIONS
+
+receivers:
+      faro:
+            # Maximum payload size
+            max_allowed_payload_size: 1048576  # 1MB
+
+processors:
+      # Filter out sensitive data
+      attributes:
+            actions:
+                  - key: user.email
+                    action: delete
+                  - key: user.ip
+                    action: hash
+
+      # Add environment labels
+      resource:
+            attributes:
+                  - key: environment
+                    value: production
+                    action: insert
+
+exporters:
+      # Send logs to Loki
+      loki:
+            endpoint: http://loki:3100/loki/api/v1/push
+            labels:
+                  job: faro
+                  source: frontend
+
+      # Send traces to Tempo
+      otlp/tempo:
+            endpoint: tempo:4317
+            tls:
+                  insecure: true
+
+      # Send metrics to Prometheus
+      prometheusremotewrite:
+            endpoint: http://prometheus:9090/api/v1/write
+
+service:
+      pipelines:
+            logs:
+                  receivers: [faro]
+                  processors: [attributes, resource]
+                  exporters: [loki]
+
+            traces:
+                  receivers: [faro]
+                  processors: [resource]
+                  exporters: [otlp/tempo]
+
+            metrics:
+                  receivers: [faro]
+                  processors: [resource]
+                  exporters: [prometheusremotewrite]

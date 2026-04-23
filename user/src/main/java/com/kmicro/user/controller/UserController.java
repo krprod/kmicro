@@ -11,8 +11,11 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/users")
@@ -45,6 +48,7 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Global Error Handles")
     })
     @DeleteMapping
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<String>deleteUser(HttpServletRequest request){
         userService.deleteUser(request);
         return ResponseEntity.ok("Success");
@@ -56,10 +60,35 @@ public class UserController {
             @ApiResponse(responseCode = "400", description = "Global Error Handles")
     })
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<UserDTO>updateExistingUser(@Valid @RequestBody UserDetailUpdateRec userDetailUpdateRec, @PathVariable(name = "id") Long id){
         UserDTO userDTO  = userService.updateExistingUser(userDetailUpdateRec, id);
         return ResponseEntity.ok(userDTO);
     }
+
+    @Operation(summary = "Get All Existing User For Admin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Fetch Successful"),
+            @ApiResponse(responseCode = "400", description = "Global Error Handles")
+    })
+    @GetMapping("/admin/get-all-users/")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<List<UserDTO>>getAllUserForAdmin(){
+        return ResponseEntity.ok(userService.getAllUsers());
+    }
+
+    @Operation(summary = "Delete, Lock and User by admin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Deletion Successful"),
+            @ApiResponse(responseCode = "400", description = "Global Error Handles")
+    })
+    @DeleteMapping("/admin/user/{id}")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    public ResponseEntity<String>deleteUserForAdmin(@PathVariable(name = "id") Long id){
+        userService.userDeleteByAdmin(id);
+        return ResponseEntity.ok("Success");
+    }
+
 
 
 }//EC

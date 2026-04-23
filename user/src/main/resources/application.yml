@@ -58,6 +58,53 @@ spring:
                         enabled: true
                         attempts: 3
                         delay: 5000 # 5 seconds between retries
+
+      redis:
+            host: localhost
+            port: 6379
+
+logging:
+      level:
+            org:
+                  springframework:
+#                        cache: TRACE
+#      pattern:
+#            level: "%5p [${spring.application.name},%X{trace_id},%X{span_id}]"
+#                        security: DEBUG
+#                        kafka: DEBUG
+#                  hibernate:
+#                        orm:
+#                              jdbc:
+#                                    bind: TRACE
+management:
+      endpoints:
+            web:
+                  exposure:
+                        include: "*"
+      health:
+            readiness-state:
+                  enabled: true
+            liveness-state:
+                  enabled: true
+            jdbc:
+                  enabled: true
+      endpoint:
+            shutdown:
+                  access: unrestricted
+            health:
+                  probes:
+                        enabled: true
+      info:
+            env:
+                  enabled: true
+      metrics:
+            tags:
+                  application: ${spring.application.name}
+
+auth:
+      jwt:
+            secret: ${JWT_SECRET:asdf}
+
 springwolf:
       docket:
             base-package: com.kmicro.user
@@ -70,14 +117,16 @@ springwolf:
                   title: User Service Kafka Doc
                   version: 1.0.0
                   description: AsyncAPI documentation for the User Microservice
-logging:
-      level:
-            org:
-                  springframework:
-                        cache: TRACE
-#                        security: DEBUG
-#                        kafka: DEBUG
-#                  hibernate:
-#                        orm:
-#                              jdbc:
-#                                    bind: TRACE
+      ui:
+            path: /springwolf/asyncapi-ui.html
+      scanner:
+            async-api-json:
+                  path: /springwolf/docs
+
+springdoc:
+      api-docs:
+            path: /v3/api-docs
+      swagger-ui:
+            path: /swagger-ui/index.html
+      server:
+            url: http://localhost:9096/user-service

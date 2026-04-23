@@ -1,12 +1,10 @@
 package com.kmicro.user.utils;
 
-import com.kmicro.user.constants.AppContants;
 import com.kmicro.user.exception.JWTFailureException;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -24,22 +22,23 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 @Component
-@RequiredArgsConstructor
 @Slf4j
 public class JwtUtil {
     // IMPORTANT: Replace this with a robust key loaded from application.properties
     // For demonstration, we generate a 256-bit key.
 //    private final Key SECRET_KEY = secretKey();
-    private final long EXPIRATION_TIME = 1000 * 60*60 ; // 10 hours
+    private final long EXPIRATION_TIME = 1000 * 60*60 ; // 1 hours
 //    private static final DateTimeFormatter FORMATTER =  java.time.format.DateTimeFormatter.ofPattern("yyyy-MM-dd:HH:mm:ss");
-    private final Environment env;
 
-    private Key secretKey(){
-        String secret = null;
-        if(null != env){
-            secret = env.getProperty(AppContants.JWT_SECRET_KEY, AppContants.JWT_SECRET_DEFAULT_VALUE);
-        }
-        return Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
+
+//    @Value("${auth.jwt.secret}")
+//    private String SECRET_KEY;
+
+    private final Key secretKey;
+
+    JwtUtil( @Value("${auth.jwt.secret}") String SECRET_KEY){
+//        System.out.println("Secret Key: " + SECRET_KEY);
+        this.secretKey = Keys.hmacShaKeyFor(SECRET_KEY.getBytes(StandardCharsets.UTF_8));
     }
 
     public String generateToken(String useremail) {
@@ -69,7 +68,7 @@ public class JwtUtil {
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + EXPIRATION_TIME))
-                .signWith(secretKey(), SignatureAlgorithm.HS256)
+                .signWith(secretKey, SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -80,7 +79,7 @@ public class JwtUtil {
 
     public boolean validateToken(String token){
         try {
-            Jwts.parser().setSigningKey(secretKey()).parseClaimsJws(token.trim());
+            Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token.trim());
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
             log.info("Invalid JWT signature.");
@@ -125,7 +124,7 @@ public class JwtUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(secretKey()).build().parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder().setSigningKey(secretKey).build().parseClaimsJws(token).getBody();
     }
 
     public  Claims getClaims(String token){
