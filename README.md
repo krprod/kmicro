@@ -1,6 +1,6 @@
 # 📦 KMicro – Microservices Ecommerce Platform
-![GitHub Repo Size](https://img.shields.io/github/repo-size/krprod/kmicro)  ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/krprod/kmicro/maven.yml?branch=main)  ![License](https://img.shields.io/github/license/krprod/kmicro)
-![Visitors](https://komarev.com/ghpvc/?username=krprod&label=Visitor&base=1000&color=brightgreen)
+![GitHub Repo Size](https://img.shields.io/github/repo-size/krprod/kmicro)  ![GitHub Workflow Status](https://img.shields.io/github/actions/workflow/status/krprod/kmicro/maven.yml?branch=main)  ![License](https://img.shields.io/github/license/krprod/kmicro)  ![Visitors](https://komarev.com/ghpvc/?username=krprod&label=Visitor&base=1000&color=brightgreen)
+
 A **Spring Boot based microservices ecommerce backend** — architected to demonstrate a production-ready, scalable microservices ecosystem with API documentation, message-driven flows (Kafka), Redis caching, and more.
 
 ---
