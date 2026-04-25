@@ -1,5 +1,6 @@
 server:
   port: 9096
+  forward-headers-strategy: framework
 
 spring:
   application:
@@ -11,9 +12,24 @@ spring:
       # This is the new required nesting for your version
       server:
         webflux:
+          httpclient:
+            connect-timeout: 1000
+            response-timeout: 10s
+    default-filters:
+      -     name: RequestRateLimiter
+            args:
+              redis-rate-limiter.replenishRate: 10
+              redis-rate-limiter.burstCapacity: 20
+              redis-rate-limiter.requestedTokens: 1
+              key-resolver: '#{@userKeyResolver}'
+      #                key-resolver: '#@RequestRateLimiterKeyResolver'
+      -     name: CircuitBreaker
+            args:
+              name: "default"
+              fallbackUri: "forward:/contactSupport"
 #          globalcors:
 #            add-to-simple-url-handler-mapping: true
-          routes:
+#          routes:
 #            - id: product-service-route
 #              uri: http://localhost:${PRODUCT_PORT}
 #              predicates:
@@ -82,8 +98,10 @@ spring:
 #               allowCredentials: false
   data:
     redis:
+      connect-timeout: 2s
       host: localhost
-      port: 56379
+      port: 6379
+      timeout: 1s
 
 management:
   endpoints:
@@ -110,6 +128,14 @@ auth:
     secret: ${JWT_SECRET}
 
 frontURL: ${FRONTEND_URL}
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 10
+      permittedNumberOfCallsInHalfOpenState: 2
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10000
 
 springdoc:
   api-docs.enabled: true

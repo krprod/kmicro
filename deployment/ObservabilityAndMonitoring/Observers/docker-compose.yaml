@@ -260,8 +260,8 @@ services:
             POSTGRES_DB: springmicro
             POSTGRES_USER: bloguser
             POSTGRES_PASSWORD: bloguser
-      ports:
-            - "${POSTGRES_PORT:-55432}:5432"
+#      ports:
+#            - "${POSTGRES_PORT:-55432}:5432"
       volumes:
             - postgres_data:/var/lib/postgresql/data
       healthcheck:
@@ -279,8 +279,8 @@ services:
   redis:
       image: redis:7-alpine
       container_name: springmicro-redis-1
-      ports:
-            - "${REDIS_PORT:-56379}:6379"
+#      ports:
+#            - "${REDIS_PORT:-56379}:6379"
       volumes:
             - redis_data:/data
       healthcheck:
@@ -348,13 +348,14 @@ services:
 #            - loki
 
   product-service:
-      image: maven:3.9.9-eclipse-temurin-21
+#      image: maven:3.9.9-eclipse-temurin-21
+      image: "kmicro/product:s1"
       container_name: springmicro-product-1
-      working_dir: /workspace/product
-      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
-      volumes:
-            - ../../../:/workspace
-            - maven_repo:/root/.m2
+#      working_dir: /workspace/product
+#      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
+#      volumes:
+#            - ../../../:/workspace
+#            - maven_repo:/root/.m2
 #            - ./libs/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
       environment:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=product_schema
@@ -368,8 +369,8 @@ services:
 #            OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST: "User-Agent,x-auth-user-id,Content-Type"
 #            OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST: "x-auth-user-id,X-Auth-User-Id, host"
 #            OTEL_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS: "x-auth-user-id"
-      ports:
-            - "${PRODUCT_PORT:-8080}:8080"
+#      ports:
+#            - "${PRODUCT_PORT:-8080}:8080"
       healthcheck:
             test: "curl --fail --silent localhost:8080/actuator/health/readiness | grep UP || exit 1"
             interval: 20s
@@ -391,13 +392,14 @@ services:
 #            - loki
 
   user-service:
-      image: maven:3.9.9-eclipse-temurin-21
+#      image: maven:3.9.9-eclipse-temurin-21
+      image: "kmicro/user:s1"
       container_name: springmicro-user-1
-      working_dir: /workspace/user
-      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
-      volumes:
-            - ../../../:/workspace
-            - maven_repo:/root/.m2
+#      working_dir: /workspace/user
+#      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
+#      volumes:
+#            - ../../../:/workspace
+#            - maven_repo:/root/.m2
 #            - ./libs/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
       environment:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=user_schema
@@ -410,8 +412,8 @@ services:
             VERIFICATION_LINK_URI: "${VERIFICATION_LINK_URI:-http://localhost:5173/auth/verify/}"
             OTEL_SERVICE_NAME: "user-service"
             JWT_SECRET: "${JWT_SECRET:-jxgEQeXHuPq8VdbyYFNkANdudQ53YUn4}"
-      ports:
-            - "${USER_PORT:-8085}:8085"
+#      ports:
+#            - "${USER_PORT:-8085}:8085"
       healthcheck:
             test: "curl --fail --silent localhost:8085/actuator/health/readiness | grep UP || exit 1"
             interval: 20s
@@ -433,13 +435,13 @@ services:
 #            - loki
 
   order-service:
-      image: maven:3.9.9-eclipse-temurin-21
+      image: "kmicro/order:s1"
       container_name: springmicro-order-1
-      working_dir: /workspace/order
-      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
-      volumes:
-            - ../../../:/workspace
-            - maven_repo:/root/.m2
+#      working_dir: /workspace/order
+#      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
+#      volumes:
+#            - ../../../:/workspace
+#            - maven_repo:/root/.m2
 #            - ./libs/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
       environment:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=order_schema
@@ -451,8 +453,8 @@ services:
             KAFKA_BOOTSTRAP_SERVERS: kafka:29092
             FRONTEND_URL: "${FRONTEND_URL:-http://localhost:5173}"
             OTEL_SERVICE_NAME: "order-service"
-      ports:
-            - "${ORDER_PORT:-8091}:8091"
+#      ports:
+#            - "${ORDER_PORT:-8091}:8091"
       healthcheck:
             test: "curl --fail --silent localhost:8091/actuator/health/readiness | grep UP || exit 1"
             interval: 20s
@@ -474,13 +476,13 @@ services:
 #            - loki
 
   notification-service:
-      image: maven:3.9.9-eclipse-temurin-21
+      image: "kmicro/notification:s1"
       container_name: springmicro-notification-1
-      working_dir: /workspace/notification
-      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
-      volumes:
-            - ../../../:/workspace
-            - maven_repo:/root/.m2
+#      working_dir: /workspace/notification
+#      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
+#      volumes:
+#            - ../../../:/workspace
+#            - maven_repo:/root/.m2
 #            - ./libs/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
       environment:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=notification_schema
@@ -496,8 +498,8 @@ services:
             SMTP_KEY: "${SMTP_KEY}"
             NO_REPLY_MAIL_ADDRESS: "${NO_REPLY_MAIL_ADDRESS}"
             OTEL_SERVICE_NAME: "notification-service"
-      ports:
-            - "${NOTIFICATION_PORT:-8096}:8096"
+#      ports:
+#            - "${NOTIFICATION_PORT:-8096}:8096"
       healthcheck:
             test: "curl --fail --silent localhost:8096/actuator/health/readiness | grep UP || exit 1"
             interval: 20s
@@ -520,13 +522,14 @@ services:
 
 
   apiGateway-service:
-        image: maven:3.9.9-eclipse-temurin-21
+        image: "kmicro/apigateway:s2"
+#        image: maven:3.9.9-eclipse-temurin-21
         container_name: springmicro-apiGateway-1
-        working_dir: /workspace/apiGateway
-        command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
-        volumes:
-              - ../../../:/workspace
-              - maven_repo:/root/.m2
+#        working_dir: /workspace/apiGateway
+#        command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
+#        volumes:
+#              - ../../../:/workspace
+#              - maven_repo:/root/.m2
         environment:
               SPRING_DATA_REDIS_HOST: redis
               SPRING_DATA_REDIS_PORT: 6379
@@ -552,10 +555,25 @@ services:
                     condition: service_healthy
               notification-service:
                     condition: service_healthy
+        deploy:
+              resources:
+                    limits:
+                          memory: 512M
         restart: unless-stopped
         extends:
               file: common-config.yml
               service: microservice-base-config
+
+  cloudflared:
+      image: cloudflare/cloudflared:latest
+      container_name: cloudflared-tunnel
+      restart: always
+      environment:
+            - TUNNEL_TOKEN=${CLOUDFLARE_TUNNEL_TOKEN}
+      command: tunnel run
+      extends:
+            file: common-config.yml
+            service: network-deploy-service
 
 #  faro-collector:
 #        image: grafana/faro-collector:latest

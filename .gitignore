@@ -6,3 +6,4 @@ x.pdf
 /deployment/playground/.env.local
 /deployment/ObservabilityAndMonitoring/Observers/.env.local
 /deployment/ObservabilityAndMonitoring/Observers/.data
+deployment/playground/UseReadME.md
