@@ -1,7 +1,9 @@
 package com.kmicro.order.controller;
 
+import com.kmicro.order.annotation.RequiresRole;
 import com.kmicro.order.dtos.ChangeOrderStatusRec;
 import com.kmicro.order.dtos.CheckoutDetailsDTO;
+import com.kmicro.order.dtos.EditOrderRec;
 import com.kmicro.order.dtos.OrderDTO;
 import com.kmicro.order.service.OrderService;
 import io.swagger.v3.oas.annotations.Hidden;
@@ -17,6 +19,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
+@RequiresRole(value = {"ROLE_USER", "ROLE_ADMIN"})
 @Tag(name = "Order Controller", description = "Operations for Order lifecycle")
 public class OrderController {
 
@@ -84,6 +87,7 @@ public class OrderController {
             @ApiResponse(responseCode = "400", description = "Failed Global Handler")
     })
     @PutMapping("/update-status")
+    @RequiresRole(value = {"ROLE_ADMIN"})
     public ResponseEntity<OrderDTO> changeOrderStatus(@RequestBody ChangeOrderStatusRec orderStatusRec){
         OrderDTO responseDTO  = orderService.changeOrderStatus(orderStatusRec);
         return ResponseEntity.status(200).body(responseDTO);
@@ -101,7 +105,41 @@ public class OrderController {
         return  ResponseEntity.ok(cachedOrder);
     }
 
+    @Operation(summary = "Get  All Orders  from Db for admin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Orders Retrieved Successfully"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @GetMapping("/admin/all-orders")
+    @RequiresRole(value = {"ROLE_ADMIN"})
+    public ResponseEntity<List<OrderDTO>> getAllOrders() {
+        List<OrderDTO> orderDTOList = orderService.getAllOrders();
+        return ResponseEntity.ok(orderDTOList);
+    }
 
+    @Operation(summary = "Edit existing order in Db for admin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Orders updated Successfully"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @PutMapping("/admin/edit-order/{orderID}")
+    @RequiresRole(value = {"ROLE_ADMIN"})
+    public ResponseEntity<String> editOrder(@PathVariable(value = "orderID") Long orderID, @RequestBody EditOrderRec editOrderRec) {
+        orderService.editOrder(orderID, editOrderRec);
+        return ResponseEntity.ok("UPDATED SUCCESSFULLY");
+    }
+
+    @Operation(summary = "Add new Order in Db for admin")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Orders ADDED Successfully"),
+            @ApiResponse(responseCode = "400", description = "Failed Global Handler")
+    })
+    @PostMapping("/admin/add-order/")
+    @RequiresRole(value = {"ROLE_ADMIN"})
+    public ResponseEntity<String> editOrder(@RequestBody EditOrderRec editOrderRec) {
+        orderService.addOrder(editOrderRec);
+        return ResponseEntity.ok("ADDED ORDER");
+    }
 
     // remove full order
 

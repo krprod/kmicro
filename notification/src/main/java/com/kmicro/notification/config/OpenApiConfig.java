@@ -13,7 +13,7 @@ public class OpenApiConfig {
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()
-                        .title("Notification Service API and Kafka Consumer & Producer")
+                        .title("Notification Service API")
                         .version("1.0")
                         .description("API for Managing Notifications, using RestEndpoint and Kafka Topics")
                         .contact(new Contact().name("Backend Team").email("dev@kmicro.com")))

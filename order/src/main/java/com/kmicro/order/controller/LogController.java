@@ -2,6 +2,7 @@ package com.kmicro.order.controller;
 
 import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.LoggerContext;
+import com.kmicro.order.annotation.RequiresRole;
 import com.kmicro.order.dtos.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/order-service/logs")
+@RequiresRole(value = { "ROLE_ADMIN"})
 public class LogController {
 
 //    @Hidden
@@ -23,7 +25,7 @@ public class LogController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Logger>> getloglist(){
+    public ResponseEntity<List<Logger>> getLogList(){
         LoggerContext context = (LoggerContext) LoggerFactory.getILoggerFactory();
         List<Logger> loggers = new ArrayList<>();
         for (ch.qos.logback.classic.Logger logger : context.getLoggerList()) {

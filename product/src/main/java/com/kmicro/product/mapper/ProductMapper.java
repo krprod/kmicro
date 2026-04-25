@@ -45,6 +45,7 @@ public class ProductMapper {
         productEntity.setDescription(productDTO.getDescription());
         productEntity.setReviewCount(productDTO.getReviewCount());
         productEntity.setInStock(productDTO.getInStock());
+        productEntity.setIsActive(productDTO.getIsActive());
         return productEntity;
     }
 
@@ -62,6 +63,7 @@ public class ProductMapper {
         productEntity.setDescription(productDTO.getDescription());
         productEntity.setReviewCount(productDTO.getReviewCount());
         productEntity.setInStock(productDTO.getInStock());
+        productEntity.setIsActive(productDTO.getIsActive());
         return productEntity;
     }
 
@@ -77,6 +79,7 @@ public class ProductMapper {
         productDTO.setRating(product.getRating());
         productDTO.setReviewCount(product.getReviewCount());
         productDTO.setInStock(product.getInStock());
+        productDTO.setIsActive(product.getIsActive());
         return productDTO;
     }
 
@@ -85,6 +88,7 @@ public class ProductMapper {
         if (dto == null || entity == null) return;
         entity.setName(dto.getName());
         entity.setCategory(dto.getCategory());
+        entity.setStockQuantity(dto.getQuantity());
         entity.setPrice(dto.getPrice());
         entity.setStockQuantity(dto.getQuantity());
         entity.setImage(dto.getImage());
@@ -92,5 +96,6 @@ public class ProductMapper {
         entity.setReviewCount(dto.getReviewCount());
         entity.setInStock(dto.getInStock());
         entity.setRating(dto.getRating());
+        entity.setIsActive(dto.getIsActive());
     }
 }// endClass

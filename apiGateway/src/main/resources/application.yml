@@ -1,0 +1,74 @@
+server:
+  port: 9096
+  forward-headers-strategy: framework
+
+spring:
+  application:
+    name: apiGateway
+  profiles:
+    active: prod
+  cloud:
+    gateway:
+      # This is the new required nesting for your version
+      server:
+        webflux:
+          httpclient:
+            connect-timeout: 1000
+            response-timeout: 10s
+    default-filters:
+      -     name: RequestRateLimiter
+            args:
+              redis-rate-limiter.replenishRate: 10
+              redis-rate-limiter.burstCapacity: 20
+              redis-rate-limiter.requestedTokens: 1
+              key-resolver: '#{@userKeyResolver}'
+      #                key-resolver: '#@RequestRateLimiterKeyResolver'
+      -     name: CircuitBreaker
+            args:
+              name: "default"
+              fallbackUri: "forward:/contactSupport"
+
+  data:
+    redis:
+      connect-timeout: 2s
+      host: localhost
+      port: 6379
+      timeout: 1s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    readiness-state:
+      enabled: true
+    liveness-state:
+      enabled: true
+  endpoint:
+    gateway:
+      access: unrestricted
+  info:
+    env:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+auth:
+  jwt:
+    secret: ${JWT_SECRET}
+
+frontURL: ${FRONTEND_URL}
+
+resilience4j.circuitbreaker:
+  configs:
+    default:
+      slidingWindowSize: 10
+      permittedNumberOfCallsInHalfOpenState: 2
+      failureRateThreshold: 50
+      waitDurationInOpenState: 10000
+
+springdoc:
+  api-docs.enabled: true
+  swagger-ui:

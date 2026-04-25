@@ -33,4 +33,9 @@ public class ProductEntity {
 
     @Column(name = "url")
     private String image;
+
+    @Column(name = "is_active")
+    private Boolean isActive;
+
+
 }

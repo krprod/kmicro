@@ -1,0 +1,120 @@
+server:
+      port: 9096
+
+spring:
+      application:
+            name: apiGateway
+      profiles:
+            active: prod
+      cloud:
+            gateway:
+                  # This is the new required nesting for your version
+                  server:
+                        webflux:
+                              routes:
+                                    - id: product-service-route
+                                      uri: http://localhost:${PRODUCT_PORT}
+                                      predicates:
+                                            - Path=/api/products/**, /api/category/**, /api/product-service/logs
+                                      filters:
+                                            - AuthenticationFilter
+
+                                    - id: order-service-route
+                                      uri: http://localhost:${ORDER_PORT}
+                                      predicates:
+                                            - Path=/api/orders/**, /api/carts/**, /api/order-service/logs
+                                      filters:
+                                            - AuthenticationFilter
+
+                                    - id: notification-service-route
+                                      uri: http://localhost:${NOTIFICATION_PORT}
+                                      predicates:
+                                            - Path=/api/emails/**, /api/notifications/**, /api/notification-service/logs
+                                      filters:
+                                            - AuthenticationFilter
+
+                                    - id: user-service-route
+                                      uri: http://localhost:${USER_PORT}
+                                      predicates:
+                                            - Path=/api/users/address/**, /api/users/**, /api/auth/**, /api/user-service/logs
+                                      filters:
+                                            - AuthenticationFilter
+
+                                    # --- Swagger Documentation Routes ---
+                                    - id: product-docs
+                                      uri: http://localhost:${PRODUCT_PORT}
+                                      predicates:
+                                            - Path=/product-service/v3/api-docs/**, /product-service/swagger-ui/**, /product-service/webjars/**
+                                      filters:
+                                            - RewritePath=/product-service/(?<segment>.*), /${segment}
+                                    - id: order-docs
+                                      uri: http://localhost:${ORDER_PORT}
+                                      predicates:
+                                            - Path=/order-service/v3/api-docs/**, /order-service/swagger-ui/**, /order-service/webjars/**, /order-service/springwolf/**
+                                      filters:
+                                            - RewritePath=/order-service/(?<segment>.*), /${segment}
+                                    - id: user-docs
+                                      uri: http://localhost:${USER_PORT}
+                                      predicates:
+                                            - Path=/user-service/v3/api-docs/**, /user-service/swagger-ui/**, /user-service/webjars/**, /user-service/springwolf/**
+                                      filters:
+                                            - RewritePath=/user-service/(?<segment>.*), /${segment}
+                                    - id: notification-docs
+                                      uri: http://localhost:${NOTIFICATION_PORT}
+                                      predicates:
+                                            - Path=/notification-service/v3/api-docs/**, /notification-service/swagger-ui/**, /notification-service/webjars/**, /notification-service/springwolf/**
+                                      filters:
+                                            - RewritePath=/notification-service/(?<segment>.*), /${segment}
+                              globalcors:
+                                    cors-configurations:
+                                          '[/**]':
+                                                allowedOrigins: "http://localhost:9096"
+                                                allowedMethods:
+                                                      - GET
+                                                      - POST
+                                                      - PUT
+                                                      - DELETE
+                                                      - OPTIONS
+                                                allowedHeaders: "*"
+                                                #            allowCredentials: true
+                                                allowCredentials: false
+      data:
+            redis:
+                  host: localhost
+                  port: 6379
+
+management:
+      endpoints:
+            web:
+                  exposure:
+                        include: "*"
+      health:
+            readiness-state:
+                  enabled: true
+            liveness-state:
+                  enabled: true
+      endpoint:
+            gateway:
+                  access: unrestricted
+      info:
+            env:
+                  enabled: true
+      metrics:
+            tags:
+                  application: ${spring.application.name}
+
+auth:
+      jwt:
+            secret: ${JWT_SECRET}
+
+springdoc:
+      swagger-ui:
+            urls:
+                  - name: Product Service
+                    url: /product-service/v3/api-docs
+                  - name: Order Service
+                    url: /order-service/v3/api-docs
+                  - name: User Service
+                    url: /user-service/v3/api-docs
+                  - name: Notification Service
+                    url: /notification-service/v3/api-docs

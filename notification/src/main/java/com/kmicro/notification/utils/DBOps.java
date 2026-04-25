@@ -31,7 +31,7 @@ public class DBOps {
 //        if(notificationsEntities instanceof List<NotificationsEntity> entityList){
 //            notificationRepository.saveAll(notificationsEntities);
 //        }
-        log.info("Saved Data In DB");
+        log.debug("Saved Data In DB");
         return notificationRepository.save(notificationsEntity);
     }
 
@@ -39,7 +39,7 @@ public class DBOps {
     public void saveDataInDB(NotificationsEntity notificationsEntity, UserDataEntity userDataEntity){
         notificationRepository.save(notificationsEntity);
         userDataRepository.save(userDataEntity);
-        log.info("Both Entities are Saved Data In DB");
+        log.debug("Both Entities are Saved Data In DB");
     }
 
     @Transactional

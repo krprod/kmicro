@@ -126,7 +126,7 @@ public class OrdersEventProcessor {
 
     private void flushEntity(NotificationsEntity entity){
         DBOps.saveDataInDB(entity);
-        log.info("Entity Flushed Successful");
+        log.info("OrdersEventProcessor Flushed Successful");
     }
 
     private Map<String, Object> checkUserAndAddress(Integer userID, Integer addressID){

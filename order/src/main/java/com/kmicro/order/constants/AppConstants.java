@@ -24,5 +24,6 @@ public final class AppConstants {
     public static final String TEMP_TRACKING_ID = "track_01";
     public static final String TRACKING_URL = "https://kmicro.com/track/";
     public static final String PRODUCT_URL = "https://kmicro.com/product/";
+    public static final String FRONTEND_URL = System.getenv("FRONTEND_URL");
 
 }

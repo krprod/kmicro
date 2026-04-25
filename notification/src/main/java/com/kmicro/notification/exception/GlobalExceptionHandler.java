@@ -50,6 +50,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                 LocalDateTime.now()
         );
         log.error("Server Errror Request at {}: {}", webRequest.getDescription(false), exception.getMessage());
+        log.debug("Exception: ",exception);
         return  ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(errorResponseDTO);
 
     }

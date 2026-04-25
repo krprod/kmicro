@@ -38,8 +38,15 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
             validationErrors.put(fieldName, validationMsg);
         });
 
+        ErrorResponseDTO errorResponseDTO = new ErrorResponseDTO(
+                request.getDescription(false),
+                HttpStatus.BAD_REQUEST,
+                validationErrors.toString(),
+                LocalDateTime.now()
+        );
+
         log.error("Valdiation Errors at {}: {}", request.getDescription(false), validationErrors);
-        return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(validationErrors);
+        return  ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errorResponseDTO);
     }
 
     @ExceptionHandler(Exception.class)

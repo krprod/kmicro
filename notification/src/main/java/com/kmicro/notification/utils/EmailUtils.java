@@ -175,8 +175,8 @@ public class EmailUtils {
             helper.setSubject(subject);
             helper.setTo(sendto);
             mailGenerator.setHtml(helper, html);
-        System.out.println(html);
-            log.info("------------   ALL SET, INITIATING MAIL SENDER -------------------");
+            log.info("------------   ALL SET, INITIATING MAIL SENDER TO:{}, Sub: {}, NtfID: {} -------------------", sendto, subject, notificationID);
+            System.out.println(html);
             mailGenerator.sendMultiPartMail(message);
             DBOps.updateDeliveryStatus(notificationID, Status.DELIVERED);
 //        } catch (Exception e) {

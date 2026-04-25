@@ -173,8 +173,10 @@ public class EventDataCreator {
                                     .put("quantity", item.getQuantity())
                                     .put("price", item.getPrice())
                                     .put("product_id", item.getProductId())
-                                    .put("img",AppConstants.PRODUCT_URL + item.getItemImg())
-                                    .put("link", AppConstants.PRODUCT_URL + item.getProductId())
+//                                    .put("img",AppConstants.PRODUCT_URL + item.getItemImg())
+                                    .put("img", item.getItemImg())
+//                                    .put("link", AppConstants.PRODUCT_URL + item.getProductId())
+                                    .put("link", AppConstants.FRONTEND_URL+"/product/" + item.getProductId())
                                     .put("name", item.getItemName()) ;
                 }
         );

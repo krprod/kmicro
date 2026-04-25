@@ -23,6 +23,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.CachePut;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -66,6 +67,7 @@ public class UserService{
         return new ResponseDTO("200", "User created successfully with ID: "+savedUser.getId());
     }
 
+    @CachePut(value = AppContants.CACHE_USER_KEY_PX, key = "#result.getId()", unless = "#result == null")
     public  UserDTO getUserById(Long id, Boolean withAddress) {
 /*        Optional<UserEntity> userEntityOpt = dbOps.findUserByID(id);
         log.info("HITTING DB TO GET DATA");
@@ -81,7 +83,12 @@ public class UserService{
     }
 
     @CachePut(value = AppContants.CACHE_USER_KEY_PX, key = "#result.getId()", unless = "#result == null")
-    @CacheEvict(value = AppContants.CACHE_ADDRESS_KEY_PX, key = "#result.getId()")
+    @Caching(
+            evict = {
+                    @CacheEvict(value = AppContants.CACHE_USER_KEY_PX, key = "#result.getId()"),
+                    @CacheEvict(value = AppContants.CACHE_ADDRESS_KEY_PX, key = "#result.getId()")
+            }
+    )
     @Transactional
     public UserDTO deleteUser(HttpServletRequest request) {
         Claims token = userAuthUtil.getClaimsAndInvalidate(request);
@@ -101,8 +108,9 @@ public class UserService{
         return null;
     }
 
-//    @RolesAllowed(RolesConstants.ADMIN)
+//    @RolesAllowed(RolesConstants.ADMIN) CACHE_ADMIN_KEY_PX
     public List<UserDTO> getAllUsers() {
+        log.debug("Auth: {}", SecurityContextHolder.getContext().getAuthentication().getPrincipal());
         var usersEntity = usersRepository.findAll();
         return UserMapper.EntityListToDTOList(usersEntity);
     }
@@ -178,5 +186,16 @@ public class UserService{
     public  UserEntity getUserByEmail(String email) {
         return dbOps.findUserByEmail(email)
                 .orElseThrow(()->new UserNotFoundException("User Email not exists in DB: "+ email));
+    }
+
+    @CacheEvict(value = AppContants.CACHE_USER_KEY_PX, key = "#id")
+    public void userDeleteByAdmin(Long id) {
+        UserEntity user = usersRepository.findById(id)
+                .orElseThrow(()-> new UserNotFoundException("User not Found ID: "+ id));
+
+        if(user.isActive() && !user.isLocked()){
+            user.deactivateAccount();
+            log.info("ADMIN ACTION: User {} has been deactivated and locked.", user.getEmail());
+        }
     }
 }//EC

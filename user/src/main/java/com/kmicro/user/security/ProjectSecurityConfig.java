@@ -4,7 +4,6 @@ import com.kmicro.user.exception.CustomAccessDeniedHandler;
 import com.kmicro.user.exception.CustomBasicAuthenticationEntryPoint;
 import com.kmicro.user.security.filter.CsrfCookieFilter;
 import com.kmicro.user.security.filter.JwtRequestFilter;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -22,16 +21,12 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 import org.springframework.security.web.authentication.www.BasicAuthenticationFilter;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.csrf.CsrfTokenRequestAttributeHandler;
-import org.springframework.web.cors.CorsConfiguration;
-import org.springframework.web.cors.CorsConfigurationSource;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @Configuration
-@EnableWebSecurity(debug = true)
-@EnableMethodSecurity(jsr250Enabled = true, prePostEnabled = false, securedEnabled = true)
+@EnableWebSecurity(debug = false)
+@EnableMethodSecurity(jsr250Enabled = true, prePostEnabled = true, securedEnabled = true)
 @RequiredArgsConstructor
 public class ProjectSecurityConfig {
 
@@ -64,7 +59,7 @@ public class ProjectSecurityConfig {
 
         http
 //                .csrf(csrf -> csrf.disable()) // Disable CSRF for stateless REST APIs
-                .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
+               /* .cors(corsConfig -> corsConfig.configurationSource(new CorsConfigurationSource() {
                     @Override
                     public CorsConfiguration getCorsConfiguration(HttpServletRequest request) {
                         CorsConfiguration config = new CorsConfiguration();
@@ -76,15 +71,18 @@ public class ProjectSecurityConfig {
                         config.setMaxAge(3600L);
                         return config;
                     }
-                }))
+                }))*/
+//                .headers(headers -> headers
+//                        .frameOptions(frameOptions -> frameOptions.sameOrigin()) // Allows iframes from same domain
+//                )
                 .csrf(csrfConfig -> csrfConfig.csrfTokenRequestHandler(csrfTokenRequestAttributeHandler)
                         .ignoringRequestMatchers( "/api/auth/register","/api/auth/generate-csrf"
-                                ,"/swagger-ui/**","/v3/api-docs/**","/api/users/**","/api/auth/verify","/api/auth/resend-verification/**","/api/auth/resend-verify-user","/springwolf/**")
+                                ,"/swagger-ui/**","/v3/api-docs/**","/api/users/**","/actuator/**","/api/auth/verify","/api/auth/resend-verification/**","/api/auth/resend-verify-user","/springwolf/**")
                         .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse()))
                 .addFilterAfter(new CsrfCookieFilter(), BasicAuthenticationFilter.class)
                 .authorizeHttpRequests(auth -> auth
                         // Public endpoints for authentication and registration
-                        .requestMatchers("/api/users/**",
+                        .requestMatchers("/api/users/**","/actuator/**",
                                 "/api/auth/generate-csrf","/api/auth/register","/api/auth/verify","/api/auth/resend-verification/**",
                                 "/api/auth/login","/api/auth/resend-verify-user","/swagger-ui/**","/v3/api-docs/**","/springwolf/**").permitAll()
 //                        .requestMatchers("/api/auth/login").authenticated()
@@ -99,6 +97,7 @@ public class ProjectSecurityConfig {
                 )
                 // Add the custom JWT filter before Spring's default filter
                 .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
+//                .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class);
         http.httpBasic(hbc -> hbc.authenticationEntryPoint(new CustomBasicAuthenticationEntryPoint()));
         http.exceptionHandling(ehc -> ehc
                 .accessDeniedHandler(new CustomAccessDeniedHandler())

@@ -69,7 +69,7 @@ public class MailGenerator {
 
     public void sendMultiPartMail(MimeMessage mailMessage){
         try {
-//            javaMailSender.send(mailMessage);
+            javaMailSender.send(mailMessage);
             commonHelperUtils.chaosMonkey(false);
             log.info("Multi-Part Mail Sent Successfully");
         } catch (Exception e) {

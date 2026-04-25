@@ -15,6 +15,7 @@ import com.kmicro.order.exception.OrderException;
 import com.kmicro.order.mapper.OrderItemMapper;
 import com.kmicro.order.mapper.OrderMapper;
 import com.kmicro.order.repository.OrderRepository;
+import com.kmicro.order.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
@@ -42,6 +43,7 @@ public class OrderUtils {
     private final KafkaUtils kafkaUtils;
     private final ObjectMapper objectMapper;
     private final OutboxUtils outboxUtils;
+    private final CartService cartService;
     private List<OutboxEntity> OutboxEventList = new ArrayList<>(10);
 
     @Transactional
@@ -132,6 +134,8 @@ public class OrderUtils {
         String key = AppConstants.REDIS_ORDER_KEY_PREFIX + order.getId();
         redisTemplate.opsForValue().set(key, order);
         log.info("Order Saved In Redis ID: {}  and Key: {}", order.getId(), key);
+        cartService.deleteCart(order.getUserId().toString());
+        log.info("Cart Deleted Successfully for user_id: {}", order.getUserId());
     }
 
     public Object getOrderFromRedis(String orderId){
@@ -152,7 +156,7 @@ public class OrderUtils {
         }
         log.info("Orders with  found for UserID: {}",userId);
         List<OrderEntity> orderEntity =   orderRepository.findByUserId(userId);
-        List<OrderDTO> orderDTOList = OrderMapper.entityToDTOListWithItems(orderEntity);
+        List<OrderDTO> orderDTOList = OrderMapper.entityToDTOListWithItemsAndAddress(orderEntity, objectMapper);
         return new ArrayList<>(orderDTOList);
     }
 
@@ -186,7 +190,7 @@ public class OrderUtils {
                 .orElseThrow(()-> new OrderException("Order Not Exists By ID: {} for UserID: {}", orderStatusRec.orderID(), orderStatusRec.userID()));
 
         log.info("Changing Status from: {} to: {} of Order ID: {}",order.getStatus(), orderStatusRec.orderStatus(), order.getId());
-        order.setStatus(Status.valueOf(orderStatusRec.orderStatus()));
+        order.setStatus(Status.valueOf(orderStatusRec.orderStatus().toUpperCase()));
         return orderRepository.save(order);
     }
 

@@ -67,6 +67,7 @@ public class RedisCacheConfig {
             // User cache: 24 hours (Long lived)
             cacheConfigurationDiff.put(AppContants.CACHE_USER_KEY_PX, cacheConfiguration().entryTtl(Duration.ofMinutes(20)));
             cacheConfigurationDiff.put(AppContants.CACHE_ADDRESS_KEY_PX, cacheConfiguration().entryTtl(Duration.ofMinutes(30)));
+            cacheConfigurationDiff.put(AppContants.CACHE_ADMIN_KEY_PX, cacheConfiguration().entryTtl(Duration.ofMinutes(30)));
 
             // Auth/Login tokens: 15 minutes (Short lived)
             //cacheConfigurationDiff.put("login_tokens", cacheConfiguration().entryTtl(Duration.ofMinutes(15)));
@@ -77,17 +78,5 @@ public class RedisCacheConfig {
                 .build();
         return new TransactionAwareCacheManagerProxy(redisCacheManager);
     }
-
-    /*@Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .prefixCacheNameWith("order:cache:") // Dedicated sub-prefix for cache
-                .entryTtl(Duration.ofMinutes(10))    // Auto-delete after 10 mins
-                .disableCachingNullValues();
-
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(config)
-                .build();
-    }*/
 
 }//EC

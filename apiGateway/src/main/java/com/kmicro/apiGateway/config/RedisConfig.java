@@ -1,0 +1,98 @@
+package com.kmicro.apiGateway.config;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.databind.jsontype.impl.LaissezFaireSubTypeValidator;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import com.kmicro.apiGateway.constants.AppContants;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
+import org.springframework.data.redis.connection.RedisConnectionFactory;
+import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
+import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.serializer.GenericJackson2JsonRedisSerializer;
+import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
+
+@Configuration
+public class RedisConfig {
+
+    @Value("${spring.application.name}")
+    private String serviceName;
+
+    @Value("${spring.data.redis.host:localhost}")
+    private String redisHost;
+
+    @Value("${spring.data.redis.port:6379}")
+    private int redisPort;
+
+    @Value("${spring.data.redis.password:}")
+    private String redisPassword;
+
+    @Bean
+    public RedisConnectionFactory redisConnectionFactory() {
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration(redisHost, redisPort);
+        if (redisPassword != null && !redisPassword.isBlank()) {
+            configuration.setPassword(redisPassword);
+        }
+        return new LettuceConnectionFactory(configuration);
+    }
+
+
+    @Bean
+    @Primary
+    public RedisTemplate<String , Object> redisTemplateObject(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+
+        ObjectMapper mapper = createObjectMapper();
+
+        Jackson2JsonRedisSerializer<Object> serializer = new Jackson2JsonRedisSerializer<>(mapper,Object.class);
+        //------ Custom Prefixing Serializer for Keys
+//        RedisPfxSerializer prefixSerializer = new RedisPfxSerializer(serviceName);
+        RedisPfxSerializer prefixSerializer = new RedisPfxSerializer(AppContants.SERVICE_REDIS_KEY_PREFIX);
+//        StringRedisSerializer stringSerializer = new StringRedisSerializer();
+
+        template.setKeySerializer(prefixSerializer);
+        template.setValueSerializer(serializer);
+        return template;
+    }
+
+    @Qualifier("redisTemplateClassCast")
+    @Bean
+    public RedisTemplate<String, Object> redisTemplateClassCast(RedisConnectionFactory connectionFactory) {
+        RedisTemplate<String, Object> template = new RedisTemplate<>();
+        template.setConnectionFactory(connectionFactory);
+
+        ObjectMapper mapper = createObjectMapper();
+        // This is the "Magic" line: It enables polymorphic type handling
+        mapper.activateDefaultTyping(
+                LaissezFaireSubTypeValidator.instance,
+                ObjectMapper.DefaultTyping.NON_FINAL
+        );
+
+        GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(mapper);
+        //------ Custom Prefixing Serializer for Keys
+        RedisPfxSerializer prefixSerializer = new RedisPfxSerializer(serviceName);
+
+//        template.setKeySerializer(new StringRedisSerializer());
+        template.setKeySerializer(prefixSerializer);
+        template.setValueSerializer(serializer);
+        return template;
+    }
+
+    private ObjectMapper createObjectMapper() {
+        return JsonMapper.builder()
+                .addModule(new JavaTimeModule())
+                .disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS)
+                .serializationInclusion(JsonInclude.Include.NON_NULL)
+                // Senior Security Tip: Enable default typing for polymorphism if needed
+                // .activateDefaultTyping(LaissezFaireSubTypeValidator.instance, ObjectMapper.DefaultTyping.NON_FINAL)
+                .build();
+    }
+}//EC

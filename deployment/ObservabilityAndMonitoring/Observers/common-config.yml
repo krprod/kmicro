@@ -1,0 +1,27 @@
+services:
+      network-deploy-service:
+            networks:
+                  - kmicro
+
+      microservice-base-config:
+            extends:
+                  service: network-deploy-service
+            deploy:
+                  resources:
+                        limits:
+                              memory: 700m
+            environment:
+                  # Use the standardized variable names for 2026
+                  OTEL_JAVAAGENT_ENABLED: "true"
+                  OTEL_EXPORTER_OTLP_ENDPOINT: "http://tempo:4317" # Use 4317 for gRPC (better performance)
+                  OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
+                  # Capture headers (Note: keys are usually case-insensitive in the config, but lowercase is safer)
+                  OTEL_INSTRUMENTATION_HTTP_SERVER_CAPTURE_REQUEST_HEADERS: "x-auth-user-id,x-auth-user-roles,user-agent"
+                  # Ensure the agent doesn't send metrics/logs if you're using Prometheus/ELK
+                  OTEL_METRICS_EXPORTER: "none"
+                  OTEL_LOGS_EXPORTER: "none"
+                  JAVA_TOOL_OPTIONS: "-javaagent:/otel/opentelemetry-javaagent.jar"
+                  OTEL_INSTRUMENTATION_LOGGING_MDC_ENABLED: "true"
+            volumes:
+                  - ./libs/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
+

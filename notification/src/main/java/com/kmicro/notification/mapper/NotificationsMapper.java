@@ -2,9 +2,11 @@ package com.kmicro.notification.mapper;
 
 import com.kmicro.notification.constansts.ChannelType;
 import com.kmicro.notification.constansts.Status;
+import com.kmicro.notification.dtos.NotificiationDTO;
 import com.kmicro.notification.entities.NotificationsEntity;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 
 public  class NotificationsMapper {
@@ -33,5 +35,30 @@ public  class NotificationsMapper {
             entity.setRetryCount(0);
             entity.setPriority(10);
 //            return  entity;
+        }
+
+        public static NotificiationDTO mapNotificationEntityToDTO(NotificationsEntity entity){
+            NotificiationDTO notificiationDTO = new NotificiationDTO();
+            notificiationDTO.setId(entity.getId());
+            notificiationDTO.setRecipientId(entity.getRecipientId());
+            notificiationDTO.setRecipientName(entity.getRecipientName());
+            notificiationDTO.setFragment(entity.getFragment());
+            notificiationDTO.setSendTo(entity.getSendTo());
+            notificiationDTO.setSubject(entity.getSubject());
+            notificiationDTO.setRetryCount(entity.getRetryCount());
+            notificiationDTO.setChannelType(entity.getChannelType());
+            notificiationDTO.setPriority(entity.getPriority());
+            notificiationDTO.setStatus(entity.getStatus());
+            notificiationDTO.setPayload(entity.getPayload());
+            notificiationDTO.setMailBody(entity.getMailBody());
+            notificiationDTO.setFailureReason(entity.getFailureReason());
+            notificiationDTO.setScheduledAt(entity.getScheduledAt());
+            notificiationDTO.setCreatedAt(entity.getCreatedAt());
+            notificiationDTO.setUpdatedAt(entity.getUpdatedAt());
+            return notificiationDTO;
+        }
+
+        public static List<NotificiationDTO> mapNotificationEntityListToDTOList(List<NotificationsEntity> entities){
+            return entities.stream().map(NotificationsMapper::mapNotificationEntityToDTO).toList();
         }
 }

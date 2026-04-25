@@ -63,7 +63,7 @@ public class UsersListerner {
             //-----------eventType = userDetailShared
             if(targetSystem.equalsIgnoreCase("notification-service")){
                 usersEventProcessor.processRawEvent(requestRecord.value(), eventType);
-                log.info("Processing Value: {}", requestRecord.value());
+                log.info("UsersListerner  Processing: {}", requestRecord.value());
             }else {
                 log.info("NOT NOTIFICATION SERVICE EVENT ---IGNORE Processing ---REVERT Acknowledgment ");
             }

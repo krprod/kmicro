@@ -57,6 +57,9 @@ __Product Service__
   - Category Serivce Endpoint: /api/category
 - DOC: http://localhost:8080/swagger-ui/index.html | http://localhost:8080/v3/api-docs
 
+  http://localhost:9096/webjars/swagger-ui/index.html
+http://localhost:9096/user-service/springwolf/asyncapi-ui.html
+
 __Order Service__
 - URL: http://localhost:8091/ 
   - Cart Service Endpoint: /api/carts

@@ -1,3 +1,9 @@
 /volume
-1docker-compose.yml
+deployment/playground/intialDockers/1docker-compose.yml
 .idea
+/deployment/playground/.env.ec2
+/deployment/playground/.env.local
+/deployment/ObservabilityAndMonitoring/Observers/.env.local
+/deployment/ObservabilityAndMonitoring/Observers/.data
+/deployment/ObservabilityAndMonitoring/Observers/libs
+deployment/playground/UseReadME.md

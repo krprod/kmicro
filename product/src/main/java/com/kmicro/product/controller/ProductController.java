@@ -1,7 +1,8 @@
 package com.kmicro.product.controller;
 
+import com.kmicro.product.annotation.RequiresRole;
 import com.kmicro.product.dtos.BoughtProductRecord;
-import com.kmicro.product.dtos.BulkUpdateResponseRecord;
+import com.kmicro.product.dtos.BulkResponseRecord;
 import com.kmicro.product.dtos.PagedResponseDTO;
 import com.kmicro.product.dtos.ProductDTO;
 import com.kmicro.product.service.ProductService;
@@ -68,10 +69,11 @@ public class ProductController {
                 @ApiResponse(responseCode = "200", description = "Successfully processed all data"),
                 @ApiResponse(responseCode = "400", description = "Failed to process data handled globalError Handler")
         })
-        @PostMapping(value = "/bought-products")
-        public ResponseEntity<BulkUpdateResponseRecord>boughtProduct(@RequestBody  @Valid List<BoughtProductRecord> productRecord){
+            @PostMapping(value = "/bought-products")
+        @RequiresRole({"ROLE_USER","ROLE_ADMIN"})
+        public ResponseEntity<BulkResponseRecord>boughtProduct(@RequestBody  @Valid List<BoughtProductRecord> productRecord){
 //            BulkUpdateResponseRecord response  = productService.changeQtyBoughtProduct(productRecord);
-            BulkUpdateResponseRecord response  = productService.changeQtyBoughtProductOptimized(productRecord);
+            BulkResponseRecord response  = productService.changeQtyBoughtProductOptimized(productRecord);
             HttpStatus status = response.errors().isEmpty() ? HttpStatus.OK : HttpStatus.MULTI_STATUS;
             return ResponseEntity.status(status).body(response);
         }
@@ -82,9 +84,9 @@ public class ProductController {
             @ApiResponse(responseCode = "400", description = "Failed to process data handled globalError Handler")
     })
     @PostMapping(value = "/qty-check")
-    public ResponseEntity<ProductDTO>checkProductQuantity(@RequestBody  @Valid BoughtProductRecord productRecord){
-            ProductDTO productDTO = productService.checkProductAvailability(productRecord);
-            return ResponseEntity.status(200).body(productDTO);
+    public ResponseEntity<BulkResponseRecord>checkProductQuantity(@RequestBody  @Valid List<BoughtProductRecord> productRecord){
+            BulkResponseRecord productResponse = productService.checkProductAvailability(productRecord);
+            return ResponseEntity.status(200).body(productResponse);
     }
 
     @Operation(summary = "Paginated Results | search, filter,sort ", description = "search, filter,sort products list returns in paginated manner ")
@@ -100,7 +102,6 @@ public class ProductController {
                 @Parameter(description = "Searched Keyword", example = "xproduct")
                 @RequestParam(required = false) String keyword,
                 @ParameterObject Pageable pageable){
-
             PagedResponseDTO<ProductDTO> productList  = productService.filterAndSortedProductList(keyword,category, minPrice, maxPrice, pageable);
             return  ResponseEntity.status(200).body(productList);
         }
@@ -111,6 +112,7 @@ public class ProductController {
             @ApiResponse(responseCode = "400", description = "Failed to process data")
     })
     @PostMapping(value = "/add")
+    @RequiresRole("ROLE_ADMIN")
     public ResponseEntity<List<ProductDTO>> addProduct(@RequestBody List<ProductDTO> productList) {
         List<ProductDTO> result = productService.addProduct(productList);
         if(result.isEmpty()){
@@ -125,6 +127,7 @@ public class ProductController {
             @ApiResponse(responseCode = "400", description = "Failed to process data")
     })
     @PutMapping(value = "/update")
+    @RequiresRole("ROLE_ADMIN")
     public ResponseEntity<List<ProductDTO>> updateProduct(@RequestBody List<ProductDTO> productList) {
         List<ProductDTO> result = productService.updateProduct(productList);
         if(result.isEmpty()){
@@ -140,8 +143,9 @@ public class ProductController {
             @ApiResponse(responseCode = "400", description = "Invalid input data")
     })
     @PutMapping(value = "/bulk-update")
-    public ResponseEntity<BulkUpdateResponseRecord> bulkUpdateProduct(@RequestBody List<ProductDTO> productList) {
-        BulkUpdateResponseRecord response = productService.bulkUpdateProduct(productList);
+    @RequiresRole("ROLE_ADMIN")
+    public ResponseEntity<BulkResponseRecord> bulkUpdateProduct(@RequestBody List<ProductDTO> productList) {
+        BulkResponseRecord response = productService.bulkUpdateProduct(productList);
 
         HttpStatus status = response.errors().isEmpty() ? HttpStatus.OK : HttpStatus.MULTI_STATUS;
         return ResponseEntity.status(status).body(response);
@@ -149,6 +153,7 @@ public class ProductController {
 
     @Hidden
     @DeleteMapping(value = "/delete/{id}")
+    @RequiresRole("ROLE_ADMIN")
     public ResponseEntity<String> deleteProduct(@PathVariable(name = "id") Long id){
         productService.deleteProduct(id);
         return  ResponseEntity.status(200).body("Deleted");
