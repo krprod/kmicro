@@ -25,7 +25,7 @@ docker compose --env-file .env.local restart user-service && sleep 5 && docker c
 
 docker compose up -d --force-recreate
 docker compose --env-file .env.local up -d --force-recreate user-service 
-docker compose --env-file .env.local up -d --force-recreate user-service order-service  product-service  notification-service 
+docker compose --env-file .env.local up -d --force-recreate user-service order-service  product-service  notification-service apiGateway-service
 
 
 //------------------------------ AlloyLocalConfig
