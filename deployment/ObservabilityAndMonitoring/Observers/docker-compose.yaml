@@ -575,6 +575,23 @@ services:
             file: common-config.yml
             service: network-deploy-service
 
+  frontend-service:
+      build:
+            context: "/home/k/Code/Projects/ReactKmicroUI/kmicro-frontend"  # Change this to your actual folder path
+            dockerfile: Dockerfile
+            args:
+#                  - VITE_API_BASE_URL=https://api.bloodshot.in
+                  - VITE_API_BASE_URL=/api
+      container_name: springmicro-frontend-1
+      ports:
+            - "5173:80"  # Maps port 80 in container to 5173 on your machine
+      environment:
+            - VITE_API_BASE_URL=https://api.bloodshot.in  # Use your tunnel URL here
+      restart: unless-stopped
+      extends:
+            file: common-config.yml
+            service: network-deploy-service
+
 #  faro-collector:
 #        image: grafana/faro-collector:latest
 #        ports:

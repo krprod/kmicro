@@ -19,7 +19,7 @@ switch DB: \c dbname
 List of schemas: \dn
 update user_schema.users set  roles='{ROLE_USER,ROLE_ORDERS,ROLE_ADMIN}' where id=3;
 
-
+mvn compile jib:dockerBuild
 
 docker compose --env-file .env.local restart user-service && sleep 5 && docker compose --env-file .env.local logs user-service --tail=120
 
@@ -27,6 +27,14 @@ docker compose up -d --force-recreate
 docker compose --env-file .env.local up -d --force-recreate user-service 
 docker compose --env-file .env.local up -d --force-recreate user-service order-service  product-service  notification-service apiGateway-service
 
+docker compose --env-file .env.local up -d --build --force-recreate frontend-service
+docker exec springmicro-frontend-1 grep -r "api.bloodshot.in" /usr/share/nginx/html/assets/
+
+docker exec -it springmicro-frontend-1 ping apiGateway-service
+docker exec -it springmicro-frontend-1 wget -qO- http://apiGateway-service:9096/api/products/paginated?page=1&size=50
+
+docker exec -it springmicro-frontend-1 sh
+grep -r "https://api.bloodshot.in" /usr/share/nginx/html/assets/
 
 //------------------------------ AlloyLocalConfig
 #discovery.docker "flog_scrape" {
