@@ -1,7 +1,4 @@
 ---
-#networks:
-#  loki:
-
 networks:
       kmicro:
             driver: "bridge"
@@ -96,10 +93,6 @@ services:
         container_name: prometheus
         volumes:
               - ./prometheus.yml:/etc/prometheus/prometheus.yml
-#              - prometheus_data:/prometheus
-#        command:
-#              - '--config.file=/etc/prometheus/prometheus.yml'
-#              - '--storage.tsdb.path=/prometheus'
         ports:
               - "9090:9090"
         restart: unless-stopped
@@ -133,21 +126,6 @@ services:
       - -euc
       - |
             /run.sh
-#      - |
-#        mkdir -p /etc/grafana/provisioning/datasources
-#        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
-#        apiVersion: 1
-#        datasources:
-#          - name: Loki
-#            type: loki
-#            access: proxy
-#            url: http://gateway:3100
-#            jsonData:
-#              httpHeaderName1: "X-Scope-OrgID"
-#            secureJsonData:
-#              httpHeaderValue1: "tenant1"
-#        EOF
-#        /run.sh
     ports:
       - "3000:3000"
     volumes:
@@ -181,7 +159,6 @@ services:
     extends:
           file: common-config.yml
           service: network-deploy-service
-
 
   gateway:
     image: nginx:latest
@@ -273,8 +250,6 @@ services:
       extends:
             file: common-config.yml
             service: network-deploy-service
-#      networks:
-#            - loki
 
   redis:
       image: redis:7-alpine
@@ -292,8 +267,6 @@ services:
       extends:
             file: common-config.yml
             service: network-deploy-service
-#      networks:
-#            - loki
 
   kafka:
       image: confluentinc/cp-kafka:7.5.0
@@ -325,8 +298,6 @@ services:
       extends:
             file: common-config.yml
             service: network-deploy-service
-#      networks:
-#            - loki
 
   kafbat-ui:
       image: ghcr.io/kafbat/kafka-ui:latest
@@ -344,19 +315,10 @@ services:
       extends:
             file: common-config.yml
             service: network-deploy-service
-#      networks:
-#            - loki
 
   product-service:
-#      image: maven:3.9.9-eclipse-temurin-21
       image: "kmicro/product:s1"
       container_name: springmicro-product-1
-#      working_dir: /workspace/product
-#      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
-#      volumes:
-#            - ../../../:/workspace
-#            - maven_repo:/root/.m2
-#            - ./libs/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
       environment:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=product_schema
             SPRING_DATASOURCE_USERNAME: bloguser
@@ -366,9 +328,6 @@ services:
             SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
             KAFKA_BOOTSTRAP_SERVERS: kafka:29092
             OTEL_SERVICE_NAME: "product-service"
-#            OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST: "User-Agent,x-auth-user-id,Content-Type"
-#            OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST: "x-auth-user-id,X-Auth-User-Id, host"
-#            OTEL_HTTP_CLIENT_CAPTURE_REQUEST_HEADERS: "x-auth-user-id"
 #      ports:
 #            - "${PRODUCT_PORT:-8080}:8080"
       healthcheck:
@@ -388,19 +347,10 @@ services:
       extends:
             file: common-config.yml
             service: microservice-base-config
-#      networks:
-#            - loki
 
   user-service:
-#      image: maven:3.9.9-eclipse-temurin-21
       image: "kmicro/user:s1"
       container_name: springmicro-user-1
-#      working_dir: /workspace/user
-#      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
-#      volumes:
-#            - ../../../:/workspace
-#            - maven_repo:/root/.m2
-#            - ./libs/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
       environment:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=user_schema
             SPRING_DATASOURCE_USERNAME: bloguser
@@ -431,18 +381,10 @@ services:
       extends:
             file: common-config.yml
             service: microservice-base-config
-#      networks:
-#            - loki
 
   order-service:
       image: "kmicro/order:s1"
       container_name: springmicro-order-1
-#      working_dir: /workspace/order
-#      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
-#      volumes:
-#            - ../../../:/workspace
-#            - maven_repo:/root/.m2
-#            - ./libs/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
       environment:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=order_schema
             SPRING_DATASOURCE_USERNAME: bloguser
@@ -472,18 +414,10 @@ services:
       extends:
             file: common-config.yml
             service: microservice-base-config
-#      networks:
-#            - loki
 
   notification-service:
       image: "kmicro/notification:s1"
       container_name: springmicro-notification-1
-#      working_dir: /workspace/notification
-#      command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
-#      volumes:
-#            - ../../../:/workspace
-#            - maven_repo:/root/.m2
-#            - ./libs/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
       environment:
             SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/springmicro?currentSchema=notification_schema
             SPRING_DATASOURCE_USERNAME: bloguser
@@ -517,19 +451,12 @@ services:
       extends:
             file: common-config.yml
             service: microservice-base-config
-#      networks:
-#            - loki
+
 
 
   apiGateway-service:
         image: "kmicro/apigateway:s2"
-#        image: maven:3.9.9-eclipse-temurin-21
         container_name: springmicro-apiGateway-1
-#        working_dir: /workspace/apiGateway
-#        command: mvn -DskipTests spring-boot:run -Dspring-boot.run.jvmArguments="-javaagent:/otel/opentelemetry-javaagent.jar"
-#        volumes:
-#              - ../../../:/workspace
-#              - maven_repo:/root/.m2
         environment:
               SPRING_DATA_REDIS_HOST: redis
               SPRING_DATA_REDIS_PORT: 6379
@@ -580,7 +507,6 @@ services:
             context: "/home/k/Code/Projects/ReactKmicroUI/kmicro-frontend"  # Change this to your actual folder path
             dockerfile: Dockerfile
             args:
-#                  - VITE_API_BASE_URL=https://api.bloodshot.in
                   - VITE_API_BASE_URL=/api
       container_name: springmicro-frontend-1
       ports:

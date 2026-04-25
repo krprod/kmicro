@@ -79,16 +79,4 @@ public class RedisCacheConfig {
         return new TransactionAwareCacheManagerProxy(redisCacheManager);
     }
 
-    /*@Bean
-    public RedisCacheManager cacheManager(RedisConnectionFactory connectionFactory) {
-        RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
-                .prefixCacheNameWith("order:cache:") // Dedicated sub-prefix for cache
-                .entryTtl(Duration.ofMinutes(10))    // Auto-delete after 10 mins
-                .disableCachingNullValues();
-
-        return RedisCacheManager.builder(connectionFactory)
-                .cacheDefaults(config)
-                .build();
-    }*/
-
 }//EC

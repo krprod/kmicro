@@ -15,33 +15,13 @@ services:
                   OTEL_JAVAAGENT_ENABLED: "true"
                   OTEL_EXPORTER_OTLP_ENDPOINT: "http://tempo:4317" # Use 4317 for gRPC (better performance)
                   OTEL_EXPORTER_OTLP_PROTOCOL: "grpc"
-
                   # Capture headers (Note: keys are usually case-insensitive in the config, but lowercase is safer)
                   OTEL_INSTRUMENTATION_HTTP_SERVER_CAPTURE_REQUEST_HEADERS: "x-auth-user-id,x-auth-user-roles,user-agent"
-
                   # Ensure the agent doesn't send metrics/logs if you're using Prometheus/ELK
                   OTEL_METRICS_EXPORTER: "none"
                   OTEL_LOGS_EXPORTER: "none"
-#                  JAVA_TOOL_OPTIONS: "-javaagent:/app/libs/opentelemetry-javaagent-2.22.0.jar"
                   JAVA_TOOL_OPTIONS: "-javaagent:/otel/opentelemetry-javaagent.jar"
-#                  OTEL_EXPORTER_OTLP_ENDPOINT: http://tempo:4318
-#                  OTEL_METRICS_EXPORTER: none
-#                  OTEL_LOGS_EXPORTER: none
                   OTEL_INSTRUMENTATION_LOGGING_MDC_ENABLED: "true"
-#                  OTEL_INSTRUMENTATION_HTTP_CAPTURE_HEADERS_SERVER_REQUEST: "X-auth-user-id, User-Agent"
-#                  OTEL_JAVAAGENT_DEBUG: "true"   # remove later
             volumes:
                   - ./libs/opentelemetry-javaagent.jar:/otel/opentelemetry-javaagent.jar
 
-#      microservice-configserver-config:
-#            extends:
-#                  service: microservice-base-config
-#            environment:
-#                  SPRING_PROFILES_ACTIVE: default
-#                  SPRING_CONFIG_IMPORT: configserver:http://configserver:8071/
-#
-#      microservice-eureka-config:
-#            extends:
-#                  service: microservice-configserver-config
-#            environment:
-#                  EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: http://eurekaserver:8070/eureka/
